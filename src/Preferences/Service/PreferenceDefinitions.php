@@ -348,6 +348,7 @@ final class PreferenceDefinitions
             'profile_show_extern_roles' => array('default' => '1', 'type' => 'bool'),
             'profile_membership_duration_exact' => array('default' => '1', 'type' => 'bool'),
             'profile_photo_storage' => array('default' => '0', 'type' => 'enum', 'values' => array('0', '1')),
+            'profile_birthday_display_mode' => array('default' => '0', 'type' => 'enum', 'values' => array('0', '1', '2')),
             'sso_allow_private_network' => array('default' => '0', 'type' => 'bool'),
             'sso_saml_enabled' => array('default' => '0', 'type' => 'bool'),
             'sso_saml_entity_id' => array('defaultProvider' => self::DEFAULT_ADMIDIO_URL),

@@ -240,10 +240,17 @@ try {
 
                 // only show fields that are enabled for registration, or the user has permission to edit that field
                 if ($showField) {
+                    $usfNameIntern = $field->getValue('usf_name_intern');
+
+                    // hide BIRTHDAY_HIDE_YEAR if birthday display mode is not set to user choice (1)
+                    if ($usfNameIntern === 'BIRTHDAY_HIDE_YEAR'
+                        && (int)$gSettingsManager->getInt('profile_birthday_display_mode') !== 1) {
+                        continue;
+                    }
+
                     // add profile fields to form
                     $fieldProperty = FormPresenter::FIELD_DEFAULT;
                     $helpId = '';
-                    $usfNameIntern = $field->getValue('usf_name_intern');
 
                     if ($gProfileFields->getProperty($usfNameIntern, 'usf_disabled') == 1
                         && !$gCurrentUser->hasRightEditProfile($users[0]['user'], false) && $users[0]['uuid'] !== '') {

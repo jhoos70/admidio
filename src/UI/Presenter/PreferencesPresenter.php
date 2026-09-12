@@ -2167,6 +2167,18 @@ class PreferencesPresenter extends PagePresenter
             $selectBoxEntries,
             array('defaultValue' => $formValues['profile_photo_storage'], 'showContextDependentFirstEntry' => false, 'helpTextId' => 'SYS_LOCATION_PROFILE_PICTURES_DESC')
         );
+
+        $selectBirthdayMode = array(
+            '0' => $gL10n->get('SYS_BIRTHDAY_SHOW_ALWAYS'),
+            '1' => $gL10n->get('SYS_BIRTHDAY_SHOW_USER_CHOICE'),
+            '2' => $gL10n->get('SYS_BIRTHDAY_SHOW_NEVER')
+        );
+        $formProfile->addSelectBox(
+            'profile_birthday_display_mode',
+            $gL10n->get('SYS_BIRTHDAY_DISPLAY_MODE'),
+            $selectBirthdayMode,
+            array('defaultValue' => (string)($formValues['profile_birthday_display_mode'] ?? '0'), 'showContextDependentFirstEntry' => false, 'helpTextId' => 'SYS_BIRTHDAY_DISPLAY_MODE_DESC')
+        );
         $formProfile->addSubmitButton(
             'adm_button_save_profile',
             $gL10n->get('SYS_SAVE'),

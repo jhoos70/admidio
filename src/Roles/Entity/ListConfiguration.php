@@ -233,7 +233,17 @@ class ListConfiguration extends Entity
             if (strlen($content) > 0) {
                 // date must be formatted
                 $date = DateTime::createFromFormat('Y-m-d', $content);
-                $content = $date->format($gSettingsManager->getString('system_date'));
+                if ($date !== false) {
+                    global $gCurrentUser;
+                    $birthdayMode = (int)$gSettingsManager->getInt('profile_birthday_display_mode');
+                    if ($usfId === (int)$gProfileFields->getProperty('BIRTHDAY', 'usf_id')
+                        && ($birthdayMode === 2 || ($birthdayMode === 1 && $this->isUserHidingBirthYear($userUuid)))
+                        && (isset($gCurrentUser) && !$gCurrentUser->isAdministrator())) {
+                        $content = $date->format('d.m.');
+                    } else {
+                        $content = $date->format($gSettingsManager->getString('system_date'));
+                    }
+                }
             }
         } elseif (in_array($format, array('csv', 'xlsx', 'ods', 'pdf'), true)
             && ($gProfileFields->getPropertyById($usfId, 'usf_type') === 'DROPDOWN'
@@ -1292,5 +1302,36 @@ class ListConfiguration extends Entity
     public function getIgnoredLogColumns(): array
     {
         return array_merge(parent::getIgnoredLogColumns(), ['lst_timestamp']);
+    }
+
+    /**
+     * Checks if the given user has chosen to hide their birth year.
+     * @param string $userUuid The UUID of the user.
+     * @return bool
+     */
+    protected function isUserHidingBirthYear(string $userUuid): bool
+    {
+        global $gDb, $gProfileFields;
+        static $cached = array();
+
+        if ($userUuid === '') {
+            return false;
+        }
+
+        if (isset($cached[$userUuid])) {
+            return $cached[$userUuid];
+        }
+
+        $fieldId = (int)$gProfileFields->getProperty('BIRTHDAY_HIDE_YEAR', 'usf_id');
+        if ($fieldId === 0) {
+            return $cached[$userUuid] = false;
+        }
+
+        $sql = 'SELECT usd_value FROM ' . TBL_USER_DATA . '
+                INNER JOIN ' . TBL_USERS . ' ON usr_id = usd_usr_id
+                WHERE usr_uuid = ? AND usd_usf_id = ?';
+        $res = $gDb->queryPrepared($sql, array($userUuid, $fieldId));
+        $row = $res->fetch();
+        return $cached[$userUuid] = (!empty($row['usd_value']));
     }
 }

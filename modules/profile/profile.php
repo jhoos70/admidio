@@ -231,6 +231,12 @@ try {
     foreach ($gProfileFields->getProfileFields() as $field) {
         // Display only fields of the basic data
         if ($gCurrentUser->allowedViewProfileField($user, $field->getValue('usf_name_intern'))) {
+            // hide BIRTHDAY_HIDE_YEAR if birthday display mode is not set to user choice (1)
+            if ($field->getValue('usf_name_intern') === 'BIRTHDAY_HIDE_YEAR'
+                && (int)$gSettingsManager->getInt('profile_birthday_display_mode') !== 1) {
+                continue;
+            }
+
             // if profile_show_empty_fields is set to 0 then skip empty profile fields
             if (!$gSettingsManager->getBool('profile_show_empty_fields') && $user->getValue($field->getValue('usf_name_intern'), 'html') === '') {
                 continue;
@@ -308,11 +314,28 @@ try {
         $profileData[$category] = $categoryData;
     }
 
-    // if birthday is set than add age to the Smarty params
-    if (isset($masterData['BIRTHDAY'])) {
-        $birthday = new \DateTime($masterData['BIRTHDAY']['value']);
-        $age = $birthday->diff(new \DateTime())->y;
-        $page->assignSmartyVariable('age', $age);
+    // if birthday is set than add age to the Smarty params and handle birth year privacy
+    if (isset($masterData['BIRTHDAY']) && $user->getValue('BIRTHDAY', 'database') !== '') {
+        $birthday = DateTime::createFromFormat('Y-m-d', $user->getValue('BIRTHDAY', 'database'));
+        if ($birthday !== false) {
+            $age = $birthday->diff(new \DateTime())->y;
+            $birthdayMode = (int)$gSettingsManager->getInt('profile_birthday_display_mode');
+            $hideYear = ($birthdayMode === 2) || ($birthdayMode === 1 && (bool)$user->getValue('BIRTHDAY_HIDE_YEAR'));
+
+            if ($hideYear) {
+                if ($gCurrentUser->isAdministrator() || $userId === $gCurrentUserId) {
+                    $page->assignSmartyVariable('age', $age);
+                    $page->assignSmartyVariable('birthYearHidden', true);
+                } else {
+                    $page->assignSmartyVariable('age', null);
+                    $page->assignSmartyVariable('birthYearHidden', false);
+                    $masterData['BIRTHDAY']['value'] = $birthday->format('d.m.');
+                }
+            } else {
+                $page->assignSmartyVariable('age', $age);
+                $page->assignSmartyVariable('birthYearHidden', false);
+            }
+        }
     }
 
     // add missing address fields to masterData so that there is less logic in template necessary

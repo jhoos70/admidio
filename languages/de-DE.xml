@@ -297,6 +297,15 @@
   <string name="SYS_BACK_TO_FOLDER">Zurück zum Ordner</string>
   <string name="SYS_BASIC_DATA">Basisdaten</string>
   <string name="SYS_BIRTHDAY">Geburtstag</string>
+  <string name="SYS_BIRTHDAY_DISPLAY_MODE">Anzeige des Geburtsjahres</string>
+  <string name="SYS_BIRTHDAY_DISPLAY_MODE_DESC">Legt fest, wie das Geburtsjahr in Profilen, Listen und Plugins angezeigt wird. Bei &quot;Nie anzeigen&quot; werden für alle Benutzer öffentlich nur Tag und Monat angezeigt.</string>
+  <string name="SYS_BIRTHDAY_HIDE_YEAR">Geburtsjahr verbergen</string>
+  <string name="SYS_BIRTHDAY_HIDE_YEAR_DESC">Wenn aktiviert, werden anderen Mitgliedern nur Tag und Monat anstelle des vollständigen Geburtsjahres angezeigt.</string>
+  <string name="SYS_BIRTHDAY_SHOW_ALWAYS">Immer anzeigen (Standard)</string>
+  <string name="SYS_BIRTHDAY_SHOW_NEVER">Geburtsjahr nie öffentlich anzeigen (nur Tag und Monat)</string>
+  <string name="SYS_BIRTHDAY_SHOW_USER_CHOICE">Benutzer entscheidet selbst (über Profilfeld)</string>
+  <string name="SYS_BIRTHDAY_YEAR_HIDDEN">Jahr verborgen</string>
+  <string name="SYS_BIRTHDAY_YEAR_HIDDEN_DESC">Das Geburtsjahr ist für reguläre Mitglieder und Besucher verborgen.</string>
   <string name="SYS_BLUESKY">Bluesky</string>
   <string name="SYS_CALENDAR">Kalender</string>
   <string name="SYS_CALENDARS">Kalender</string>

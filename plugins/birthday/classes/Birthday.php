@@ -135,9 +135,13 @@ class Birthday extends PluginAbstract
         }
 
         $fieldBirthday = $gProfileFields->getProperty('BIRTHDAY', 'usf_id');
+        $fieldHideYear = (int)$gProfileFields->getProperty('BIRTHDAY_HIDE_YEAR', 'usf_id');
+        $selectHideYear = ($fieldHideYear > 0) ? 'hide_year.usd_value AS hide_year,' : 'NULL AS hide_year,';
+        $joinHideYear = ($fieldHideYear > 0) ? 'LEFT JOIN ' . TBL_USER_DATA . ' AS hide_year ON hide_year.usd_usr_id = usr_id AND hide_year.usd_usf_id = ' . (int)$fieldHideYear : '';
 
         if ($gDbType === 'pgsql') {
                 $sql = 'SELECT DISTINCT usr_id, usr_uuid, usr_login_name,
+                                ' . $selectHideYear . '
                                 last_name.usd_value AS last_name, first_name.usd_value AS first_name,
                                 birthday.bday AS birthday, birthday.bdate,
                                 EXTRACT(DAY FROM TO_TIMESTAMP(?, \'YYYY-MM-DD\') - birthday.bdate) * (-1) AS days_to_bdate, -- DATE_NOW
@@ -178,6 +182,7 @@ class Birthday extends PluginAbstract
             LEFT JOIN ' . TBL_USER_DATA . ' AS gender
                     ON gender.usd_usr_id = usr_id
                 AND gender.usd_usf_id = ? -- $gProfileFields->getProperty(\'GENDER\', \'usf_id\')
+            ' . $joinHideYear . '
             LEFT JOIN ' . TBL_MEMBERS . '
                     ON mem_usr_id = usr_id
                 AND mem_begin <= ? -- DATE_NOW
@@ -193,6 +198,7 @@ class Birthday extends PluginAbstract
             ORDER BY days_to_bdate ' . $sqlSort . ', last_name, first_name';
         } else {
                 $sql = 'SELECT DISTINCT usr_id, usr_uuid, usr_login_name,
+                                ' . $selectHideYear . '
                                 last_name.usd_value AS last_name, first_name.usd_value AS first_name,
                                 birthday.bday AS birthday, birthday.bdate,
                                 DATEDIFF(birthday.bdate, ?) AS days_to_bdate, -- DATE_NOW
@@ -233,6 +239,7 @@ class Birthday extends PluginAbstract
             LEFT JOIN ' . TBL_USER_DATA . ' AS gender
                     ON gender.usd_usr_id = usr_id
                 AND gender.usd_usf_id = ? -- $gProfileFields->getProperty(\'GENDER\', \'usf_id\')
+            ' . $joinHideYear . '
             LEFT JOIN ' . TBL_MEMBERS . '
                     ON mem_usr_id = usr_id
                 AND mem_begin <= ? -- DATE_NOW
@@ -347,13 +354,19 @@ class Birthday extends PluginAbstract
                         $plgDays = $row['age'];
                     }
 
-                    // don't show age of birthday person if preference is set
-                    if ($config['birthday_show_age'] === 0 || !$gValidLogin) {
+                    $birthdayMode = (int)$gSettingsManager->getInt('profile_birthday_display_mode');
+                    $hideYear = ($birthdayMode === 2) || ($birthdayMode === 1 && !empty($row['hide_year']));
+
+                    // don't show age of birthday person if preference is set or birth year is hidden
+                    if ($hideYear || $config['birthday_show_age'] === 0 || !$gValidLogin) {
                         $birthdayText .= '_NO_AGE';
+                        $formattedDate = $birthdayDate->format('d.m.');
+                    } else {
+                        $formattedDate = $birthdayDate->format($gSettingsManager->getString('system_date'));
                     }
 
                     $birthdayArray[] = array(
-                        'userText' => $gL10n->get($birthdayText, array($plgShowName, $plgDays, $row['age'], $birthdayDate->format($gSettingsManager->getString('system_date'))))
+                        'userText' => $gL10n->get($birthdayText, array($plgShowName, $plgDays, $row['age'], $formattedDate))
                     );
 
                     // counting displayed birthdays

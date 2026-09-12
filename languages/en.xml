@@ -306,6 +306,15 @@
   <string name="SYS_BACK_TO_FOLDER">Back to folder</string>
   <string name="SYS_BASIC_DATA">Basic data</string>
   <string name="SYS_BIRTHDAY">Birthday</string>
+  <string name="SYS_BIRTHDAY_DISPLAY_MODE">Display of birth year</string>
+  <string name="SYS_BIRTHDAY_DISPLAY_MODE_DESC">Specifies how the birth year is displayed in profiles, lists, and plugins. If set to never, only day and month are shown publicly for all users.</string>
+  <string name="SYS_BIRTHDAY_HIDE_YEAR">Hide birth year</string>
+  <string name="SYS_BIRTHDAY_HIDE_YEAR_DESC">If enabled, only day and month will be displayed to other members instead of the full year of birth.</string>
+  <string name="SYS_BIRTHDAY_SHOW_ALWAYS">Always show (default)</string>
+  <string name="SYS_BIRTHDAY_SHOW_NEVER">Never show publicly (day and month only)</string>
+  <string name="SYS_BIRTHDAY_SHOW_USER_CHOICE">User decides (via profile field)</string>
+  <string name="SYS_BIRTHDAY_YEAR_HIDDEN">Year hidden</string>
+  <string name="SYS_BIRTHDAY_YEAR_HIDDEN_DESC">The birth year is hidden from regular members and visitors.</string>
   <string name="SYS_BLUESKY">Bluesky</string>
   <string name="SYS_CALENDAR">Calendar</string>
   <string name="SYS_CALENDARS">Calendars</string>

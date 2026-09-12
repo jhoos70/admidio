@@ -329,7 +329,8 @@ try {
                 } else {
                     $page->assignSmartyVariable('age', null);
                     $page->assignSmartyVariable('birthYearHidden', false);
-                    $masterData['BIRTHDAY']['value'] = $birthday->format('d.m.');
+                    $format = ($gL10n->getLanguageIsoCode() === 'de') ? 'd.m.' : 'm/d';
+                    $masterData['BIRTHDAY']['value'] = $birthday->format($format);
                 }
             } else {
                 $page->assignSmartyVariable('age', $age);

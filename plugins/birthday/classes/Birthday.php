@@ -360,7 +360,8 @@ class Birthday extends PluginAbstract
                     // don't show age of birthday person if preference is set or birth year is hidden
                     if ($hideYear || $config['birthday_show_age'] === 0 || !$gValidLogin) {
                         $birthdayText .= '_NO_AGE';
-                        $formattedDate = $birthdayDate->format('d.m.');
+                        $format = ($gL10n->getLanguageIsoCode() === 'de') ? 'd.m.' : 'm/d';
+                        $formattedDate = $birthdayDate->format($format);
                     } else {
                         $formattedDate = $birthdayDate->format($gSettingsManager->getString('system_date'));
                     }

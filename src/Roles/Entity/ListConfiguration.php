@@ -237,9 +237,9 @@ class ListConfiguration extends Entity
                     global $gCurrentUser;
                     $birthdayMode = (int)$gSettingsManager->getInt('profile_birthday_display_mode');
                     if ($usfId === (int)$gProfileFields->getProperty('BIRTHDAY', 'usf_id')
-                        && ($birthdayMode === 2 || ($birthdayMode === 1 && $this->isUserHidingBirthYear($userUuid)))
-                        && (isset($gCurrentUser) && !$gCurrentUser->isAdministrator())) {
-                        $content = $date->format('d.m.');
+                        && ($birthdayMode === 2 || ($birthdayMode === 1 && $this->isUserHidingBirthYear($userUuid)))) {
+                        $format = ($gL10n->getLanguageIsoCode() === 'de') ? 'd.m.' : 'm/d';
+                        $content = $date->format($format);
                     } else {
                         $content = $date->format($gSettingsManager->getString('system_date'));
                     }

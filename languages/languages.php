@@ -59,8 +59,18 @@ $gSupportedLanguages = array(
         'isocode' => 'de',
         'libs' => 'de'
     ),
+    'de-standard' => array(
+        'name' => 'German - Deutsch (du, Rechtschreibrat)',
+        'isocode' => 'de',
+        'libs' => 'de'
+    ),
     'de-DE' => array(
         'name' => 'German - Deutsch (Sie)',
+        'isocode' => 'de',
+        'libs' => 'de'
+    ),
+    'de-DE-standard' => array(
+        'name' => 'German - Deutsch (Sie, Rechtschreibrat)',
         'isocode' => 'de',
         'libs' => 'de'
     ),

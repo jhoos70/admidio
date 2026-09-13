@@ -230,28 +230,24 @@ class EventListPresenter extends PagePresenter
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_VENUE'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left');
                         $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '', '');
-                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '', '', '');
                         break;
                     case 'room':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_ROOM'), $gL10n->get('SYS_LEADERS'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left', 'left');
                         $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '', '', '');
-                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '', '', '', '');
                         break;
                     case 'participants':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
                         $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '');
-                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
                     case 'description':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_DESCRIPTION'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
                         $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '');
-                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
                 }
@@ -262,6 +258,18 @@ class EventListPresenter extends PagePresenter
                     $columnClass[] = 'text-nowrap';
                     $data['column_width'][] = '1%';
                     $compactTable->disableColumnsSort(array(1, count($columnHeading)));
+
+                    // Responsive priorities:
+                    // Priority 1: Title (Column 3) and Date (Column 2)
+                    // Priority 2: Buttons (Column 1: Status, and Last Column: Actions)
+                    // Other columns (Participants, Location, Calendar, etc.) have lower priorities (3, 4, 5...) so they hide first.
+                    $compactTable->setColumnsNotHideResponsive(array(2, 3), 1);
+                    $compactTable->setColumnsNotHideResponsive(array(1, count($columnHeading)), 2);
+
+                    $priority = 3;
+                    for ($col = 4; $col < count($columnHeading); $col++) {
+                        $compactTable->setColumnsNotHideResponsive(array($col), $priority++);
+                    }
                 }
 
                 $data['headers'] = $columnHeading;

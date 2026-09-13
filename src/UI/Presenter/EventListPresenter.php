@@ -229,28 +229,28 @@ class EventListPresenter extends PagePresenter
                     case 'compact':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_VENUE'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left');
-                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '', '');
+                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '', '', '');
                         break;
                     case 'room':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_ROOM'), $gL10n->get('SYS_LEADERS'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left', 'left');
-                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '', '', '');
+                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '', '', '', '');
                         break;
                     case 'participants':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
-                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '');
+                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
                     case 'description':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_DESCRIPTION'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
-                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '');
+                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
                         $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
@@ -259,7 +259,7 @@ class EventListPresenter extends PagePresenter
                 if ($outputMode === 'html') {
                     $columnHeading[] = '&nbsp;';
                     $columnAlign[] = 'right';
-                    $columnClass[] = '';
+                    $columnClass[] = 'text-nowrap';
                     $data['column_width'][] = '1%';
                     $compactTable->disableColumnsSort(array(1, count($columnHeading)));
                 }
@@ -333,31 +333,19 @@ class EventListPresenter extends PagePresenter
                 if ($outputMode === 'html') {
                     // iCal Download
                     if ($gSettingsManager->getBool('events_ical_export_enabled')) {
-                        $outputButtonICal = '
-                        <a href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('dat_uuid' => $eventUUID, 'mode' => 'export')) . '">
-                            <i class="bi bi-download" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_DOWNLOAD_ICAL') . '"></i></a>';
+                        $outputButtonICal = '<a class="admidio-icon-link" href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('dat_uuid' => $eventUUID, 'mode' => 'export')) . '"><i class="bi bi-download" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_DOWNLOAD_ICAL') . '"></i></a>';
                     }
 
                     // change and delete is only for users with additional rights
                     if ($event->isEditable()) {
-                        $outputButtonCopy = '
-                        <a href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('mode' => 'edit', 'dat_uuid' => $eventUUID, 'copy' => 1)) . '">
-                            <i class="bi bi-copy" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_COPY') . '"></i></a>';
-                        $outputButtonEdit = '
-                        <a href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', $eventEditUrlParams) . '">
-                            <i class="bi bi-pencil-square" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_EDIT') . '"></i></a>';
-                        $outputButtonDelete = '
-                        <a class="admidio-messagebox" href="javascript:void(0);"  data-message="' . $eventDeleteMessage . '" data-buttons="yes-no"
-                            data-href="callUrlHideElement(\'evt_' . $eventUUID . '\', \'' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', $eventDeleteUrlParams) . '\', \'' . $gCurrentSession->getCsrfToken() . '\')">
-                            <i class="bi bi-trash" data-bs-toggle="tooltip" title="' . $eventDeleteLabel . '"></i></a>';
+                        $outputButtonCopy = '<a class="admidio-icon-link ms-1" href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('mode' => 'edit', 'dat_uuid' => $eventUUID, 'copy' => 1)) . '"><i class="bi bi-copy" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_COPY') . '"></i></a>';
+                        $outputButtonEdit = '<a class="admidio-icon-link ms-1" href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', $eventEditUrlParams) . '"><i class="bi bi-pencil-square" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_EDIT') . '"></i></a>';
+                        $outputButtonDelete = '<a class="admidio-icon-link ms-1 admidio-messagebox" href="javascript:void(0);"  data-message="' . $eventDeleteMessage . '" data-buttons="yes-no"
+                            data-href="callUrlHideElement(\'evt_' . $eventUUID . '\', \'' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', $eventDeleteUrlParams) . '\', \'' . $gCurrentSession->getCsrfToken() . '\')"><i class="bi bi-trash" data-bs-toggle="tooltip" title="' . $eventDeleteLabel . '"></i></a>';
 
                         if ($recurrenceBadge !== '') {
-                            $outputButtonEdit = '
-                            <a class="openPopup" href="javascript:void(0);" data-href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('mode' => 'recurrence_scope_form', 'dat_uuid' => $eventUUID, 'recurrence_action' => 'edit')) . '">
-                                <i class="bi bi-pencil-square" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_EDIT') . '"></i></a>';
-                            $outputButtonDelete = '
-                            <a class="openPopup" href="javascript:void(0);" data-href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('mode' => 'recurrence_scope_form', 'dat_uuid' => $eventUUID, 'recurrence_action' => 'delete')) . '">
-                                <i class="bi bi-trash" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_DELETE') . '"></i></a>';
+                            $outputButtonEdit = '<a class="admidio-icon-link ms-1 openPopup" href="javascript:void(0);" data-href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('mode' => 'recurrence_scope_form', 'dat_uuid' => $eventUUID, 'recurrence_action' => 'edit')) . '"><i class="bi bi-pencil-square" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_EDIT') . '"></i></a>';
+                            $outputButtonDelete = '<a class="admidio-icon-link ms-1 openPopup" href="javascript:void(0);" data-href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('mode' => 'recurrence_scope_form', 'dat_uuid' => $eventUUID, 'recurrence_action' => 'delete')) . '"><i class="bi bi-trash" data-bs-toggle="tooltip" title="' . $gL10n->get('SYS_DELETE') . '"></i></a>';
                         }
                     }
                 }
@@ -866,7 +854,7 @@ class EventListPresenter extends PagePresenter
                     $columnValues[] = Language::translateIfTranslationStrId($row['category_name']);
 
                     if ($outputMode === 'html') {
-                        $columnValues[] = $outputButtonICal . $outputButtonCopy . $outputButtonEdit . $outputButtonDelete;
+                        $columnValues[] = '<div class="text-nowrap">' . $outputButtonICal . $outputButtonCopy . $outputButtonEdit . $outputButtonDelete . '</div>';
                     }
 
                     $data['rows'][] = array('id' => 'evt_' . $event->getValue('dat_uuid'), 'class' => $cssClass, 'data' => $columnValues);

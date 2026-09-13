@@ -233,4 +233,41 @@ class TranslationHooksTest extends AdmidioTestCase
         Hooks::reset();
         $this->assertSame('Speichern', $l10n->get('SYS_SAVE'), 'and removing it gives the text back');
     }
+
+    public function testStandardGermanVariantsReturnNonGenderedTexts(): void
+    {
+        $l10nDu = new Language('de-standard');
+        $this->assertSame('Benutzer', $l10nDu->get('SYS_USERS'));
+
+        $l10nSie = new Language('de-DE-standard');
+        $this->assertSame('Benutzer', $l10nSie->get('SYS_USERS'));
+    }
+
+    public function testStandardGermanVariantsFallbackToBaseLanguageForMissingTexts(): void
+    {
+        $l10n = new Language('de-standard');
+        $this->assertSame('Speichern', $l10n->get('SYS_SAVE'));
+
+        $countries = $l10n->getCountries();
+        $this->assertSame('Deutschland', $countries['DEU']);
+    }
+
+    public function testDetermineBrowserLanguageRespectsStandardGermanDefault(): void
+    {
+        $previousAccept = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null;
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'de-DE,de;q=0.9,en;q=0.8';
+
+        try {
+            $this->assertSame('de-standard', Language::determineBrowserLanguage('de-standard'));
+            $this->assertSame('de-DE-standard', Language::determineBrowserLanguage('de-DE-standard'));
+            $this->assertSame('de-DE', Language::determineBrowserLanguage('de-DE'));
+            $this->assertSame('de', Language::determineBrowserLanguage('de'));
+        } finally {
+            if ($previousAccept !== null) {
+                $_SERVER['HTTP_ACCEPT_LANGUAGE'] = $previousAccept;
+            } else {
+                unset($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+            }
+        }
+    }
 }

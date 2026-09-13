@@ -189,11 +189,11 @@ class Language
             }
         }
 
-        // special case for the german language code
-        if ($languageSelected === 'de' && $defaultLanguage === 'de-DE') {
-            $languageSelected = 'de-DE';
-        } elseif ($languageSelected === 'de-DE' && $defaultLanguage === 'de') {
-            $languageSelected = 'de';
+        // special case for the german language code and standard variants
+        if (in_array($languageSelected, array('de', 'de-DE'), true)) {
+            if (in_array($defaultLanguage, array('de', 'de-DE', 'de-standard', 'de-DE-standard'), true)) {
+                $languageSelected = $defaultLanguage;
+            }
         }
 
         require(ADMIDIO_PATH . FOLDER_LANGUAGES . '/languages.php');
@@ -322,11 +322,19 @@ class Language
     private function getCountryFile(): string
     {
         $langFile    = ADMIDIO_PATH . FOLDER_LANGUAGES . '/countries-' . $this->language . '.xml';
-        $langFileRef = ADMIDIO_PATH . FOLDER_LANGUAGES . '/countries-' . $this::REFERENCE_LANGUAGE   . '.xml';
-
         if (is_file($langFile)) {
             return $langFile;
         }
+
+        if (str_contains($this->language, '-standard')) {
+            $baseLang = str_replace('-standard', '', $this->language);
+            $baseLangFile = ADMIDIO_PATH . FOLDER_LANGUAGES . '/countries-' . $baseLang . '.xml';
+            if (is_file($baseLangFile)) {
+                return $baseLangFile;
+            }
+        }
+
+        $langFileRef = ADMIDIO_PATH . FOLDER_LANGUAGES . '/countries-' . $this::REFERENCE_LANGUAGE   . '.xml';
         if (is_file($langFileRef)) {
             return $langFileRef;
         }
@@ -456,6 +464,16 @@ class Language
                 // search for text id in every \SimpleXMLElement (language file) of the object array
                 return $this->searchTextIdInLangObject($this->xmlLanguageObjects, $this->language, $textId);
             } catch (\OutOfBoundsException) {
+                // if language is a variant (e.g. de-standard -> de, de-DE-standard -> de-DE), search in base language
+                if (str_contains($this->language, '-standard')) {
+                    $baseLang = str_replace('-standard', '', $this->language);
+                    try {
+                        return $this->searchTextIdInLangObject($this->xmlLanguageObjects, $baseLang, $textId);
+                    } catch (\OutOfBoundsException) {
+                        // continue to reference language
+                    }
+                }
+
                 // if text id wasn't found than search for it in reference language
                 try {
                     // search for text id in every \SimpleXMLElement (language file) of the object array

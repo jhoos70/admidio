@@ -173,18 +173,30 @@ try {
                         $fieldProperty = FormPresenter::FIELD_REQUIRED;
                     }
 
+                    $loginOptions = array(
+                        'maxLength' => 254,
+                        'property' => $fieldProperty,
+                        'helpTextId' => 'SYS_USERNAME_DESCRIPTION',
+                        'class' => 'form-control-small',
+                        'autocomplete' => 'username',
+                        'category' => $category
+                    );
+
+                    if (!$gValidLogin) {
+                        $loginOptions['pattern'] = '[a-zA-Z0-9._@+-]+';
+                        $loginHelpText = $gL10n->get('SYS_USERNAME_ALLOWED_CHARS_DESC');
+
+                        if ($gSettingsManager->getBool('security_login_email_address_enabled')) {
+                            $loginHelpText .= '<br /><em>' . $gL10n->get('SYS_USERNAME_EMAIL_LOGIN_HINT') . '</em>';
+                        }
+                        $loginOptions['helpTextId'] = $loginHelpText;
+                    }
+
                     $form->addInput(
                         'usr_login_name',
                         $gL10n->get('SYS_USERNAME'),
                         $users[0]['user']->getValue('usr_login_name'),
-                        array(
-                            'maxLength' => 254,
-                            'property' => $fieldProperty,
-                            'helpTextId' => 'SYS_USERNAME_DESCRIPTION',
-                            'class' => 'form-control-small',
-                            'autocomplete' => 'username',
-                            'category' => $category
-                        )
+                        $loginOptions
                     );
 
                     if (!$gValidLogin) {
@@ -389,6 +401,21 @@ try {
             if (!$gValidLogin) {
                 // Registration
                 $form->addSubmitButton('adm_button_save', $gL10n->get('SYS_SEND'), array('icon' => 'bi-envelope-fill'));
+                $page->addJavascript('
+                    $(function() {
+                        var $loginInput = $("#usr_login_name");
+                        if ($loginInput.length) {
+                            $loginInput.attr("title", ' . json_encode($gL10n->get('SYS_USERNAME_TITLE_JS')) . ');
+                            $loginInput.on("input", function() {
+                                if (this.validity.patternMismatch) {
+                                    this.setCustomValidity(' . json_encode($gL10n->get('SYS_USERNAME_INVALID_CHARS_JS')) . ');
+                                } else {
+                                    this.setCustomValidity("");
+                                }
+                            });
+                        }
+                    });
+                ');
             } else {
                 $form->addSubmitButton('adm_button_save', $gL10n->get('SYS_SAVE'), array('icon' => 'bi-check-lg'));
             }

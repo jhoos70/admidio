@@ -1762,6 +1762,10 @@
   <string name="SYS_USER_VALID_LOGIN">Diese:r Benutzer:in besitzt schon ein gültiges Login.</string>
   <string name="SYS_USERNAME">Anmeldename</string>
   <string name="SYS_USERNAME_DESCRIPTION">Mit diesem Namen kannst du dich anschließend im System anmelden.\nDer Name muss im System eindeutig sein. Ist dein Wunschname bereits vergeben, dann versuche es mit Kombinationen, wie zum Beispiel Andi78 oder StefanT.</string>
+  <string name="SYS_USERNAME_ALLOWED_CHARS_DESC">Der Name muss eindeutig sein. Erlaubt sind a–z, A–Z, 0–9 sowie . - _ @ (keine Umlaute oder Leerzeichen).</string>
+  <string name="SYS_USERNAME_EMAIL_LOGIN_HINT">Hinweis: Die Anmeldung ist alternativ auch mit der E-Mail-Adresse möglich.</string>
+  <string name="SYS_USERNAME_INVALID_CHARS_JS">Bitte keine Umlaute (ä, ö, ü) oder Leerzeichen im Anmeldenamen verwenden.</string>
+  <string name="SYS_USERNAME_TITLE_JS">Erlaubte Zeichen: a-z, A-Z, 0-9, ., _, -, @ (keine Umlaute oder Leerzeichen)</string>
   <string name="SYS_USERNAME_OR_EMAIL">Anmeldename oder E-Mail</string>
   <string name="SYS_USERNAME_WITH_TIMESTAMP">#VAR1# am #VAR2# um #VAR3#</string>
   <string name="SYS_USERS">Benutzer:innen</string>

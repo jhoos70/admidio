@@ -1891,6 +1891,10 @@
   <string name="SYS_USER_VALID_LOGIN">User already has valid login information.</string>
   <string name="SYS_USERNAME">Username</string>
   <string name="SYS_USERNAME_DESCRIPTION">You can log in to the system with this name.\nThe name must be unique in the system. If your desired name is already taken, try combinations such as Andi78 or SteveT.</string>
+  <string name="SYS_USERNAME_ALLOWED_CHARS_DESC">The username must be unique. Allowed characters: a–z, A–Z, 0–9, and . - _ @ (no spaces, accents, or umlauts).</string>
+  <string name="SYS_USERNAME_EMAIL_LOGIN_HINT">Note: Login is alternatively also possible using your e-mail address.</string>
+  <string name="SYS_USERNAME_INVALID_CHARS_JS">Please do not use spaces, accents, or umlauts in the username.</string>
+  <string name="SYS_USERNAME_TITLE_JS">Allowed characters: a-z, A-Z, 0-9, ., _, -, @ (no spaces, accents, or umlauts)</string>
   <string name="SYS_USERNAME_OR_EMAIL">Username or E-mail</string>
   <string name="SYS_USERNAME_WITH_TIMESTAMP">#VAR1# on #VAR2# at #VAR3#</string>
   <string name="SYS_USERS">Users</string>

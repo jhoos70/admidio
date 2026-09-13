@@ -225,29 +225,31 @@ class EventListPresenter extends PagePresenter
                 $columnHeading = array();
                 $columnAlign = array();
 
+                $periodClass = ($outputMode === 'html') ? 'd-none d-lg-table-cell' : '';
+
                 switch ($getView) {
                     case 'compact':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_VENUE'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left');
-                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '', '');
+                        $columnClass = array('text-nowrap', $periodClass, '', '', '', '');
                         $data['column_width'] = array('1%', '1%', '', '', '', '');
                         break;
                     case 'room':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_ROOM'), $gL10n->get('SYS_LEADERS'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left', 'left');
-                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '', '', '');
+                        $columnClass = array('text-nowrap', $periodClass, '', '', '', '', '');
                         $data['column_width'] = array('1%', '1%', '', '', '', '', '');
                         break;
                     case 'participants':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
-                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '');
+                        $columnClass = array('text-nowrap', $periodClass, '', '', '');
                         $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
                     case 'description':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_DESCRIPTION'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
-                        $columnClass = array('text-nowrap', 'd-none d-lg-table-cell', '', '', '');
+                        $columnClass = array('text-nowrap', $periodClass, '', '', '');
                         $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
                 }

@@ -1,4 +1,8 @@
 <style>
+.admidio-content-col,
+#adm_content {
+    min-width: 0;
+}
 #adm_events_table th,
 #adm_events_table td {
     vertical-align: middle;
@@ -17,7 +21,21 @@
     font-size: 0.875rem;
     line-height: 1.25;
 }
+div.table-responsive > div.dt-container > div.row,
+div.dt-container > div.row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+div.table-responsive > div.dt-container > div.row > div[class^=col-]:first-child,
+div.dt-container > div.row > div[class^=col-]:first-child {
+    padding-left: 0 !important;
+}
+div.table-responsive > div.dt-container > div.row > div[class^=col-]:last-child,
+div.dt-container > div.row > div[class^=col-]:last-child {
+    padding-right: 0 !important;
+}
 </style>
+<div class="table-responsive">
 <table id="adm_events_table" class="{$classTable}" style="max-width: 100%;">
     <thead>
         <tr>
@@ -36,3 +54,4 @@
     {/foreach}
     </tbody>
 </table>
+</div>

@@ -71,10 +71,12 @@
 
 .admidio-content-col {
     padding: 0;
+    min-width: 0;
 }
 
 .admidio-content, .admidio-reduced {
     order: 1;
+    min-width: 0;
     padding-left: 1rem;
     padding-right: 1rem;
     max-width: 1000px;
@@ -233,7 +235,8 @@ a {
 
 .admidio-tabbed-field-group:has( > .list-group), .admidio-accordion-field-group:has( > .list-group),
 .admidio-tabbed-field-group .table-responsive, .admidio-accordion-field-group .table-responsive,
-.admidio-tabbed-field-group .table-responsive .dt-container, .admidio-accordion-field-group .table-responsive .dt-container {
+.admidio-tabbed-field-group .table-responsive .dt-container, .admidio-accordion-field-group .table-responsive .dt-container,
+.table-responsive .dt-container {
     margin-bottom: 0;
 }
 
@@ -642,6 +645,22 @@ label {
     padding: 0.15rem 0.4rem;
     font-size: 0.875rem;
     line-height: 1.25;
+}
+
+div.table-responsive > div.dt-container > div.row,
+div.dt-container > div.row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+div.table-responsive > div.dt-container > div.row > div[class^=col-]:first-child,
+div.dt-container > div.row > div[class^=col-]:first-child {
+    padding-left: 0 !important;
+}
+
+div.table-responsive > div.dt-container > div.row > div[class^=col-]:last-child,
+div.dt-container > div.row > div[class^=col-]:last-child {
+    padding-right: 0 !important;
 }
 
 .table-hover tbody tr td .admidio-functions {

@@ -236,6 +236,14 @@ try {
                 continue;
             }
 
+            // hide BIRTHDAY_HIDE_YEAR if birthday display mode is not set to user choice (1)
+            // or if the current viewer is neither the user themselves nor an administrator
+            if ($field->getValue('usf_name_intern') === 'BIRTHDAY_HIDE_YEAR'
+                && ((int)$gSettingsManager->getInt('profile_birthday_display_mode') !== 1
+                    || (!$gCurrentUser->isAdministrator() && $userId !== $gCurrentUserId))) {
+                continue;
+            }
+
             if ($field->getValue('cat_name_intern') === 'BASIC_DATA') {
                 $masterData[$field->getValue('usf_name_intern')] = array(
                     'id' => $field->getValue('usf_name_intern'),

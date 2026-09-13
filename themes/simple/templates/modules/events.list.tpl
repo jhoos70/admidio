@@ -1,4 +1,18 @@
-<table id="adm_events_table" class="{$classTable}" {foreach $attributes as $attribute} {$attribute@key}="{$attribute}" {/foreach} style="max-width: 100%;">
+<style>
+#adm_events_table th,
+#adm_events_table td {
+    vertical-align: middle;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    line-height: 1.25;
+}
+#adm_events_table .btn {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.875rem;
+    line-height: 1.25;
+}
+</style>
+<table id="adm_events_table" class="{$classTable}" style="max-width: 100%;">
     <thead>
         <tr>
             {foreach $headers as $key => $header}

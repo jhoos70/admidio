@@ -623,6 +623,20 @@ label {
     color: var(--bs-body-color);
 }
 
+#adm_events_table td,
+#adm_events_table th {
+    vertical-align: middle;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    line-height: 1.25;
+}
+
+#adm_events_table .btn {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.875rem;
+    line-height: 1.25;
+}
+
 .table-hover tbody tr td .admidio-functions {
     visibility: hidden;
 }

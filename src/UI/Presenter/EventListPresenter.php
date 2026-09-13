@@ -101,7 +101,7 @@ class EventListPresenter extends PagePresenter
         $data = array('headers' => array(), 'rows' => array(), 'column_align' => array(), 'column_width' => array());
 
         if ($outputMode === 'html') {
-            $page->assignSmartyVariable('classTable', 'table table-condensed table-hover');
+            $page->assignSmartyVariable('classTable', 'table table-sm table-hover align-middle');
 
             if ($gSettingsManager->getBool('enable_rss') && $gSettingsManager->getInt('events_module_enabled') === 1) {
                 $page->addRssFile(ADMIDIO_URL . '/rss/events.php?organization=' . $gCurrentOrganization->getValue('org_shortname'), $gL10n->get('SYS_RSS_FEED_FOR_VAR', array($gCurrentOrganization->getValue('org_longname') . ' - ' . $gL10n->get('SYS_EVENTS'))));
@@ -198,7 +198,7 @@ class EventListPresenter extends PagePresenter
                 $form->addToHtmlPage();
             }
         } else { // $outputMode = 'print'
-            $page->assignSmartyVariable('classTable', 'table table-condensed table-striped');
+            $page->assignSmartyVariable('classTable', 'table table-sm table-striped align-middle');
 
             // create an HTML page object without the custom theme files
             $page->setPrintMode();
@@ -522,10 +522,12 @@ class EventListPresenter extends PagePresenter
                                     }
                                 }
 
+                                $buttonClass = ($getView === 'detail') ? 'btn btn-primary' : 'btn btn-sm btn-primary';
+
                                 if ($participateModalForm === false) {
                                     $outputButtonParticipation = '
                                 <div class="btn-group admidio-event-approval" role="group">
-                                    <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' . $iconParticipationStatus . $buttonText . '</button>
+                                    <button class="' . $buttonClass . ' dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' . $iconParticipationStatus . $buttonText . '</button>
                                     <ul class="dropdown-menu">
                                         <li>
                                             <a class="icon-link dropdown-item ' . $disableStatusAttend . '" href="javascript:void(0)" data-id="' . $eventUUID . '" data-mode="participate">
@@ -549,7 +551,7 @@ class EventListPresenter extends PagePresenter
                                 } else {
                                     $outputButtonParticipation = '
                                 <div class="btn-group" role="group">
-                                    <button class="btn btn-primary openPopup"
+                                    <button class="' . $buttonClass . ' openPopup"
                                         data-href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('mode' => 'participation_form', 'dat_uuid' => $eventUUID)) . '">' . $iconParticipationStatus . $buttonText . '
                                 </div>';
                                 }

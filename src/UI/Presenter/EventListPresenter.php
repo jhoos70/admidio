@@ -262,13 +262,20 @@ class EventListPresenter extends PagePresenter
                     // Responsive priorities:
                     // Priority 1: Title (Column 3) and Date (Column 2)
                     // Priority 2: Buttons (Column 1: Status, and Last Column: Actions)
-                    // Other columns (Participants, Location, Calendar, etc.) have lower priorities (3, 4, 5...) so they hide first.
+                    // Secondary columns:
+                    // In compact view: Venue (Ort, col 5) is prioritized over Participants (Teilnehmer, col 4)
                     $compactTable->setColumnsNotHideResponsive(array(2, 3), 1);
                     $compactTable->setColumnsNotHideResponsive(array(1, count($columnHeading)), 2);
 
-                    $priority = 3;
-                    for ($col = 4; $col < count($columnHeading); $col++) {
-                        $compactTable->setColumnsNotHideResponsive(array($col), $priority++);
+                    if ($getView === 'compact') {
+                        $compactTable->setColumnsNotHideResponsive(array(5), 3); // Ort (Veranstaltungsort)
+                        $compactTable->setColumnsNotHideResponsive(array(4), 4); // Teilnehmende
+                        $compactTable->setColumnsNotHideResponsive(array(6), 5); // Kalender
+                    } else {
+                        $priority = 3;
+                        for ($col = 4; $col < count($columnHeading); $col++) {
+                            $compactTable->setColumnsNotHideResponsive(array($col), $priority++);
+                        }
                     }
                 }
 

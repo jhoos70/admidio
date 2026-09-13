@@ -776,7 +776,7 @@ class EventListPresenter extends PagePresenter
                     if ($isMultiDay) {
                         $beginPart = $dateBegin . (!$isAllDay ? ' ' . $timeBegin : '');
                         $endPart = $dateEnd . (!$isAllDay ? ' ' . $timeEnd : '');
-                        $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $beginPart . '</span><br /><span class="text-nowrap ms-3">&ndash; ' . $endPart . '</span>';
+                        $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $beginPart . ' &ndash;</span><br /><span class="text-nowrap"><i class="bi bi-calendar-event me-1 invisible" aria-hidden="true"></i>' . $endPart . '</span>';
                     } else {
                         $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $event->getDateTimePeriod() . '</span>';
                     }

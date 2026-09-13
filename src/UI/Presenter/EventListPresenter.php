@@ -231,28 +231,28 @@ class EventListPresenter extends PagePresenter
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left');
                         $columnClass = array('', 'd-none d-lg-table-cell', '', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
-                        $data['column_width'] = array('', '', '', '', '', '');
+                        $data['column_width'] = array('1%', '1%', '', '', '', '');
                         break;
                     case 'room':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_ROOM'), $gL10n->get('SYS_LEADERS'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left', 'left');
                         $columnClass = array('', 'd-none d-lg-table-cell', '', '', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
-                        $data['column_width'] = array('', '', '', '', '', '', '');
+                        $data['column_width'] = array('1%', '1%', '', '', '', '', '');
                         break;
                     case 'participants':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
                         $columnClass = array('', 'd-none d-lg-table-cell', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
-                        $data['column_width'] = array('', '', '', '35%', '');
+                        $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
                     case 'description':
                         $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_DESCRIPTION'), $gL10n->get('SYS_CALENDAR'));
                         $columnAlign = array('center', 'left', 'left', 'left', 'left');
                         $columnClass = array('', 'd-none d-lg-table-cell', '', '', '');
                         $compactTable->setColumnsNotHideResponsive(array(3), 1);
-                        $data['column_width'] = array('', '', '', '35%', '');
+                        $data['column_width'] = array('1%', '1%', '', '35%', '');
                         break;
                 }
 
@@ -260,7 +260,7 @@ class EventListPresenter extends PagePresenter
                     $columnHeading[] = '&nbsp;';
                     $columnAlign[] = 'right';
                     $columnClass[] = '';
-                    $data['column_width'][] = '';
+                    $data['column_width'][] = '1%';
                     $compactTable->disableColumnsSort(array(1, count($columnHeading)));
                 }
 
@@ -776,7 +776,7 @@ class EventListPresenter extends PagePresenter
                     if ($isMultiDay) {
                         $beginPart = $dateBegin . (!$isAllDay ? ' ' . $timeBegin : '');
                         $endPart = $dateEnd . (!$isAllDay ? ' ' . $timeEnd : '');
-                        $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $beginPart . ' &ndash;</span><br /><span class="text-nowrap"><i class="bi bi-calendar-event me-1 invisible" aria-hidden="true"></i>' . $endPart . '</span>';
+                        $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $beginPart . ' &ndash;</span> <br class="d-xxl-none" /><span class="text-nowrap"><i class="bi bi-calendar-event me-1 invisible d-xxl-none" aria-hidden="true"></i>' . $endPart . '</span>';
                     } else {
                         $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $event->getDateTimePeriod() . '</span>';
                     }

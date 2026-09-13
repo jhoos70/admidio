@@ -227,40 +227,46 @@ class EventListPresenter extends PagePresenter
 
                 switch ($getView) {
                     case 'compact':
-                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_VENUE'), $gL10n->get('SYS_CALENDAR'));
-                        $columnAlign = array('center', 'left', 'left', 'left', 'left');
-                        $compactTable->setColumnsNotHideResponsive(array(2), 1);
-                        $data['column_width'] = array('', '30%', '', '', '');
+                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_VENUE'), $gL10n->get('SYS_CALENDAR'));
+                        $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left');
+                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '', '');
+                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
+                        $data['column_width'] = array('', '', '', '', '', '');
                         break;
                     case 'room':
-                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_ROOM'), $gL10n->get('SYS_LEADERS'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
-                        $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left');
-                        $compactTable->setColumnsNotHideResponsive(array(2), 1);
-                        $data['column_width'] = array('', '25%', '', '', '', '');
+                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_ROOM'), $gL10n->get('SYS_LEADERS'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
+                        $columnAlign = array('center', 'left', 'left', 'left', 'left', 'left', 'left');
+                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '', '', '');
+                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
+                        $data['column_width'] = array('', '', '', '', '', '', '');
                         break;
                     case 'participants':
-                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
-                        $columnAlign = array('center', 'left', 'left', 'left');
-                        $compactTable->setColumnsNotHideResponsive(array(2), 1);
-                        $data['column_width'] = array('', '30%', '35%', '');
+                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_PARTICIPANTS'), $gL10n->get('SYS_CALENDAR'));
+                        $columnAlign = array('center', 'left', 'left', 'left', 'left');
+                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '');
+                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
+                        $data['column_width'] = array('', '', '', '35%', '');
                         break;
                     case 'description':
-                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_DESCRIPTION'), $gL10n->get('SYS_CALENDAR'));
-                        $columnAlign = array('center', 'left', 'left', 'left');
-                        $compactTable->setColumnsNotHideResponsive(array(2), 1);
-                        $data['column_width'] = array('', '30%', '35%', '');
+                        $columnHeading = array('&nbsp;', $gL10n->get('SYS_PERIOD'), $gL10n->get('SYS_EVENT'), $gL10n->get('SYS_DESCRIPTION'), $gL10n->get('SYS_CALENDAR'));
+                        $columnAlign = array('center', 'left', 'left', 'left', 'left');
+                        $columnClass = array('', 'd-none d-lg-table-cell', '', '', '');
+                        $compactTable->setColumnsNotHideResponsive(array(3), 1);
+                        $data['column_width'] = array('', '', '', '35%', '');
                         break;
                 }
 
                 if ($outputMode === 'html') {
                     $columnHeading[] = '&nbsp;';
                     $columnAlign[] = 'right';
+                    $columnClass[] = '';
                     $data['column_width'][] = '';
                     $compactTable->disableColumnsSort(array(1, count($columnHeading)));
                 }
 
                 $data['headers'] = $columnHeading;
                 $data['column_align'] = $columnAlign;
+                $data['column_class'] = $columnClass;
             }
 
             // create a fake event object
@@ -764,17 +770,30 @@ class EventListPresenter extends PagePresenter
                     }
 
                     $dateTimeSortKey = $event->getValue('dat_begin', 'Y-m-d H:i:s');
+                    $isMultiDay = ($dateBegin !== $dateEnd);
+                    $isAllDay = (bool)$event->getValue('dat_all_day');
+
+                    if ($isMultiDay) {
+                        $beginPart = $dateBegin . (!$isAllDay ? ' ' . $timeBegin : '');
+                        $endPart = $dateEnd . (!$isAllDay ? ' ' . $timeEnd : '');
+                        $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $beginPart . '</span><br /><span class="text-nowrap ms-3">&ndash; ' . $endPart . '</span>';
+                    } else {
+                        $formattedDateHtml = '<span class="text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $event->getDateTimePeriod() . '</span>';
+                    }
 
                     if ($outputMode === 'html') {
+                        $columnValues[] = '<span class="d-none">' . $dateTimeSortKey . '</span>' . $formattedDateHtml;
+
                         $eventTitleHtml = '<span class="d-none">' . $dateTimeSortKey . '</span>';
                         $eventTitleHtml .= '<a class="admidio-event-title fw-bold" href="' . SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/events.php', array('dat_uuid' => $eventUUID, 'mode' => 'cards', 'headline' => $dateHeadline)) . '">' . $dateHeadline . '</a>' . $recurrenceBadge;
-                        $eventTitleHtml .= '<div class="text-muted small mt-1 text-nowrap"><i class="bi bi-calendar-event me-1"></i>' . $event->getDateTimePeriod() . '</div>';
+                        $eventTitleHtml .= '<div class="text-muted small mt-1 d-lg-none">' . $formattedDateHtml . '</div>';
                         if ($outputDeadline !== '') {
                             $eventTitleHtml .= '<div class="small text-danger mt-1 text-nowrap"><i class="bi bi-hourglass-split me-1"></i>' . $gL10n->get('SYS_DEADLINE') . ': ' . $outputDeadline . '</div>';
                         }
                         $columnValues[] = $eventTitleHtml;
                     } else {
-                        $columnValues[] = '<strong>' . $dateHeadline . ($recurrenceBadge !== '' ? ' ' . $this->getEventRecurrenceHint($event) : '') . '</strong><br /><small>' . $event->getDateTimePeriod() . '</small>';
+                        $columnValues[] = $event->getDateTimePeriod();
+                        $columnValues[] = $dateHeadline . ($recurrenceBadge !== '' ? ' ' . $this->getEventRecurrenceHint($event) : '');
                     }
 
                     if ($getView === 'room') {
@@ -858,6 +877,7 @@ class EventListPresenter extends PagePresenter
                 $compactTable->createJavascript(count($data['rows']), count($data['headers']));
 
                 $page->assignSmartyVariable('columnAlign', $data['column_align']);
+                $page->assignSmartyVariable('columnClass', $data['column_class']);
                 $page->assignSmartyVariable('columnWidth', $data['column_width']);
                 $page->assignSmartyVariable('headers', $data['headers']);
                 $page->assignSmartyVariable('rows', $data['rows']);

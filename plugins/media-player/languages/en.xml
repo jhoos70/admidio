@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>
+  <string name="PLG_MEDIA_PLAYER_DESCRIPTION">Media library for audio, video, and YouTube content with playlists and offline download</string>
+  <string name="PLG_MEDIA_PLAYER_ACCESS">Access to Media Library</string>
+  <string name="PLG_MEDIA_PLAYER_ACCESS_DESC">Permission to access the media library</string>
+  <string name="PLG_MEDIA_PLAYER_UPLOAD_ROLES">Roles with upload permissions</string>
+  <string name="PLG_MEDIA_PLAYER_UPLOAD_ROLES_DESC">Roles allowed to upload or manage media (Administrators can always manage)</string>
+  <string name="PLG_MEDIA_PLAYER_CATEGORIES">Available categories / voice parts</string>
+  <string name="PLG_MEDIA_PLAYER_CATEGORIES_DESC">Comma-separated list of default categories</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Add Media</string>
+  <string name="PLG_MEDIA_PLAYER_UPLOAD_FILE">Upload File</string>
+  <string name="PLG_MEDIA_PLAYER_EXTERNAL_LINK">External Link (YouTube / Vimeo / URL)</string>
+  <string name="PLG_MEDIA_PLAYER_PLAYLISTS">Playlists</string>
+  <string name="PLG_MEDIA_PLAYER_ALL_MEDIA">All Media</string>
+  <string name="PLG_MEDIA_PLAYER_DOWNLOAD_PLAYLIST">Download Playlist (ZIP)</string>
+  <string name="PLG_MEDIA_PLAYER_DOWNLOAD_FILE">Download</string>
+  <string name="PLG_MEDIA_PLAYER_CATEGORY">Category / Voice Part</string>
+  <string name="PLG_MEDIA_PLAYER_TITLE">Title</string>
+  <string name="PLG_MEDIA_PLAYER_ARTIST">Artist / Composer / Arranger</string>
+  <string name="PLG_MEDIA_PLAYER_DESCRIPTION_LABEL">Description / Notes</string>
+  <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Create New Playlist</string>
+  <string name="PLG_MEDIA_PLAYER_PLAYLIST_NAME">Playlist Name</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_TO_PLAYLIST">Add to Playlist</string>
+  <string name="PLG_MEDIA_PLAYER_REMOVE_FROM_PLAYLIST">Remove from Playlist</string>
+  <string name="PLG_MEDIA_PLAYER_SPEED">Speed</string>
+  <string name="PLG_MEDIA_PLAYER_NO_MEDIA">No media available yet.</string>
+  <string name="PLG_MEDIA_PLAYER_SAVED_SUCCESS">Media saved successfully.</string>
+  <string name="PLG_MEDIA_PLAYER_DELETED_SUCCESS">Media deleted successfully.</string>
+  <string name="PLG_MEDIA_PLAYER_SEARCH_PLACEHOLDER">Search title, artist or voice part...</string>
+</resources>

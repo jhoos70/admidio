@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<resources>
+  <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>
+  <string name="PLG_MEDIA_PLAYER_DESCRIPTION">Mediathek für Audio-, Video- und YouTube-Inhalte mit Playlisten und Offline-Download</string>
+  <string name="PLG_MEDIA_PLAYER_ACCESS">Zugriff auf Mediathek</string>
+  <string name="PLG_MEDIA_PLAYER_ACCESS_DESC">Berechtigung für den Zugriff auf das Plugin</string>
+  <string name="PLG_MEDIA_PLAYER_UPLOAD_ROLES">Rollen mit Upload-Berechtigung</string>
+  <string name="PLG_MEDIA_PLAYER_UPLOAD_ROLES_DESC">Rollen, die neue Medien hochladen oder verwalten dürfen (Admins dürfen immer verwalten)</string>
+  <string name="PLG_MEDIA_PLAYER_CATEGORIES">Verfügbare Kategorien / Stimmgruppen</string>
+  <string name="PLG_MEDIA_PLAYER_CATEGORIES_DESC">Kommagetrennte Liste der Standardkategorien</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Medium hinzufügen</string>
+  <string name="PLG_MEDIA_PLAYER_UPLOAD_FILE">Datei hochladen</string>
+  <string name="PLG_MEDIA_PLAYER_EXTERNAL_LINK">Externer Link (YouTube / Vimeo / URL)</string>
+  <string name="PLG_MEDIA_PLAYER_PLAYLISTS">Wiedergabelisten</string>
+  <string name="PLG_MEDIA_PLAYER_ALL_MEDIA">Alle Medien</string>
+  <string name="PLG_MEDIA_PLAYER_DOWNLOAD_PLAYLIST">Playlist herunterladen (ZIP)</string>
+  <string name="PLG_MEDIA_PLAYER_DOWNLOAD_FILE">Herunterladen</string>
+  <string name="PLG_MEDIA_PLAYER_CATEGORY">Kategorie / Stimmgruppe</string>
+  <string name="PLG_MEDIA_PLAYER_TITLE">Titel</string>
+  <string name="PLG_MEDIA_PLAYER_ARTIST">Interpret / Komponist / Arrangeur</string>
+  <string name="PLG_MEDIA_PLAYER_DESCRIPTION_LABEL">Beschreibung / Notizen</string>
+  <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Neue Playlist erstellen</string>
+  <string name="PLG_MEDIA_PLAYER_PLAYLIST_NAME">Name der Playlist</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_TO_PLAYLIST">Zu Playlist hinzufügen</string>
+  <string name="PLG_MEDIA_PLAYER_REMOVE_FROM_PLAYLIST">Aus Playlist entfernen</string>
+  <string name="PLG_MEDIA_PLAYER_SPEED">Geschwindigkeit</string>
+  <string name="PLG_MEDIA_PLAYER_NO_MEDIA">Noch keine Medien vorhanden.</string>
+  <string name="PLG_MEDIA_PLAYER_SAVED_SUCCESS">Medium erfolgreich gespeichert.</string>
+  <string name="PLG_MEDIA_PLAYER_DELETED_SUCCESS">Medium erfolgreich gelöscht.</string>
+  <string name="PLG_MEDIA_PLAYER_SEARCH_PLACEHOLDER">Titel, Interpret oder Stimmgruppe suchen...</string>
+</resources>

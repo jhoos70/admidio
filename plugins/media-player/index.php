@@ -194,7 +194,7 @@ try {
     }
     $page->addPageFunctionsMenuItem(
         'btn_nav_playlists',
-        'Wiedergabelisten',
+        'Playlisten',
         $pluginUrl . '/index.php?mode=playlists',
         'bi-collection-play-fill'
     );
@@ -213,7 +213,7 @@ try {
     if ($getMode === 'playlist_detail' && !empty($getPlaylistUuid)) {
         $playlist = $mediaService->getPlaylistByUuid($getPlaylistUuid);
         if (!$playlist) {
-            echo '<div class="alert alert-danger">Playlist nicht gefunden.</div>';
+            echo '<div class="alert alert-danger">Playliste nicht gefunden.</div>';
         } else {
             $items = $mediaService->getPlaylistItems($playlist['mpl_id']);
             ?>
@@ -226,7 +226,7 @@ try {
                 </div>
                 <div class="d-flex gap-2">
                     <a href="<?= $pluginUrl ?>/index.php?mode=download_playlist&playlist_uuid=<?= $playlist['mpl_uuid'] ?>" class="btn btn-success">
-                        <i class="bi bi-file-earmark-zip-fill me-1"></i> Playlist herunterladen (ZIP)
+                        <i class="bi bi-file-earmark-zip-fill me-1"></i> Playliste herunterladen (ZIP)
                     </a>
                     <a href="<?= $pluginUrl ?>/index.php?mode=playlists" class="btn btn-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Zurück
@@ -257,7 +257,7 @@ try {
                                     <tr>
                                         <td colspan="6" class="text-center py-4 text-muted">
                                             <i class="bi bi-music-note mb-2 d-block fs-3"></i>
-                                            Diese Playlist enthält noch keine Titel.
+                                            Diese Playliste enthält noch keine Titel.
                                         </td>
                                     </tr>
                                 <?php else: ?>
@@ -304,11 +304,11 @@ try {
                                                             <i class="bi bi-box-arrow-up-right"></i>
                                                         </a>
                                                     <?php endif; ?>
-                                                    <form method="post" action="<?= $pluginUrl ?>/index.php?mode=remove_from_playlist&playlist_uuid=<?= $playlist['mpl_uuid'] ?>" class="d-inline" onsubmit="return confirm('Aus Playlist entfernen?');">
+                                                    <form method="post" action="<?= $pluginUrl ?>/index.php?mode=remove_from_playlist&playlist_uuid=<?= $playlist['mpl_uuid'] ?>" class="d-inline" onsubmit="return confirm('Aus Playliste entfernen?');">
                                                         <input type="hidden" name="adm_csrf_token" value="<?= $gCurrentSession->getCsrfToken() ?>">
                                                         <input type="hidden" name="target_playlist_id" value="<?= $playlist['mpl_id'] ?>">
                                                         <input type="hidden" name="target_media_id" value="<?= $item['med_id'] ?>">
-                                                        <button type="submit" class="btn btn-outline-danger media-action-btn" title="Entfernen">
+                                                        <button type="submit" class="btn btn-outline-danger media-action-btn" title="Aus Playliste entfernen">
                                                             <i class="bi bi-x-lg"></i>
                                                         </button>
                                                     </form>
@@ -333,11 +333,11 @@ try {
         ?>
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h2><i class="bi bi-collection-play me-2 text-primary"></i>Wiedergabelisten</h2>
-                <p class="text-muted mb-0">Eigene Playlists zusammenstellen, im Browser anhören oder als ZIP-Paket herunterladen.</p>
+                <h2><i class="bi bi-collection-play me-2 text-primary"></i>Playlisten</h2>
+                <p class="text-muted mb-0">Eigene Playlisten zusammenstellen, im Browser anhören oder als ZIP-Paket herunterladen.</p>
             </div>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal_create_playlist">
-                <i class="bi bi-plus-circle me-1"></i> Neue Playlist erstellen
+                <i class="bi bi-plus-circle me-1"></i> Neue Playliste erstellen
             </button>
         </div>
 
@@ -346,7 +346,7 @@ try {
                 <div class="col-12">
                     <div class="alert alert-info text-center py-4">
                         <i class="bi bi-collection-play fs-2 mb-2 d-block"></i>
-                        Noch keine Playlists angelegt. Klicke auf „Neue Playlist erstellen“, um eine hinzuzufügen.
+                        Noch keine Playlisten angelegt. Klicke auf „Neue Playliste erstellen“, um eine hinzuzufügen.
                     </div>
                 </div>
             <?php else: ?>
@@ -372,13 +372,13 @@ try {
                                 </a>
                                 <div class="btn-group btn-group-sm">
                                     <?php if ($pl['item_count'] > 0): ?>
-                                        <a href="<?= $pluginUrl ?>/index.php?mode=download_playlist&playlist_uuid=<?= $pl['mpl_uuid'] ?>" class="btn btn-sm btn-success" title="Als ZIP herunterladen">
+                                        <a href="<?= $pluginUrl ?>/index.php?mode=download_playlist&playlist_uuid=<?= $pl['mpl_uuid'] ?>" class="btn btn-sm btn-success" title="Playliste als ZIP herunterladen">
                                             <i class="bi bi-file-earmark-zip-fill"></i> ZIP
                                         </a>
                                     <?php endif; ?>
-                                    <form method="post" action="<?= $pluginUrl ?>/index.php?mode=delete_playlist&playlist_uuid=<?= $pl['mpl_uuid'] ?>" class="d-inline" onsubmit="return confirm('Playlist wirklich löschen?');">
+                                    <form method="post" action="<?= $pluginUrl ?>/index.php?mode=delete_playlist&playlist_uuid=<?= $pl['mpl_uuid'] ?>" class="d-inline" onsubmit="return confirm('Playliste wirklich löschen?');">
                                         <input type="hidden" name="adm_csrf_token" value="<?= $gCurrentSession->getCsrfToken() ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Playlist löschen">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Playliste löschen">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -427,7 +427,7 @@ try {
             <div class="col-md-6 text-md-end">
                 <span class="text-muted small me-3"><?= count($allMedia) ?> Medien verfügbar</span>
                 <a href="<?= $pluginUrl ?>/index.php?mode=playlists" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-collection-play me-1"></i> Zu den Playlists
+                    <i class="bi bi-collection-play me-1"></i> Zu den Playlisten
                 </a>
             </div>
         </div>
@@ -506,7 +506,7 @@ try {
                                                     <button type="button" class="btn btn-outline-secondary media-action-btn" 
                                                             data-bs-toggle="modal" data-bs-target="#modal_add_to_playlist"
                                                             data-media-id="<?= $item['med_id'] ?>" data-media-title="<?= htmlspecialchars($item['med_title']) ?>"
-                                                            title="Zu Playlist hinzufügen">
+                                                            title="Zu Playliste hinzufügen">
                                                         <i class="bi bi-plus-square"></i>
                                                     </button>
                                                 <?php endif; ?>
@@ -781,19 +781,19 @@ function renderModals(bool $canManage, string $pluginUrl, string $csrfToken, arr
         </script>
     <?php endif; ?>
 
-    <!-- Modal: Neue Playlist erstellen -->
+    <!-- Modal: Neue Playliste erstellen -->
     <div class="modal fade" id="modal_create_playlist" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <form method="post" action="<?= $pluginUrl ?>/index.php?mode=create_playlist">
                 <input type="hidden" name="adm_csrf_token" value="<?= $csrfToken ?>">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="bi bi-collection-play-fill me-2 text-primary"></i>Neue Playlist erstellen</h5>
+                        <h5 class="modal-title"><i class="bi bi-collection-play-fill me-2 text-primary"></i>Neue Playliste erstellen</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Name der Playlist <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Name der Playliste <span class="text-danger">*</span></label>
                             <input type="text" name="playlist_name" class="form-control" required placeholder="z. B. Konzertprogramm Herbst 2026">
                         </div>
                         <div class="mb-3">
@@ -810,7 +810,7 @@ function renderModals(bool $canManage, string $pluginUrl, string $csrfToken, arr
         </div>
     </div>
 
-    <!-- Modal: Zu Playlist hinzufügen -->
+    <!-- Modal: Zu Playliste hinzufügen -->
     <?php if (!empty($playlists)): ?>
         <div class="modal fade" id="modal_add_to_playlist" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
@@ -819,13 +819,13 @@ function renderModals(bool $canManage, string $pluginUrl, string $csrfToken, arr
                     <input type="hidden" name="target_media_id" id="modal_playlist_media_id" value="0">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title"><i class="bi bi-plus-square-fill me-2 text-primary"></i>Zu Playlist hinzufügen</h5>
+                            <h5 class="modal-title"><i class="bi bi-plus-square-fill me-2 text-primary"></i>Zu Playliste hinzufügen</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
                         </div>
                         <div class="modal-body">
                             <p class="mb-3">Titel: <strong id="modal_playlist_media_title">...</strong></p>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Playlist auswählen</label>
+                                <label class="form-label fw-bold">Playliste auswählen</label>
                                 <select name="target_playlist_id" class="form-select" required>
                                     <?php foreach ($playlists as $pl): ?>
                                         <option value="<?= $pl['mpl_id'] ?>"><?= htmlspecialchars($pl['mpl_name']) ?> (<?= (int)$pl['item_count'] ?> Titel)</option>

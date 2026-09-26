@@ -597,12 +597,12 @@ class MediaService
     {
         $playlist = $this->getPlaylistByUuid($playlistUuid);
         if (!$playlist) {
-            throw new Exception('Playlist not found');
+            throw new Exception('Playliste nicht gefunden');
         }
 
         $items = $this->getPlaylistItems($playlist['mpl_id']);
         if (empty($items)) {
-            throw new Exception('Playlist is empty');
+            throw new Exception('Playliste ist leer');
         }
 
         $safeName = preg_replace('/[^\w\s\d\-_~,;\[\]\(\).]/u', '_', $playlist['mpl_name']);
@@ -648,7 +648,7 @@ class MediaService
         $zip->addFromString($safeName . '.m3u8', $m3uContent);
 
         if (!empty($externalLinks)) {
-            $zip->addFromString('Online_Links_Info.txt', "Online-Streams / Videos dieser Playlist:\n\n" . $externalLinks);
+            $zip->addFromString('Online_Links_Info.txt', "Online-Streams / Videos dieser Playliste:\n\n" . $externalLinks);
         }
 
         $zip->close();

@@ -46,6 +46,28 @@
     min-height: 60px;
 }
 
+
+.admidio-player-wrapper.video-mode {
+    background-color: #000000;
+    padding: 0;
+    width: 100%;
+    min-height: 240px;
+}
+
+.admidio-player-wrapper.video-mode .plyr {
+    max-height: 540px;
+    margin: 0 auto;
+}
+
+.admidio-player-wrapper.video-mode .plyr__video-embed {
+    width: 100%;
+}
+
+.admidio-player-wrapper.video-mode video {
+    max-height: 540px;
+    margin: 0 auto;
+}
+
 .admidio-player-wrapper .plyr {
     width: 100%;
 }

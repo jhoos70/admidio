@@ -4,6 +4,21 @@
     margin-bottom: 1.5rem;
 }
 
+
+.admidio-sticky-player {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 1.5rem;
+    z-index: 10;
+}
+
+@media (max-width: 991.98px) {
+    .admidio-sticky-player {
+        position: static;
+        margin-bottom: 1rem;
+    }
+}
+
 .admidio-player-card {
     background-color: var(--bs-body-bg, #ffffff);
     border: 1px solid var(--bs-border-color, #dee2e6);

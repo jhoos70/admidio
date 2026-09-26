@@ -285,8 +285,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Scroll player into view if on mobile
-        if (window.innerWidth < 768) {
-            playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (window.innerWidth < 992) {
+            const playerCard = document.querySelector('.admidio-player-card');
+            if (playerCard) {
+                const navHeight = 70;
+                const cardTop = playerCard.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                window.scrollTo({ top: Math.max(0, cardTop), behavior: 'smooth' });
+            }
         }
     }
 

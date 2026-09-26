@@ -234,19 +234,17 @@ try {
                 </div>
             </div>
 
-            <!-- Player Card -->
-            <?php renderPlayerCard(); ?>
-
-            <!-- Playlist Items Table -->
-            <div class="card shadow-sm">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle admidio-media-table mb-0">
+            <div class="row g-4">
+                <!-- Left Column: Playlist Items Table -->
+                <div class="col-lg-7 col-xl-8 order-2 order-lg-1">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle admidio-media-table mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th style="width: 50px;"></th>
                                     <th>Titel</th>
-                                    <th>Interpret / Arrangeur</th>
                                     <th>Stimmgruppe</th>
                                     <th>Typ</th>
                                     <th class="text-end" style="width: 140px;">Aktionen</th>
@@ -255,7 +253,7 @@ try {
                             <tbody>
                                 <?php if (empty($items)): ?>
                                     <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
+                                        <td colspan="5" class="text-center py-4 text-muted">
                                             <i class="bi bi-music-note mb-2 d-block fs-3"></i>
                                             Diese Playliste enthält noch keine Titel.
                                         </td>
@@ -280,9 +278,11 @@ try {
                                                 </button>
                                             </td>
                                             <td>
-                                                <strong><?= htmlspecialchars($item['med_title']) ?></strong>
+                                                <div class="fw-bold"><?= htmlspecialchars($item['med_title']) ?></div>
+                                                <?php if (!empty($item['med_artist'])): ?>
+                                                    <div class="text-muted small"><?= htmlspecialchars($item['med_artist']) ?></div>
+                                                <?php endif; ?>
                                             </td>
-                                            <td><?= htmlspecialchars($item['med_artist'] ?? '-') ?></td>
                                             <td><span class="badge bg-secondary"><?= htmlspecialchars($item['med_category']) ?></span></td>
                                             <td>
                                                 <span class="media-type-badge media-type-<?= htmlspecialchars($item['med_type']) ?>">
@@ -319,6 +319,15 @@ try {
                                 <?php endif; ?>
                             </tbody>
                         </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Sticky Player Card -->
+                <div class="col-lg-5 col-xl-4 order-1 order-lg-2">
+                    <div class="admidio-sticky-player">
+                        <?php renderPlayerCard(); ?>
                     </div>
                 </div>
             </div>
@@ -399,10 +408,10 @@ try {
         $categories = $mediaService->getAllCategories();
         $allPlaylists = $mediaService->getAllPlaylists();
         ?>
-        <!-- Top Player Card -->
-        <?php renderPlayerCard(); ?>
-
-        <!-- Category Badges / Filter -->
+        <div class="row g-4">
+            <!-- Left Column: Categories, Search, Media Table -->
+            <div class="col-lg-7 col-xl-8 order-2 order-lg-1">
+                <!-- Category Badges / Filter -->
         <div class="admidio-category-nav">
             <span class="admidio-category-badge active" data-category="all">
                 <i class="bi bi-grid-fill me-1"></i> Alle
@@ -415,8 +424,8 @@ try {
         </div>
 
         <!-- Search & Control Bar -->
-        <div class="row mb-3 align-items-center">
-            <div class="col-md-6 mb-2 mb-md-0">
+        <div class="row g-2 mb-3 align-items-center">
+            <div class="col-12 col-sm-6 col-md-7">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0">
                         <i class="bi bi-search text-muted"></i>
@@ -424,9 +433,9 @@ try {
                     <input type="text" id="media_search_input" class="form-control border-start-0" placeholder="Titel, Interpret oder Stimmgruppe suchen...">
                 </div>
             </div>
-            <div class="col-md-6 text-md-end">
-                <span class="text-muted small me-3"><?= count($allMedia) ?> Medien verfügbar</span>
-                <a href="<?= $pluginUrl ?>/index.php?mode=playlists" class="btn btn-outline-secondary btn-sm">
+            <div class="col-12 col-sm-6 col-md-5 text-sm-end d-flex align-items-center justify-content-sm-end gap-2">
+                <span class="text-muted small d-none d-md-inline"><?= count($allMedia) ?> Medien</span>
+                <a href="<?= $pluginUrl ?>/index.php?mode=playlists" class="btn btn-outline-secondary btn-sm text-nowrap">
                     <i class="bi bi-collection-play me-1"></i> Zu den Playlisten
                 </a>
             </div>
@@ -441,7 +450,6 @@ try {
                             <tr>
                                 <th style="width: 50px;"></th>
                                 <th>Titel</th>
-                                <th>Interpret / Arrangeur</th>
                                 <th>Stimmgruppe</th>
                                 <th>Typ</th>
                                 <th class="text-end" style="width: 140px;">Aktionen</th>
@@ -450,7 +458,7 @@ try {
                         <tbody>
                             <?php if (empty($allMedia)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">
+                                    <td colspan="5" class="text-center py-4 text-muted">
                                         <i class="bi bi-music-note mb-2 d-block fs-3"></i>
                                         Noch keine Medien vorhanden. Klicke oben auf „Medium hinzufügen“, um Audio, Video oder YouTube-Links einzustellen.
                                     </td>
@@ -475,12 +483,14 @@ try {
                                             </button>
                                         </td>
                                         <td>
-                                            <strong><?= htmlspecialchars($item['med_title']) ?></strong>
+                                            <div class="fw-bold"><?= htmlspecialchars($item['med_title']) ?></div>
+                                            <?php if (!empty($item['med_artist'])): ?>
+                                                <div class="text-muted small"><?= htmlspecialchars($item['med_artist']) ?></div>
+                                            <?php endif; ?>
                                             <?php if (!empty($item['med_description'])): ?>
-                                                <div class="text-muted small"><?= htmlspecialchars($item['med_description']) ?></div>
+                                                <div class="text-muted small fst-italic"><?= htmlspecialchars($item['med_description']) ?></div>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?= htmlspecialchars($item['med_artist'] ?? '-') ?></td>
                                         <td><span class="badge bg-secondary"><?= htmlspecialchars($item['med_category']) ?></span></td>
                                         <td>
                                             <span class="media-type-badge media-type-<?= htmlspecialchars($item['med_type']) ?>">
@@ -524,7 +534,16 @@ try {
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
-                    </table>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Sticky Player Card -->
+            <div class="col-lg-5 col-xl-4 order-1 order-lg-2">
+                <div class="admidio-sticky-player">
+                    <?php renderPlayerCard(); ?>
                 </div>
             </div>
         </div>
@@ -552,19 +571,19 @@ function renderPlayerCard(): void
     ?>
     <div class="admidio-player-card">
         <div class="admidio-player-header">
-            <div class="d-flex align-items-center gap-2">
-                <button id="btn_player_prev" class="btn btn-sm btn-outline-secondary" title="Vorheriger Titel">
+            <div class="d-flex align-items-center gap-2 flex-grow-1 overflow-hidden">
+                <button id="btn_player_prev" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Vorheriger Titel">
                     <i class="bi bi-skip-backward-fill"></i>
                 </button>
-                <button id="btn_player_next" class="btn btn-sm btn-outline-secondary" title="Nächster Titel">
+                <button id="btn_player_next" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Nächster Titel">
                     <i class="bi bi-skip-forward-fill"></i>
                 </button>
-                <div class="ms-2">
-                    <h5 id="player_current_title" class="admidio-player-title mb-0">Titel auswählen</h5>
-                    <div id="player_current_meta" class="media-now-info text-muted">Klicke unten auf einen Titel zum Abspielen</div>
+                <div class="ms-2 text-truncate">
+                    <h5 id="player_current_title" class="admidio-player-title mb-0 text-truncate">Titel auswählen</h5>
+                    <div id="player_current_meta" class="media-now-info text-muted text-truncate">Klicke auf einen Titel zum Abspielen</div>
                 </div>
             </div>
-            <div id="player_external_actions" class="d-flex align-items-center gap-2 ms-auto"></div>
+            <div id="player_external_actions" class="d-flex align-items-center gap-2 ms-2 flex-shrink-0"></div>
         </div>
         <div id="admidio_player_wrapper" class="admidio-player-wrapper audio-mode">
             <div class="text-muted small py-3"><i class="bi bi-music-note-beamed me-2"></i>Warte auf Wiedergabe...</div>

@@ -286,7 +286,7 @@ try {
                                             <td><span class="badge bg-secondary"><?= htmlspecialchars($item['med_category']) ?></span></td>
                                             <td>
                                                 <span class="media-type-badge media-type-<?= htmlspecialchars($item['med_type']) ?>">
-                                                    <?= htmlspecialchars(strtoupper($item['med_type'])) ?>
+                                                    <?php if ($item['med_type'] === 'youtube'): ?><i class="bi bi-youtube me-1"></i><?php elseif ($item['med_type'] === 'video'): ?><i class="bi bi-camera-video-fill me-1"></i><?php elseif ($item['med_type'] === 'audio'): ?><i class="bi bi-music-note-beamed me-1"></i><?php endif; ?><?= htmlspecialchars(strtoupper($item['med_type'])) ?>
                                                 </span>
                                             </td>
                                             <td class="text-end">
@@ -294,6 +294,14 @@ try {
                                                     <?php if (!empty($downloadUrl)): ?>
                                                         <a href="<?= $downloadUrl ?>" class="btn btn-outline-secondary media-action-btn" title="Herunterladen">
                                                             <i class="bi bi-download"></i>
+                                                        </a>
+                                                    <?php elseif ($item['med_type'] === 'youtube'): ?>
+                                                        <a href="<?= htmlspecialchars($item['med_source']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger media-action-btn" title="Auf YouTube ansehen">
+                                                            <i class="bi bi-youtube"></i>
+                                                        </a>
+                                                    <?php elseif ($item['med_type'] === 'vimeo' || $item['med_type'] === 'url'): ?>
+                                                        <a href="<?= htmlspecialchars($item['med_source']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary media-action-btn" title="Extern öffnen">
+                                                            <i class="bi bi-box-arrow-up-right"></i>
                                                         </a>
                                                     <?php endif; ?>
                                                     <form method="post" action="<?= $pluginUrl ?>/index.php?mode=remove_from_playlist&playlist_uuid=<?= $playlist['mpl_uuid'] ?>" class="d-inline" onsubmit="return confirm('Aus Playlist entfernen?');">
@@ -476,7 +484,7 @@ try {
                                         <td><span class="badge bg-secondary"><?= htmlspecialchars($item['med_category']) ?></span></td>
                                         <td>
                                             <span class="media-type-badge media-type-<?= htmlspecialchars($item['med_type']) ?>">
-                                                <?= htmlspecialchars(strtoupper($item['med_type'])) ?>
+                                                <?php if ($item['med_type'] === 'youtube'): ?><i class="bi bi-youtube me-1"></i><?php elseif ($item['med_type'] === 'video'): ?><i class="bi bi-camera-video-fill me-1"></i><?php elseif ($item['med_type'] === 'audio'): ?><i class="bi bi-music-note-beamed me-1"></i><?php endif; ?><?= htmlspecialchars(strtoupper($item['med_type'])) ?>
                                             </span>
                                         </td>
                                         <td class="text-end">
@@ -484,6 +492,14 @@ try {
                                                 <?php if (!empty($downloadUrl)): ?>
                                                     <a href="<?= $downloadUrl ?>" class="btn btn-outline-secondary media-action-btn" title="Herunterladen">
                                                         <i class="bi bi-download"></i>
+                                                    </a>
+                                                <?php elseif ($item['med_type'] === 'youtube'): ?>
+                                                    <a href="<?= htmlspecialchars($item['med_source']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-danger media-action-btn" title="Auf YouTube ansehen">
+                                                        <i class="bi bi-youtube"></i>
+                                                    </a>
+                                                <?php elseif ($item['med_type'] === 'vimeo' || $item['med_type'] === 'url'): ?>
+                                                    <a href="<?= htmlspecialchars($item['med_source']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary media-action-btn" title="Extern öffnen">
+                                                        <i class="bi bi-box-arrow-up-right"></i>
                                                     </a>
                                                 <?php endif; ?>
                                                 <?php if (!empty($allPlaylists)): ?>
@@ -548,6 +564,7 @@ function renderPlayerCard(): void
                     <div id="player_current_meta" class="media-now-info text-muted">Klicke unten auf einen Titel zum Abspielen</div>
                 </div>
             </div>
+            <div id="player_external_actions" class="d-flex align-items-center gap-2 ms-auto"></div>
         </div>
         <div id="admidio_player_wrapper" class="admidio-player-wrapper audio-mode">
             <div class="text-muted small py-3"><i class="bi bi-music-note-beamed me-2"></i>Warte auf Wiedergabe...</div>

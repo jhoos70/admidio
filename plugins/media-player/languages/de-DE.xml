@@ -2,8 +2,8 @@
 <resources>
   <string name="PLG_MEDIA_PLAYER_ADD_ITEMS">Dateien und Weblinks hinzufügen</string>
   <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES">Audio- und Videodateien auswählen</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES_DESC">Audio- und Videodateien aus Dokumente &amp; Dateien, die du sehen darfst. Mitglieder hören und sehen in einer Playlist nur die Dateien, die sie auch in Dokumente &amp; Dateien sehen dürfen.</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_TRACK">Wähle einen Titel zum Abspielen</string>
+  <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES_DESC">Audio- und Videodateien aus Dokumente &amp; Dateien, die Sie sehen dürfen. Mitglieder hören und sehen in einer Playlist nur die Dateien, die sie auch in Dokumente &amp; Dateien sehen dürfen.</string>
+  <string name="PLG_MEDIA_PLAYER_CHOOSE_TRACK">Wählen Sie einen Titel zum Abspielen</string>
   <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS">Weblinks auswählen</string>
   <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS_DESC">Weblinks aus dem Modul Weblinks. Videos von YouTube und Vimeo sowie Links auf Audio- und Videodateien werden auf der Seite abgespielt, alle anderen Weblinks öffnen sich in einem neuen Fenster.</string>
   <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Playlist anlegen</string>
@@ -14,16 +14,16 @@
   <string name="PLG_MEDIA_PLAYER_ITEM">Eintrag</string>
   <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>
   <string name="PLG_MEDIA_PLAYER_NEXT_TRACK">Nächster Titel</string>
-  <string name="PLG_MEDIA_PLAYER_NO_ITEMS">Diese Playlist enthält keine Einträge, die du sehen darfst.</string>
+  <string name="PLG_MEDIA_PLAYER_NO_ITEMS">Diese Playlist enthält keine Einträge, die Sie sehen dürfen.</string>
   <string name="PLG_MEDIA_PLAYER_NO_PLAYLISTS">Es sind noch keine Playlists vorhanden.</string>
   <string name="PLG_MEDIA_PLAYER_NUMBER_OF_ITEMS">#VAR1# Einträge</string>
   <string name="PLG_MEDIA_PLAYER_OPEN_EXTERNAL">In neuem Fenster öffnen</string>
   <string name="PLG_MEDIA_PLAYER_PLAY_TRACK">#VAR1# abspielen</string>
-  <string name="PLG_MEDIA_PLAYER_PLAYLIST_EMPTY">Die Playlist enthält keine Einträge, die du sehen darfst.</string>
+  <string name="PLG_MEDIA_PLAYER_PLAYLIST_EMPTY">Die Playlist enthält keine Einträge, die Sie sehen dürfen.</string>
   <string name="PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT">Rollen, die Playlists pflegen</string>
   <string name="PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT_DESC">Mitglieder dieser Rollen können Playlists anlegen, bearbeiten und löschen. Administratoren können Playlists immer pflegen.</string>
   <string name="PLG_MEDIA_PLAYER_PREVIOUS_TRACK">Vorheriger Titel</string>
   <string name="PLG_MEDIA_PLAYER_REMOVE_ITEM">Aus der Playlist entfernen</string>
-  <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Willst du #VAR1_BOLD# wirklich aus der Playlist entfernen? Die Datei oder der Weblink selbst wird nicht gelöscht.</string>
+  <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Wollen Sie #VAR1_BOLD# wirklich aus der Playlist entfernen? Die Datei oder der Weblink selbst wird nicht gelöscht.</string>
   <string name="PLG_MEDIA_PLAYER_ZIP_ERROR">Die ZIP-Datei konnte nicht erstellt werden.</string>
 </resources>

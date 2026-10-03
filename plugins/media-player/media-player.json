@@ -2,8 +2,8 @@
     "name": "PLG_MEDIA_PLAYER_NAME",
     "description": "PLG_MEDIA_PLAYER_DESCRIPTION",
     "version": "1.0.0",
-    "author": "Querbeat / Admidio Community",
-    "url": "https://mitglieder.querbeat-badsalzuflen.de",
+    "author": "Admidio Team",
+    "url": "https://www.admidio.org",
     "icon": "bi-music-note-beamed",
     "mainFile": "index.php",
     "overviewPlugin": false,
@@ -14,27 +14,26 @@
     },
     "dependencies": [
         "Admidio\\Infrastructure\\Plugins\\PluginAbstract",
-        "Admidio\\Infrastructure\\Database",
-        "Admidio\\Infrastructure\\Utils\\SecurityUtils"
+        "Admidio\\Infrastructure\\Entity\\Entity",
+        "Admidio\\Documents\\Entity\\File",
+        "Admidio\\Weblinks\\Entity\\Weblink",
+        "Admidio\\Roles\\Entity\\RolesRights",
+        "Admidio\\Roles\\Service\\RolesService",
+        "Admidio\\UI\\Presenter\\FormPresenter",
+        "Admidio\\UI\\Presenter\\PagePresenter"
     ],
     "defaultConfig": {
         "media_player_plugin_enabled": {
             "name": "ORG_ACCESS_TO_PLUGIN",
             "description": "ORG_ACCESS_TO_PLUGIN_DESC",
             "type": "integer",
-            "value": 1
+            "value" : 2
         },
-        "media_player_upload_roles": {
-            "name": "PLG_MEDIA_PLAYER_UPLOAD_ROLES",
-            "description": "PLG_MEDIA_PLAYER_UPLOAD_ROLES_DESC",
-            "type": "string",
-            "value": ""
-        },
-        "media_player_categories": {
-            "name": "PLG_MEDIA_PLAYER_CATEGORIES",
-            "description": "PLG_MEDIA_PLAYER_CATEGORIES_DESC",
-            "type": "string",
-            "value": "Gesamt,Alt 1,Alt 2,Sopran 1,Sopran 2,Tenor,Bass,Probe,Konzert,Video"
+        "media_player_roles_edit": {
+            "name": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT",
+            "description": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT_DESC",
+            "type": "array",
+            "value" : []
         }
     }
 }

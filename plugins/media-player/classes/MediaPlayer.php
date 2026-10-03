@@ -2,152 +2,107 @@
 
 namespace MediaPlayer\classes;
 
+use Admidio\Infrastructure\Exception;
 use Admidio\Infrastructure\Plugins\PluginAbstract;
+use Admidio\Roles\Service\RolesService;
 use Admidio\UI\Presenter\PagePresenter;
-use Exception;
 
 /**
- * Class MediaPlayer
+ ***********************************************************************************************
+ * Media player
  *
- * Media Player Plugin for Admidio (Audio, Video, Playlists, Offline ZIP Download).
- * Fully aligned and compatible with Admidio's PluginManager (PluginAbstract / PluginInterface).
+ * Playlists with audio and video files of the module documents & files and with weblinks.
+ * The plugin has its own page and is not shown on the overview page.
  *
- * @copyright Antigravity & Querbeat Chor
+ * @copyright The Admidio Team
+ * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
+ ***********************************************************************************************
  */
-if (class_exists('Admidio\Infrastructure\Plugins\PluginAbstract')) {
-    class MediaPlayer extends PluginAbstract
+class MediaPlayer extends PluginAbstract
+{
+    public const TABLE_PLAYLISTS = TABLE_PREFIX . '_media_playlists';
+    public const TABLE_PLAYLIST_ITEMS = TABLE_PREFIX . '_media_playlist_items';
+
+    /**
+     * The plugin has its own page, so nothing is rendered within other pages.
+     * @param PagePresenter|null $page
+     * @return bool
+     */
+    public static function doRender(?PagePresenter $page = null): bool
     {
-        /**
-         * Standalone module plugin, not an overview dashboard widget.
-         * Returning false directly ensures compatibility across Admidio 5.0.x and 5.1+.
-         *
-         * @return bool
-         */
-        public static function isOverviewPlugin(): bool
-        {
-            return false;
-        }
-
-        /**
-         * @param PagePresenter|null $page
-         * @return bool
-         */
-        public static function doRender(?PagePresenter $page = null): bool
-        {
-            return true;
-        }
-
-        /**
-         * Check if the plugin is installed. Checks both adm_components and standalone tables.
-         *
-         * @return bool
-         */
-        public static function isInstalled(): bool
-        {
-            global $gDb;
-            if (parent::isInstalled()) {
-                return true;
-            }
-            // Standalone mode check
-            return $gDb->tableExists('adm_media_items');
-        }
-
-        /**
-         * Check if the plugin is activated
-         *
-         * @return bool
-         */
-        public static function isActivated(): bool
-        {
-            return self::isInstalled();
-        }
-
-        /**
-         * Visibility check for menu / navigation
-         *
-         * @return bool
-         */
-        public static function isVisible(): bool
-        {
-            global $gValidLogin;
-            return (bool)$gValidLogin;
-        }
-
-        /**
-         * Custom installation tasks
-         *
-         * @param bool $addMenuEntry
-         * @return bool
-         * @throws Exception
-         */
-        public static function doInstall(bool $addMenuEntry = true): bool
-        {
-            $installed = parent::doInstall($addMenuEntry);
-
-            if ($installed) {
-                // Ensure storage directory exists
-                $storagePath = ADMIDIO_PATH . FOLDER_DATA . '/media';
-                if (!is_dir($storagePath)) {
-                    @mkdir($storagePath, 0775, true);
-                }
-                if (!is_dir($storagePath . '/tmp')) {
-                    @mkdir($storagePath . '/tmp', 0775, true);
-                }
-            }
-
-            return $installed;
-        }
-
-        /**
-         * Custom uninstallation tasks
-         *
-         * @param bool $removeMenuEntry
-         * @param array $options
-         * @return bool
-         * @throws Exception
-         */
-        public static function doUninstall(bool $removeMenuEntry = true, array $options = array()): bool
-        {
-            return parent::doUninstall($removeMenuEntry, $options);
-        }
+        return true;
     }
-} else {
-    // Fallback stub for older Admidio releases (prior to PluginManager)
-    class MediaPlayer
+
+    /**
+     * Get the active roles of the current organization for the preferences.
+     * @param bool $onlyIds If set to **true** only the ids of the roles are returned.
+     * @return array Returns an array with the role ids or with arrays of role id and role name.
+     * @throws Exception
+     */
+    public static function getAvailableRoles(bool $onlyIds = false): array
     {
-        public static function getInstance(): self
-        {
-            static $instance = null;
-            if ($instance === null) {
-                $instance = new self();
+        global $gDb;
+
+        $roles = array();
+        $rolesService = new RolesService($gDb);
+
+        foreach ($rolesService->findAll(1) as $row) {
+            if ($onlyIds) {
+                $roles[] = (int)$row['rol_id'];
+            } else {
+                $roles[] = array($row['rol_id'], $row['rol_name']);
             }
-            return $instance;
         }
+        return $roles;
+    }
 
-        public static function doRender(?PagePresenter $page = null): bool
-        {
-            return true;
-        }
+    /**
+     * Check if the current user may create, edit and delete playlists. Administrators may always edit playlists,
+     * other users must be a member of one of the roles that are set in the preferences.
+     * @return bool Returns **true** if the current user may edit playlists.
+     * @throws Exception
+     */
+    public static function isPlaylistEditor(): bool
+    {
+        global $gCurrentUser, $gValidLogin;
 
-        public static function isOverviewPlugin(): bool
-        {
+        if (!$gValidLogin) {
             return false;
         }
-
-        public static function isInstalled(): bool
-        {
+        if ($gCurrentUser->isAdministrator()) {
             return true;
         }
 
-        public static function isActivated(): bool
-        {
-            return true;
+        $config = self::getPluginConfigValues();
+        $editRoles = array_map('intval', (array)($config['media_player_roles_edit'] ?? array()));
+
+        return count(array_intersect($editRoles, $gCurrentUser->getRoleMemberships())) > 0;
+    }
+
+    /**
+     * Throws an exception if the plugin is not installed or not visible for the current user.
+     * If the plugin is only available for registered users and the user is not logged in,
+     * the login page will be shown.
+     * @return void
+     * @throws Exception
+     */
+    public static function checkAccess(): void
+    {
+        global $gValidLogin;
+
+        if (!self::isInstalled()) {
+            throw new Exception('SYS_PLUGIN_NOT_INSTALLED');
         }
 
-        public static function isVisible(): bool
-        {
-            return true;
+        $config = self::getPluginConfigValues();
+        $enabled = (int)($config['media_player_plugin_enabled'] ?? 0);
+
+        if ($enabled === 0) {
+            throw new Exception('SYS_MODULE_DISABLED');
+        }
+        if ($enabled === 2 && !$gValidLogin) {
+            require(ADMIDIO_PATH . '/system/login_valid.php');
         }
     }
 }

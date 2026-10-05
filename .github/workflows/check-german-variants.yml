@@ -1,0 +1,43 @@
+name: Check German Variants
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - languages/de.xml
+      - languages/de-DE.xml
+      - languages/de-standard.xml
+      - languages/de-DE-standard.xml
+  pull_request:
+    branches:
+      - master
+    paths:
+      - languages/de.xml
+      - languages/de-DE.xml
+      - languages/de-standard.xml
+      - languages/de-DE-standard.xml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  german-variants:
+    if: ${{ github.repository_owner == 'Admidio' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check the German variants without gender characters
+        run: |
+          python .github/scripts/check_german_variants.py > variant_findings.txt
+          while IFS= read -r finding; do
+            file="${finding%%:*}"
+            echo "::warning file=languages/$file::$finding"
+          done < variant_findings.txt

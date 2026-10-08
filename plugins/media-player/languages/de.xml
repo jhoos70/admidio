@@ -24,6 +24,9 @@
   <string name="PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT_DESC">Mitglieder dieser Rollen können Playlists anlegen, bearbeiten und löschen. Administratoren können Playlists immer pflegen.</string>
   <string name="PLG_MEDIA_PLAYER_PREVIOUS_TRACK">Vorheriger Titel</string>
   <string name="PLG_MEDIA_PLAYER_REMOVE_ITEM">Aus der Playlist entfernen</string>
+  <string name="PLG_MEDIA_PLAYER_REPEAT_ALL">Playliste wiederholen</string>
+  <string name="PLG_MEDIA_PLAYER_REPEAT_OFF">Wiederholung aus</string>
+  <string name="PLG_MEDIA_PLAYER_REPEAT_ONE">Titel wiederholen</string>
   <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Willst du #VAR1_BOLD# wirklich aus der Playlist entfernen? Die Datei oder der Weblink selbst wird nicht gelöscht.</string>
   <string name="PLG_MEDIA_PLAYER_ZIP_ERROR">Die ZIP-Datei konnte nicht erstellt werden.</string>
 </resources>

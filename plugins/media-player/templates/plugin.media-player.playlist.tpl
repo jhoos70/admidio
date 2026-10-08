@@ -11,6 +11,11 @@
                         <i class="bi bi-skip-backward-fill" data-bs-toggle="tooltip" title="{$l10n->get('PLG_MEDIA_PLAYER_PREVIOUS_TRACK')}"></i></button>
                     <button type="button" id="adm_media_player_next" class="btn btn-sm btn-primary" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_NEXT_TRACK')}">
                         <i class="bi bi-skip-forward-fill" data-bs-toggle="tooltip" title="{$l10n->get('PLG_MEDIA_PLAYER_NEXT_TRACK')}"></i></button>
+                    <button type="button" id="adm_media_player_repeat" class="btn btn-sm btn-outline-primary" aria-pressed="false"
+                        data-label-off="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_OFF')}" data-label-all="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_ALL')}"
+                        data-label-one="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_ONE')}"
+                        title="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_OFF')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_OFF')}">
+                        <i class="bi bi-repeat"></i></button>
                     <div class="admidio-media-player-now text-truncate">
                         <div id="adm_media_player_title" class="fw-bold text-truncate">{$l10n->get('PLG_MEDIA_PLAYER_CHOOSE_TRACK')}</div>
                         <div id="adm_media_player_origin" class="small text-body-secondary text-truncate"></div>

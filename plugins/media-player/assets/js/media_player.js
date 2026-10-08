@@ -5,6 +5,8 @@
  * Plays the items of a playlist one after the other. Files and weblinks to audio or video files are
  * played with the browser player, YouTube and Vimeo videos in their embedded players. Embedded players
  * are only loaded after the user started an item. All other weblinks are opened in a new window.
+ * The repeat button switches between no repeat, repeat of the playlist and repeat of the current item.
+ * The browsers of mobile devices have no repeat function in their players, so the plugin has its own.
  *
  * @copyright The Admidio Team
  * @see https://www.admidio.org/
@@ -21,8 +23,51 @@ $(function() {
     const titleElement = document.getElementById("adm_media_player_title");
     const originElement = document.getElementById("adm_media_player_origin");
     const actionsElement = document.getElementById("adm_media_player_actions");
+    const repeatButton = document.getElementById("adm_media_player_repeat");
+    const repeatModes = ["off", "all", "one"];
+    const repeatStorageKey = "admidio-media-player-repeat";
     let player = null;
     let currentRow = null;
+    let repeatMode = "off";
+
+    // the repeat mode is remembered in the browser, so it is the same for every playlist
+    try {
+        const storedMode = window.localStorage.getItem(repeatStorageKey);
+        if (repeatModes.includes(storedMode)) {
+            repeatMode = storedMode;
+        }
+    } catch (exception) {
+        // the browser doesn't allow the storage, then the default is used
+    }
+
+    /**
+     * Show the current repeat mode at the repeat button.
+     */
+    function showRepeatMode() {
+        const label = repeatButton.dataset["label" + repeatMode.charAt(0).toUpperCase() + repeatMode.slice(1)];
+        repeatButton.querySelector("i").className = (repeatMode === "one") ? "bi bi-repeat-1" : "bi bi-repeat";
+        repeatButton.classList.toggle("btn-primary", repeatMode !== "off");
+        repeatButton.classList.toggle("btn-outline-primary", repeatMode === "off");
+        repeatButton.setAttribute("aria-pressed", (repeatMode !== "off").toString());
+        repeatButton.title = label;
+        repeatButton.setAttribute("aria-label", label);
+    }
+
+    /**
+     * Switch to the next repeat mode and remember it.
+     */
+    function switchRepeatMode() {
+        repeatMode = repeatModes[(repeatModes.indexOf(repeatMode) + 1) % repeatModes.length];
+        try {
+            window.localStorage.setItem(repeatStorageKey, repeatMode);
+        } catch (exception) {
+            // the mode is only used for the current page
+        }
+        if (player !== null) {
+            player.loop = (repeatMode === "one");
+        }
+        showRepeatMode();
+    }
 
     /**
      * Get all items of the playlist in their current order.
@@ -107,7 +152,8 @@ $(function() {
             seekTime: 10,
             speed: {selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2]},
             youtube: {noCookie: true, rel: 0, modestbranding: 1},
-            vimeo: {dnt: true}
+            vimeo: {dnt: true},
+            loop: {active: repeatMode === "one"}
         });
         player.on("ready", function() {
             const promise = player.play();
@@ -116,7 +162,20 @@ $(function() {
                 promise.catch(function() {});
             }
         });
-        player.on("ended", playNext);
+        player.on("ended", playAfterEnd);
+    }
+
+    /**
+     * Continue after the end of an item depending on the repeat mode.
+     */
+    function playAfterEnd() {
+        const rows = getRows();
+        if (repeatMode === "one") {
+            // the embedded players don't always support the loop, so start the item again
+            play(currentRow);
+        } else if (repeatMode === "all" || rows.indexOf(currentRow) < rows.length - 1) {
+            playNext();
+        }
     }
 
     /**
@@ -227,4 +286,6 @@ $(function() {
     });
     $("#adm_media_player_next").click(playNext);
     $("#adm_media_player_previous").click(playPrevious);
+    $(repeatButton).click(switchRepeatMode);
+    showRepeatMode();
 });

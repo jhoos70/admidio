@@ -24,6 +24,9 @@
   <string name="PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT_DESC">Members of these roles could create, edit and delete playlists. Administrators could always maintain playlists.</string>
   <string name="PLG_MEDIA_PLAYER_PREVIOUS_TRACK">Previous track</string>
   <string name="PLG_MEDIA_PLAYER_REMOVE_ITEM">Remove from playlist</string>
+  <string name="PLG_MEDIA_PLAYER_REPEAT_ALL">Repeat playlist</string>
+  <string name="PLG_MEDIA_PLAYER_REPEAT_OFF">Repeat off</string>
+  <string name="PLG_MEDIA_PLAYER_REPEAT_ONE">Repeat track</string>
   <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Do you really want to remove #VAR1_BOLD# from the playlist? The file or weblink itself is not deleted.</string>
   <string name="PLG_MEDIA_PLAYER_ZIP_ERROR">The ZIP file could not be created.</string>
 </resources>

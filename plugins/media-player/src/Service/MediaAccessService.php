@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaPlayer\classes\Service;
+namespace AdmidioPlugin\MediaPlayer\Service;
 
 use Admidio\Infrastructure\Database;
 use Admidio\Infrastructure\Exception;

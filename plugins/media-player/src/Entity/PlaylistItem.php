@@ -1,11 +1,11 @@
 <?php
 
-namespace MediaPlayer\classes\Entity;
+namespace AdmidioPlugin\MediaPlayer\Entity;
 
 use Admidio\Infrastructure\Database;
 use Admidio\Infrastructure\Entity\Entity;
 use Admidio\Infrastructure\Exception;
-use MediaPlayer\classes\MediaPlayer;
+use AdmidioPlugin\MediaPlayer\MediaPlayer;
 
 /**
  ***********************************************************************************************

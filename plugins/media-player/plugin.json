@@ -1,0 +1,32 @@
+{
+    "name": "PLG_MEDIA_PLAYER_NAME",
+    "description": "PLG_MEDIA_PLAYER_DESCRIPTION",
+    "version": "1.0.0",
+    "author": "Admidio Team",
+    "url": "https://www.admidio.org",
+    "icon": "bi-music-note-beamed",
+    "requires": {
+        "admidio": ">=6.0",
+        "php": ">=8.2",
+        "extensions": ["zip"],
+        "modules": ["documents-files"]
+    },
+    "autoload": {
+        "AdmidioPlugin\\MediaPlayer\\": "src/"
+    },
+    "settings": {
+        "media_player_plugin_enabled": {
+            "type": "enum",
+            "default": "2",
+            "values": ["0", "1", "2"],
+            "label": "ORG_ACCESS_TO_PLUGIN",
+            "description": "ORG_ACCESS_TO_PLUGIN_DESC"
+        },
+        "media_player_roles_edit": {
+            "type": "array",
+            "default": [],
+            "label": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT",
+            "description": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT_DESC"
+        }
+    }
+}

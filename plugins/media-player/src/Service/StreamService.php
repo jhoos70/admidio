@@ -1,6 +1,6 @@
 <?php
 
-namespace MediaPlayer\classes\Service;
+namespace AdmidioPlugin\MediaPlayer\Service;
 
 use Admidio\Documents\Entity\File;
 use Admidio\Infrastructure\Database;

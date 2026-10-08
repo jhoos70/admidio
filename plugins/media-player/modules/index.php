@@ -29,18 +29,15 @@
  */
 
 use Admidio\Infrastructure\Exception;
-use MediaPlayer\classes\MediaPlayer;
-use MediaPlayer\classes\Presenter\PlaylistsPresenter;
-use MediaPlayer\classes\Service\PlaylistService;
-use MediaPlayer\classes\Service\StreamService;
-use MediaPlayer\classes\Service\ZipExportService;
+use AdmidioPlugin\MediaPlayer\MediaPlayer;
+use AdmidioPlugin\MediaPlayer\Presenter\PlaylistsPresenter;
+use AdmidioPlugin\MediaPlayer\Service\PlaylistService;
+use AdmidioPlugin\MediaPlayer\Service\StreamService;
+use AdmidioPlugin\MediaPlayer\Service\ZipExportService;
 
 $getMode = 'list';
 try {
-    require_once(__DIR__ . '/../../system/common.php');
-    // the plugin manager only loads plugin classes on the overview and the preferences page, so load the main
-    // class here; getInstance() then registers the autoloader for all other classes of the plugin
-    require_once(__DIR__ . '/classes/MediaPlayer.php');
+    require_once(__DIR__ . '/../../../system/common.php');
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
@@ -55,14 +52,13 @@ try {
     }
     $getFileUuid = admFuncVariableIsValid($_GET, 'file_uuid', 'uuid');
 
-    MediaPlayer::getInstance();
     MediaPlayer::checkAccess();
 
     switch ($getMode) {
         case 'list':
             $page = new PlaylistsPresenter();
             $page->createList();
-            $gNavigation->addStartUrl(CURRENT_URL, $page->getHeadline(), 'bi-music-note-beamed');
+            $gNavigation->addStartUrl(CURRENT_URL, $page->getHeadline(), MediaPlayer::getPlugin()->icon);
             $page->show();
             break;
 

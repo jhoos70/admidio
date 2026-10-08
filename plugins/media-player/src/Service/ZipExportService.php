@@ -1,12 +1,12 @@
 <?php
 
-namespace MediaPlayer\classes\Service;
+namespace AdmidioPlugin\MediaPlayer\Service;
 
 use Admidio\Documents\Entity\File;
 use Admidio\Infrastructure\Database;
 use Admidio\Infrastructure\Exception;
 use Admidio\Infrastructure\Utils\FileSystemUtils;
-use MediaPlayer\classes\Entity\Playlist;
+use AdmidioPlugin\MediaPlayer\Entity\Playlist;
 use ZipArchive;
 
 /**

@@ -1,15 +1,15 @@
 <?php
 
-namespace MediaPlayer\classes\Service;
+namespace AdmidioPlugin\MediaPlayer\Service;
 
 use Admidio\Infrastructure\Database;
 use Admidio\Infrastructure\Exception;
 use Admidio\Infrastructure\Language;
 use Admidio\Infrastructure\Utils\SecurityUtils;
 use Admidio\Infrastructure\Utils\StringUtils;
-use MediaPlayer\classes\Entity\Playlist;
-use MediaPlayer\classes\Entity\PlaylistItem;
-use MediaPlayer\classes\MediaPlayer;
+use AdmidioPlugin\MediaPlayer\Entity\Playlist;
+use AdmidioPlugin\MediaPlayer\Entity\PlaylistItem;
+use AdmidioPlugin\MediaPlayer\MediaPlayer;
 
 /**
  ***********************************************************************************************
@@ -117,7 +117,7 @@ class PlaylistService
             'title' => pathinfo((string)$row['fil_name'], PATHINFO_FILENAME),
             'description' => StringUtils::strStripTags((string)$row['fil_description']),
             'origin' => $row['fol_name'],
-            'source' => SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_PLUGINS . '/media-player/index.php',
+            'source' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(),
                 array('mode' => 'stream', 'file_uuid' => $row['fil_uuid'])),
             'downloadUrl' => SecurityUtils::encodeUrl(ADMIDIO_URL . FOLDER_MODULES . '/documents-files.php',
                 array('mode' => 'download', 'file_uuid' => $row['fil_uuid'])),

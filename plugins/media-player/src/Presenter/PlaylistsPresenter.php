@@ -1,13 +1,14 @@
 <?php
 
-namespace MediaPlayer\classes\Presenter;
+namespace AdmidioPlugin\MediaPlayer\Presenter;
 
 use Admidio\Infrastructure\Exception;
+use Admidio\Infrastructure\Plugins\Plugin;
 use Admidio\Infrastructure\Utils\SecurityUtils;
 use Admidio\UI\Presenter\FormPresenter;
 use Admidio\UI\Presenter\PagePresenter;
-use MediaPlayer\classes\MediaPlayer;
-use MediaPlayer\classes\Service\PlaylistService;
+use AdmidioPlugin\MediaPlayer\MediaPlayer;
+use AdmidioPlugin\MediaPlayer\Service\PlaylistService;
 
 /**
  ***********************************************************************************************
@@ -31,21 +32,12 @@ class PlaylistsPresenter extends PagePresenter
     {
         parent::__construct($objectUUID);
 
-        $pluginUrl = self::getPluginUrl();
-        $this->addTemplateFolder(MediaPlayer::getPluginPath() . '/templates');
-        $this->addCssFile($pluginUrl . '/libs/plyr/plyr.css');
-        $this->addCssFile($pluginUrl . '/css/media_player.css');
-        $this->addJavascriptFile($pluginUrl . '/libs/plyr/plyr.js');
-        $this->addJavascriptFile($pluginUrl . '/js/media_player.js');
-    }
-
-    /**
-     * Get the url of the folder of the plugin.
-     * @return string Returns the url without a slash at the end.
-     */
-    public static function getPluginUrl(): string
-    {
-        return ADMIDIO_URL . FOLDER_PLUGINS . '/media-player';
+        $plugin = MediaPlayer::getPlugin();
+        $this->addTemplateFolder($plugin->getDirectory(Plugin::DIR_TEMPLATES));
+        $this->addCssFile($plugin->getAssetUrl('libs/plyr/plyr.css'));
+        $this->addCssFile($plugin->getAssetUrl('css/media_player.css'));
+        $this->addJavascriptFile($plugin->getAssetUrl('libs/plyr/plyr.js'));
+        $this->addJavascriptFile($plugin->getAssetUrl('js/media_player.js'));
     }
 
     /**
@@ -65,7 +57,7 @@ class PlaylistsPresenter extends PagePresenter
             $this->addPageFunctionsMenuItem(
                 'menu_item_media_player_add',
                 $gL10n->get('PLG_MEDIA_PLAYER_CREATE_PLAYLIST'),
-                SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'edit')),
+                SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'edit')),
                 'bi-plus-circle-fill'
             );
         }
@@ -77,10 +69,10 @@ class PlaylistsPresenter extends PagePresenter
                 'name' => $row['mpl_name'],
                 'description' => (string)$row['mpl_description'],
                 'itemCount' => $row['item_count'],
-                'url' => SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'playlist', 'playlist_uuid' => $row['mpl_uuid'])),
-                'editUrl' => SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'edit', 'playlist_uuid' => $row['mpl_uuid'])),
-                'deleteUrl' => SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'delete', 'playlist_uuid' => $row['mpl_uuid'])),
-                'zipUrl' => SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'zip', 'playlist_uuid' => $row['mpl_uuid']))
+                'url' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'playlist', 'playlist_uuid' => $row['mpl_uuid'])),
+                'editUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'edit', 'playlist_uuid' => $row['mpl_uuid'])),
+                'deleteUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'delete', 'playlist_uuid' => $row['mpl_uuid'])),
+                'zipUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'zip', 'playlist_uuid' => $row['mpl_uuid']))
             );
         }
 
@@ -114,7 +106,7 @@ class PlaylistsPresenter extends PagePresenter
             $this->addPageFunctionsMenuItem(
                 'menu_item_media_player_zip',
                 $gL10n->get('PLG_MEDIA_PLAYER_DOWNLOAD_ZIP'),
-                SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'zip', 'playlist_uuid' => $playlistUuid)),
+                SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'zip', 'playlist_uuid' => $playlistUuid)),
                 'bi-file-earmark-zip-fill'
             );
         }
@@ -122,17 +114,17 @@ class PlaylistsPresenter extends PagePresenter
             $this->addPageFunctionsMenuItem(
                 'menu_item_media_player_edit',
                 $gL10n->get('SYS_EDIT'),
-                SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'edit', 'playlist_uuid' => $playlistUuid)),
+                SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'edit', 'playlist_uuid' => $playlistUuid)),
                 'bi-pencil-square'
             );
             $this->addJavascript('
                 $(".admidio-media-item-move").click(function() {
-                    moveTableRow($(this), "' . self::getPluginUrl() . '/index.php", "' . $gCurrentSession->getCsrfToken() . '");
+                    moveTableRow($(this), "' . MediaPlayer::getPageUrl() . '", "' . $gCurrentSession->getCsrfToken() . '");
                 });', true);
         }
 
         foreach ($items as $key => $item) {
-            $items[$key]['removeUrl'] = SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'remove_item', 'item_uuid' => $item['uuid']));
+            $items[$key]['removeUrl'] = SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'remove_item', 'item_uuid' => $item['uuid']));
         }
 
         $this->smarty->assign('playlistDescription', (string)$playlist->getValue('mpl_description'));
@@ -164,7 +156,7 @@ class PlaylistsPresenter extends PagePresenter
         $form = new FormPresenter(
             'adm_media_player_items_form',
             'plugin.media-player.items.tpl',
-            SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'add_items', 'playlist_uuid' => $playlistUuid)),
+            SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'add_items', 'playlist_uuid' => $playlistUuid)),
             $this
         );
         $form->addSelectBox(
@@ -208,7 +200,7 @@ class PlaylistsPresenter extends PagePresenter
         $form = new FormPresenter(
             'adm_media_player_edit_form',
             'plugin.media-player.edit.tpl',
-            SecurityUtils::encodeUrl(self::getPluginUrl() . '/index.php', array('mode' => 'save', 'playlist_uuid' => $playlistUuid)),
+            SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'save', 'playlist_uuid' => $playlistUuid)),
             $this
         );
         $form->addInput('mpl_name', $gL10n->get('SYS_NAME'), (string)$playlist->getValue('mpl_name'),

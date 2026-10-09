@@ -1,0 +1,72 @@
+/*
+ ***********************************************************************************************
+ * Styles of the media player plugin
+ *
+ * @copyright The Admidio Team
+ * @see https://www.admidio.org/
+ * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
+ ***********************************************************************************************
+ */
+
+.admidio-media-player-sticky {
+    position: sticky;
+    top: 5rem;
+}
+
+.admidio-media-player-card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    overflow: hidden;
+}
+
+.admidio-media-player-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    background-color: var(--bs-tertiary-bg);
+}
+
+.admidio-media-player-now {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.admidio-media-player-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 5rem;
+    padding: 1rem;
+    text-align: center;
+    color: var(--bs-secondary-color);
+}
+
+.admidio-media-player-stage.admidio-media-player-video {
+    padding: 0;
+    background-color: #000;
+}
+
+.admidio-media-player-stage .plyr {
+    width: 100%;
+}
+
+.admidio-media-player-items tr.admidio-media-player-item {
+    cursor: pointer;
+}
+
+.admidio-media-player-items td.admidio-media-player-play {
+    width: 3rem;
+}
+
+.admidio-media-player-items tr.admidio-media-player-active > td {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+@media (max-width: 991.98px) {
+    .admidio-media-player-sticky {
+        position: static;
+    }
+}

@@ -77,7 +77,7 @@
                         {$profileField.label}
                     </div>
                     <div class="col-sm-9">
-                        <strong>{$profileField.value}</strong>{if $profileField.value !== ''} ({$age} {$l10n->get('SYS_YEARS')}){/if}
+                        <strong>{$profileField.value}</strong>{if isset($age) && $age !== null} ({$age} {$l10n->get('SYS_YEARS')}){/if}{if !empty($birthYearHidden)} <span class="badge bg-secondary ms-1" title="{$l10n->get('SYS_BIRTHDAY_YEAR_HIDDEN_DESC')}"><i class="bi bi-eye-slash-fill"></i> {$l10n->get('SYS_BIRTHDAY_YEAR_HIDDEN')}</span>{/if}
                     </div>
                 </div>
             {else}

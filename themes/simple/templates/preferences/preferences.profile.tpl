@@ -13,6 +13,7 @@
         {include 'sys-template-parts/form.checkbox.tpl' data=$elements['profile_show_extern_roles']}
     {/if}
     {include 'sys-template-parts/form.select.tpl' data=$elements['profile_photo_storage']}
+    {include 'sys-template-parts/form.select.tpl' data=$elements['profile_birthday_display_mode']}
     {include 'sys-template-parts/form.button.tpl' data=$elements['adm_button_save_profile']}
     <div class="form-alert" style="display: none;">&nbsp;</div>
 </form>

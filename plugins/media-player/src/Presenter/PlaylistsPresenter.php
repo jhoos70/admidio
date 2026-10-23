@@ -47,13 +47,13 @@ class PlaylistsPresenter extends PagePresenter
      */
     public function createList(): void
     {
-        global $gDb, $gL10n, $gCurrentSession;
+        global $gDb, $gL10n, $gCurrentSession, $gValidLogin;
 
         $this->setHtmlID('adm_media_player_playlists');
         $this->setHeadline($gL10n->get('PLG_MEDIA_PLAYER_NAME'));
 
-        $isEditor = MediaPlayer::isPlaylistEditor();
-        if ($isEditor) {
+        // every registered user could create private playlists
+        if ($gValidLogin) {
             $this->addPageFunctionsMenuItem(
                 'menu_item_media_player_add',
                 $gL10n->get('PLG_MEDIA_PLAYER_CREATE_PLAYLIST'),
@@ -62,10 +62,13 @@ class PlaylistsPresenter extends PagePresenter
             );
         }
 
+        $playlistService = new PlaylistService($gDb);
         $playlists = array();
-        foreach ((new PlaylistService($gDb))->findAll() as $row) {
+        foreach ($playlistService->findAll() as $row) {
             $playlists[] = array(
                 'uuid' => $row['mpl_uuid'],
+                'private' => !empty($row['mpl_usr_id_owner']),
+                'editable' => $playlistService->canEdit($row['mpl_usr_id_owner'], $row['mpl_usr_id_create']),
                 'name' => $row['mpl_name'],
                 'description' => (string)$row['mpl_description'],
                 'itemCount' => $row['item_count'],
@@ -77,15 +80,14 @@ class PlaylistsPresenter extends PagePresenter
         }
 
         $this->smarty->assign('playlists', $playlists);
-        $this->smarty->assign('isEditor', $isEditor);
         $this->smarty->assign('csrfToken', $gCurrentSession->getCsrfToken());
         $this->smarty->assign('l10n', $gL10n);
         $this->addHtmlByTemplate('plugin.media-player.list.tpl');
     }
 
     /**
-     * Create the page of a playlist with the player and the list of its items. Playlist editors
-     * could also change the order of the items, remove items and add new files and weblinks.
+     * Create the page of a playlist with the player and the list of its items. Users who may change
+     * the playlist could also change the order of the items, remove items and add new files and weblinks.
      * @param string $playlistUuid The UUID of the playlist.
      * @return void
      * @throws Exception
@@ -96,7 +98,7 @@ class PlaylistsPresenter extends PagePresenter
 
         $playlistService = new PlaylistService($gDb);
         $playlist = $playlistService->getPlaylist($playlistUuid);
-        $isEditor = MediaPlayer::isPlaylistEditor();
+        $isEditor = $playlistService->canEdit($playlist->getValue('mpl_usr_id_owner'), $playlist->getValue('mpl_usr_id_create'));
 
         $this->setHtmlID('adm_media_player_playlist');
         $this->setHeadline($playlist->getValue('mpl_name'));
@@ -188,7 +190,8 @@ class PlaylistsPresenter extends PagePresenter
     {
         global $gDb, $gL10n, $gCurrentSession;
 
-        $playlist = (new PlaylistService($gDb))->getEditablePlaylist($playlistUuid);
+        $playlistService = new PlaylistService($gDb);
+        $playlist = $playlistService->getEditablePlaylist($playlistUuid);
 
         $this->setHtmlID('adm_media_player_playlist_edit');
         if ($playlistUuid === '') {
@@ -206,6 +209,11 @@ class PlaylistsPresenter extends PagePresenter
         $form->addInput('mpl_name', $gL10n->get('SYS_NAME'), (string)$playlist->getValue('mpl_name'),
             array('maxLength' => 255, 'property' => FormPresenter::FIELD_REQUIRED));
         $form->addMultilineTextInput('mpl_description', $gL10n->get('SYS_DESCRIPTION'), (string)$playlist->getValue('mpl_description'), 4);
+        // users who could not create shared playlists always create private playlists, so they don't need the checkbox
+        if ($playlistService->canChangeVisibility($playlist)) {
+            $form->addCheckbox('media_player_private', $gL10n->get('PLG_MEDIA_PLAYER_PRIVATE_PLAYLIST'),
+                !empty($playlist->getValue('mpl_usr_id_owner')), array('helpTextId' => 'PLG_MEDIA_PLAYER_PRIVATE_PLAYLIST_DESC'));
+        }
         $form->addSubmitButton('adm_button_save', $gL10n->get('SYS_SAVE'), array('icon' => 'bi-check-lg'));
 
         $this->assignSmartyVariable('userCreatedName', $playlist->getNameOfCreatingUser());

@@ -108,26 +108,72 @@ final class MediaPlayer
     }
 
     /**
-     * Check if the current user may create, edit and delete playlists. Administrators may always edit playlists,
-     * other users must be a member of one of the roles that are set in the preferences.
-     * @return bool Returns **true** if the current user may edit playlists.
+     * Check if the current user may create shared playlists and edit the shared playlists the user has created.
+     * Administrators and playlist managers may always do this, other users must be a member of one of the
+     * roles that are set in the preferences.
+     * @return bool Returns **true** if the current user may create shared playlists.
      * @throws Exception
      */
     public static function isPlaylistEditor(): bool
+    {
+        return self::isPlaylistManager() || self::isMemberOfSettingRoles('media_player_roles_edit');
+    }
+
+    /**
+     * Check if the current user may edit and delete all shared playlists. Administrators may always do this,
+     * other users must be a member of one of the roles that are set in the preferences.
+     * @return bool Returns **true** if the current user may manage all shared playlists.
+     * @throws Exception
+     */
+    public static function isPlaylistManager(): bool
     {
         global $gCurrentUser, $gValidLogin;
 
         if (!$gValidLogin) {
             return false;
         }
-        if ($gCurrentUser->isAdministrator()) {
-            return true;
+        return $gCurrentUser->isAdministrator() || self::isMemberOfSettingRoles('media_player_roles_manage');
+    }
+
+    /**
+     * Check if the current user may change a playlist. A private playlist could only be changed by its owner.
+     * A shared playlist could be changed by playlist managers and by the playlist editor who has created it.
+     * @param int|null $ownerId The id of the user who owns the playlist or **null** for a shared playlist.
+     * @param int|null $creatorId The id of the user who has created the playlist.
+     * @return bool Returns **true** if the current user may change the playlist.
+     * @throws Exception
+     */
+    public static function canEditPlaylist(?int $ownerId, ?int $creatorId): bool
+    {
+        global $gCurrentUserId, $gValidLogin;
+
+        if (!$gValidLogin) {
+            return false;
+        }
+        if ($ownerId !== null) {
+            return $ownerId === $gCurrentUserId;
+        }
+        return self::isPlaylistManager() || (self::isPlaylistEditor() && $creatorId === $gCurrentUserId);
+    }
+
+    /**
+     * Check if the current user is a member of one of the roles of a role setting of the plugin.
+     * @param string $setting The name of the setting with the role ids.
+     * @return bool Returns **true** if the current user is a member of one of the roles.
+     * @throws Exception
+     */
+    private static function isMemberOfSettingRoles(string $setting): bool
+    {
+        global $gCurrentUser, $gValidLogin;
+
+        if (!$gValidLogin) {
+            return false;
         }
 
         $config = self::getPlugin()->getSettingValues();
-        $editRoles = array_map('intval', $config['media_player_roles_edit']);
+        $roles = array_map('intval', (array)($config[$setting] ?? array()));
 
-        return count(array_intersect($editRoles, $gCurrentUser->getRoleMemberships())) > 0;
+        return count(array_intersect($roles, $gCurrentUser->getRoleMemberships())) > 0;
     }
 
     /**

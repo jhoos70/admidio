@@ -13,7 +13,7 @@ use AdmidioPlugin\MediaPlayer\MediaPlayer;
  ***********************************************************************************************
  * Preferences panel of the media player plugin
  *
- * The roles that may edit playlists can't be described by the manifest alone, so the plugin
+ * The roles that may edit or manage playlists can't be described by the manifest alone, so the plugin
  * creates the form of its preferences itself.
  *
  * @copyright The Admidio Team
@@ -76,6 +76,14 @@ final class MediaPlayerPreferencesPresenter
             $roles,
             array('defaultValue' => $values['media_player_roles_edit'], 'showContextDependentFirstEntry' => false,
                 'helpTextId' => $settings['media_player_roles_edit']['description'], 'multiselect' => true,
+                'maximumSelectionNumber' => max(1, count($roles)))
+        );
+        $form->addSelectBox(
+            'media_player_roles_manage',
+            Language::translateIfTranslationStrId($settings['media_player_roles_manage']['label']),
+            $roles,
+            array('defaultValue' => $values['media_player_roles_manage'], 'showContextDependentFirstEntry' => false,
+                'helpTextId' => $settings['media_player_roles_manage']['description'], 'multiselect' => true,
                 'maximumSelectionNumber' => max(1, count($roles)))
         );
         $form->addSubmitButton(

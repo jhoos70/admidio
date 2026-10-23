@@ -27,6 +27,12 @@
             "default": [],
             "label": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT",
             "description": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT_DESC"
+        },
+        "media_player_roles_manage": {
+            "type": "array",
+            "default": [],
+            "label": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_MANAGE",
+            "description": "PLG_MEDIA_PLAYER_PREFERENCES_ROLES_MANAGE_DESC"
         }
     }
 }

@@ -9,6 +9,9 @@
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">
                                 <a href="{$playlist.url}">{$playlist.name|escape:'html'}</a>
+                                {if $playlist.private}
+                                    <i class="bi bi-lock-fill text-body-secondary" data-bs-toggle="tooltip" title="{$l10n->get('PLG_MEDIA_PLAYER_PRIVATE_PLAYLIST')}"></i>
+                                {/if}
                             </h5>
                             {if $playlist.description !== ''}
                                 <div class="text-break mb-3">{$playlist.description|escape:'html'|nl2br}</div>
@@ -19,7 +22,7 @@
                                     {if $playlist.itemCount > 0}
                                         <a class="admidio-icon-link" href="{$playlist.zipUrl}"><i class="bi bi-file-earmark-zip" data-bs-toggle="tooltip" title="{$l10n->get('PLG_MEDIA_PLAYER_DOWNLOAD_ZIP')}"></i></a>
                                     {/if}
-                                    {if $isEditor}
+                                    {if $playlist.editable}
                                         <a class="admidio-icon-link" href="{$playlist.editUrl}"><i class="bi bi-pencil-square" data-bs-toggle="tooltip" title="{$l10n->get('SYS_EDIT')}"></i></a>
                                         <a class="admidio-icon-link admidio-messagebox" href="javascript:void(0);" data-buttons="yes-no"
                                             data-message="{$l10n->get('SYS_WANT_DELETE_ENTRY', array($playlist.name|escape:'html'))}"

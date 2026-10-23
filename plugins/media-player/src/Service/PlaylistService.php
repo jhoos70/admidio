@@ -232,13 +232,51 @@ class PlaylistService
      */
     public function getEditablePlaylist(string $uuid): Playlist
     {
-        if (!MediaPlayer::isPlaylistEditor()) {
-            throw new Exception('SYS_NO_RIGHTS');
-        }
+        global $gValidLogin;
+
         if ($uuid === '') {
+            // every registered user could create private playlists
+            if (!$gValidLogin) {
+                throw new Exception('SYS_NO_RIGHTS');
+            }
             return new Playlist($this->db);
         }
-        return $this->getPlaylist($uuid);
+
+        $playlist = $this->getPlaylist($uuid);
+        if (!$this->canEdit($playlist->getValue('mpl_usr_id_owner'), $playlist->getValue('mpl_usr_id_create'))) {
+            throw new Exception('SYS_NO_RIGHTS');
+        }
+        return $playlist;
+    }
+
+    /**
+     * Check if the current user may change a playlist with the given owner and creator.
+     * @param mixed $ownerId The value of the column mpl_usr_id_owner.
+     * @param mixed $creatorId The value of the column mpl_usr_id_create.
+     * @return bool Returns **true** if the current user may change the playlist.
+     * @throws Exception
+     */
+    public function canEdit(mixed $ownerId, mixed $creatorId): bool
+    {
+        return MediaPlayer::canEditPlaylist(
+            empty($ownerId) ? null : (int)$ownerId,
+            empty($creatorId) ? null : (int)$creatorId
+        );
+    }
+
+    /**
+     * Check if the current user may switch a playlist between private and shared. Only playlist editors
+     * could create shared playlists and only the user who has created the playlist could switch it.
+     * @param Playlist $playlist The playlist that should be saved.
+     * @return bool Returns **true** if the current user may choose if the playlist is private.
+     * @throws Exception
+     */
+    public function canChangeVisibility(Playlist $playlist): bool
+    {
+        global $gCurrentUserId;
+
+        return MediaPlayer::isPlaylistEditor()
+            && ($playlist->isNewRecord() || (int)$playlist->getValue('mpl_usr_id_create') === $gCurrentUserId);
     }
 
     /**
@@ -249,14 +287,23 @@ class PlaylistService
      */
     public function save(string $uuid): string
     {
-        global $gCurrentSession;
+        global $gCurrentSession, $gCurrentUserId;
 
         $playlist = $this->getEditablePlaylist($uuid);
         $form = $gCurrentSession->getFormObject($_POST['adm_csrf_token']);
-        foreach ($form->validate($_POST) as $key => $value) {
+        $formValues = $form->validate($_POST);
+        foreach ($formValues as $key => $value) {
             if (str_starts_with($key, 'mpl_')) {
                 $playlist->setValue($key, $value);
             }
+        }
+
+        // users who could not create shared playlists always create private playlists
+        if ($this->canChangeVisibility($playlist)) {
+            $private = !empty($formValues['media_player_private']);
+            $playlist->setValue('mpl_usr_id_owner', $private ? $gCurrentUserId : null);
+        } elseif ($playlist->isNewRecord()) {
+            $playlist->setValue('mpl_usr_id_owner', $gCurrentUserId);
         }
         $playlist->save();
 
@@ -408,16 +455,11 @@ class PlaylistService
      */
     private function getEditableItem(string $uuid): PlaylistItem
     {
-        global $gCurrentUserId;
-
-        if (!MediaPlayer::isPlaylistEditor()) {
-            throw new Exception('SYS_NO_RIGHTS');
-        }
         $item = new PlaylistItem($this->db);
         if ($uuid === '' || !$item->readDataByUuid($uuid)) {
             throw new Exception('SYS_INVALID_PAGE_VIEW');
         }
-        if ($item->getValue('mpl_usr_id_owner') !== null && (int)$item->getValue('mpl_usr_id_owner') !== $gCurrentUserId) {
+        if (!$this->canEdit($item->getValue('mpl_usr_id_owner'), $item->getValue('mpl_usr_id_create'))) {
             throw new Exception('SYS_NO_RIGHTS');
         }
         return $item;

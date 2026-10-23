@@ -6,6 +6,9 @@
     {include 'sys-template-parts/form.input.tpl' data=$elements['adm_csrf_token']}
     {include 'sys-template-parts/form.input.tpl' data=$elements['mpl_name']}
     {include 'sys-template-parts/form.multiline.tpl' data=$elements['mpl_description']}
+    {if isset($elements['media_player_private'])}
+        {include 'sys-template-parts/form.checkbox.tpl' data=$elements['media_player_private']}
+    {/if}
     <div class="form-alert" style="display: none;">&nbsp;</div>
     {include 'sys-template-parts/form.button.tpl' data=$elements['adm_button_save']}
     {include file="sys-template-parts/system.info-create-edit.tpl"}

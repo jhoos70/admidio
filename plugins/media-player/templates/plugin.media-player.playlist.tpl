@@ -37,6 +37,11 @@
                         <li><a id="menu_item_media_player_zip" class="dropdown-item" href="{$zipUrl}">
                             <i class="bi bi-file-earmark-zip me-2"></i>{$l10n->get('PLG_MEDIA_PLAYER_DOWNLOAD_ZIP')}</a></li>
                     {/if}
+                    {if $validLogin}
+                        <li><a id="menu_item_media_player_copy" class="dropdown-item" href="javascript:void(0);"
+                            data-url="{$copyUrl}" data-csrf-token="{$csrfToken}">
+                            <i class="bi bi-copy me-2"></i>{$l10n->get('PLG_MEDIA_PLAYER_COPY_PLAYLIST')}</a></li>
+                    {/if}
                     {if $isEditor}
                         <li><a id="menu_item_media_player_edit" class="dropdown-item" href="{$editUrl}">
                             <i class="bi bi-card-text me-2"></i>{$l10n->get('PLG_MEDIA_PLAYER_EDIT_DETAILS')}</a></li>

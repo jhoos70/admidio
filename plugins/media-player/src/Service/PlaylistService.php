@@ -428,6 +428,51 @@ class PlaylistService
     }
 
     /**
+     * Create a private copy of a playlist for the current user. The copy gets the name and the description
+     * of the playlist and the items the current user could see in their order. Later changes of the
+     * playlist are not transferred to the copy.
+     * @param string $uuid The UUID of the playlist that should be copied.
+     * @return string Returns the UUID of the new playlist.
+     * @throws Exception
+     */
+    public function copyPlaylist(string $uuid): string
+    {
+        global $gL10n, $gCurrentUserId, $gValidLogin;
+
+        SecurityUtils::validateCsrfToken($_POST['adm_csrf_token']);
+        if (!$gValidLogin) {
+            throw new Exception('SYS_NO_RIGHTS');
+        }
+        $playlist = $this->getPlaylist($uuid);
+        $visibleItems = array_column($this->findItems((int)$playlist->getValue('mpl_id')), 'uuid');
+
+        $this->db->startTransaction();
+        $copy = new Playlist($this->db);
+        $name = $gL10n->get('PLG_MEDIA_PLAYER_COPY_NAME', array((string)$playlist->getValue('mpl_name', 'database')));
+        $copy->setValue('mpl_name', mb_substr($name, 0, 255));
+        $copy->setValue('mpl_description', (string)$playlist->getValue('mpl_description', 'database'));
+        $copy->setValue('mpl_usr_id_owner', $gCurrentUserId);
+        $copy->save();
+        $copyId = (int)$copy->getValue('mpl_id');
+
+        $sql = 'SELECT mpi_uuid, mpi_fil_id, mpi_lnk_id FROM ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . '
+                 WHERE mpi_mpl_id = ? -- $playlist->getValue(\'mpl_id\')
+                 ORDER BY mpi_sequence, mpi_id';
+        $sequence = 0;
+        foreach ($this->db->queryPrepared($sql, array((int)$playlist->getValue('mpl_id')))->fetchAll() as $row) {
+            if (in_array($row['mpi_uuid'], $visibleItems, true)) {
+                $sequence += 10;
+                $this->addItem($copyId, $sequence,
+                    $row['mpi_fil_id'] === null ? null : (int)$row['mpi_fil_id'],
+                    $row['mpi_lnk_id'] === null ? null : (int)$row['mpi_lnk_id']);
+            }
+        }
+        $this->db->endTransaction();
+
+        return (string)$copy->getValue('mpl_uuid');
+    }
+
+    /**
      * Change the order of the items of a playlist. The POST parameter **item_uuids** contains the items the
      * current user could see in their new order. Items the user could not see keep their positions.
      * @param string $uuid The UUID of the playlist.

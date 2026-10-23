@@ -3,6 +3,8 @@
   <string name="PLG_MEDIA_PLAYER_ADD_HINT_PHONE">Add audio and video files and weblinks with "Add media".</string>
   <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Add media</string>
   <string name="PLG_MEDIA_PLAYER_ADD_SELECTED">Add (#VAR1#)</string>
+  <string name="PLG_MEDIA_PLAYER_COPY_NAME">#VAR1# (copy)</string>
+  <string name="PLG_MEDIA_PLAYER_COPY_PLAYLIST">Save as private copy</string>
   <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Create playlist</string>
   <string name="PLG_MEDIA_PLAYER_DESCRIPTION">Playlists with audio and video files of documents &amp; files and with weblinks, including a player and a ZIP download</string>
   <string name="PLG_MEDIA_PLAYER_DONE">Done</string>

@@ -17,6 +17,7 @@
  *                 edit         - form to create or edit a playlist
  *                 save         - save the name and the description of a playlist
  *                 delete       - delete a playlist
+ *                 copy         - create a private copy of a playlist for the current user
  *                 media_tree   - files and weblinks that could be added to a playlist (JSON)
  *                 add          - add files and weblinks to a playlist (JSON)
  *                 reorder      - save the new order of the items of a playlist
@@ -43,7 +44,7 @@ try {
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
-        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'media_tree', 'add', 'reorder', 'remove_item', 'stream', 'zip')
+        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'copy', 'media_tree', 'add', 'reorder', 'remove_item', 'stream', 'zip')
     ));
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
     $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
@@ -71,6 +72,12 @@ try {
             $page->createPlaylistPage($getPlaylistUuid, true);
             $gNavigation->addUrl(CURRENT_URL, $page->getHeadline());
             $page->show();
+            break;
+
+        case 'copy':
+            $copyUuid = (new PlaylistService($gDb))->copyPlaylist($getPlaylistUuid);
+            echo json_encode(array('status' => 'success',
+                'url' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'items', 'playlist_uuid' => $copyUuid))));
             break;
 
         case 'media_tree':
@@ -130,5 +137,5 @@ try {
         http_response_code(404);
         exit();
     }
-    handleException($e, in_array($getMode, array('save', 'delete', 'media_tree', 'add', 'reorder', 'remove_item'), true));
+    handleException($e, in_array($getMode, array('save', 'delete', 'copy', 'media_tree', 'add', 'reorder', 'remove_item'), true));
 }

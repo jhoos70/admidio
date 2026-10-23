@@ -627,6 +627,22 @@ $(function() {
         });
     }
 
+    // a private copy of the playlist is created and opened in the edit mode
+    $("#menu_item_media_player_copy").click(function() {
+        const link = this;
+        $.post(link.dataset.url, {adm_csrf_token: link.dataset.csrfToken}, null, "json")
+            .done(function(response) {
+                if (response.status === "success") {
+                    window.location.href = response.url;
+                } else {
+                    messageBox(response.message, "", "error");
+                }
+            })
+            .fail(function(xhr) {
+                messageBox(xhr.responseText || xhr.statusText, "", "error");
+            });
+    });
+
     showRepeatMode();
     showShuffleMode();
     showPlayState();

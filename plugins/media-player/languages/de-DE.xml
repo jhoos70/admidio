@@ -3,6 +3,8 @@
   <string name="PLG_MEDIA_PLAYER_ADD_HINT_PHONE">Fügen Sie Audio- und Videodateien sowie Weblinks über „Medien hinzufügen“ hinzu.</string>
   <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Medien hinzufügen</string>
   <string name="PLG_MEDIA_PLAYER_ADD_SELECTED">Hinzufügen (#VAR1#)</string>
+  <string name="PLG_MEDIA_PLAYER_COPY_NAME">#VAR1# (Kopie)</string>
+  <string name="PLG_MEDIA_PLAYER_COPY_PLAYLIST">Als private Kopie speichern</string>
   <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Playlist anlegen</string>
   <string name="PLG_MEDIA_PLAYER_DESCRIPTION">Playlists mit Audio- und Videodateien aus Dokumente &amp; Dateien und mit Weblinks, inklusive Player und ZIP-Download</string>
   <string name="PLG_MEDIA_PLAYER_DONE">Fertig</string>

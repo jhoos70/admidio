@@ -147,7 +147,9 @@ class PlaylistsPresenter extends PagePresenter
             'adm_media_player_items_form',
             'plugin.media-player.items.tpl',
             SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'add_items', 'playlist_uuid' => $playlistUuid)),
-            $this
+            $this,
+            // the form is below the playlist, a focus would scroll the page away from the player
+            array('setFocus' => false)
         );
         $form->addSelectBox(
             'media_player_files',

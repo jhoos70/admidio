@@ -123,6 +123,7 @@
 
 .btn.admidio-media-player-play-button {
     display: none;
+    text-decoration: none;
     font-size: 1.4rem;
     line-height: 1;
     color: var(--bs-body-color);
@@ -339,18 +340,25 @@ body.admidio-media-player-bar-visible {
     background-color: var(--bs-primary);
 }
 
-/* the play triangle has its weight on the left side, so it is moved a bit to look centered */
-.admidio-media-player-main-button > .bi,
-.admidio-media-player-bar-play > .bi {
+/* icon-only buttons: the theme gives icons in buttons a margin for a following text and moves them down */
+.btn.admidio-media-player-main-button > .bi,
+.btn.admidio-media-player-bar-play > .bi,
+.btn.admidio-media-player-toggle > .bi,
+.btn.admidio-media-player-play-button > .bi {
+    margin-right: 0;
     line-height: 1;
 }
 
-.admidio-media-player-main-button > .bi::before,
-.admidio-media-player-bar-play > .bi::before {
+.btn.admidio-media-player-main-button > .bi::before,
+.btn.admidio-media-player-bar-play > .bi::before,
+.btn.admidio-media-player-toggle > .bi::before,
+.btn.admidio-media-player-play-button > .bi::before {
+    display: block;
     vertical-align: 0;
 }
 
+/* the play triangle has its weight on the left side, so it is moved a bit to look centered */
 .admidio-media-player-main-button > .bi-play-fill,
 .admidio-media-player-bar-play > .bi-play-fill {
-    transform: translateX(0.18em);
+    transform: translateX(0.06em);
 }

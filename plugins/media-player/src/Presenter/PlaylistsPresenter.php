@@ -123,6 +123,8 @@ class PlaylistsPresenter extends PagePresenter
         $this->smarty->assign('l10n', $gL10n);
 
         if ($editMode) {
+            // the playlist and the media browser are shown side by side, so the edit mode uses the full width
+            $this->setContentFullWidth();
             $plugin = MediaPlayer::getPlugin();
             $this->addJavascriptFile(ADMIDIO_URL . FOLDER_LIBS . '/jquery-ui/jquery-ui.min.js');
             $this->addJavascriptFile($plugin->getAssetUrl('js/media_player_edit.js'));

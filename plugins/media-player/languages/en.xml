@@ -3,7 +3,6 @@
   <string name="PLG_MEDIA_PLAYER_ADD_ITEMS">Add files and weblinks</string>
   <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES">Choose audio and video files</string>
   <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES_DESC">Audio and video files of the module documents &amp; files that you are allowed to see. Members only hear and see the files of a playlist they could also see in documents &amp; files.</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_TRACK">Choose a track to play it</string>
   <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS">Choose weblinks</string>
   <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS_DESC">Weblinks of the module weblinks. Videos of YouTube and Vimeo and links to audio and video files are played within the page, all other weblinks are opened in a new window.</string>
   <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Create playlist</string>
@@ -12,14 +11,18 @@
   <string name="PLG_MEDIA_PLAYER_EDIT_PLAYLIST">Edit playlist</string>
   <string name="PLG_MEDIA_PLAYER_EXTERNAL_NOTICE">This weblink could not be played within the page.</string>
   <string name="PLG_MEDIA_PLAYER_ITEM">Entry</string>
+  <string name="PLG_MEDIA_PLAYER_MINUTES">min</string>
   <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>
   <string name="PLG_MEDIA_PLAYER_NEXT_TRACK">Next track</string>
   <string name="PLG_MEDIA_PLAYER_NO_ITEMS">This playlist doesn't contain any entries you are allowed to see.</string>
   <string name="PLG_MEDIA_PLAYER_NO_PLAYLISTS">There are no playlists yet.</string>
   <string name="PLG_MEDIA_PLAYER_NUMBER_OF_ITEMS">#VAR1# entries</string>
   <string name="PLG_MEDIA_PLAYER_OPEN_EXTERNAL">Open in new window</string>
+  <string name="PLG_MEDIA_PLAYER_PAUSE">Pause</string>
+  <string name="PLG_MEDIA_PLAYER_PLAY">Play</string>
   <string name="PLG_MEDIA_PLAYER_PLAYLIST_EMPTY">The playlist doesn't contain any entries you are allowed to see.</string>
   <string name="PLG_MEDIA_PLAYER_PLAY_TRACK">Play #VAR1#</string>
+  <string name="PLG_MEDIA_PLAYER_POSITION">Playback position</string>
   <string name="PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT">Roles that create shared playlists</string>
   <string name="PLG_MEDIA_PLAYER_PREFERENCES_ROLES_EDIT_DESC">Members of these roles could create playlists for all users and edit and delete the shared playlists they have created. Every registered user could create private playlists only for themselves.</string>
   <string name="PLG_MEDIA_PLAYER_PREFERENCES_ROLES_MANAGE">Roles that manage all playlists</string>
@@ -31,6 +34,9 @@
   <string name="PLG_MEDIA_PLAYER_REPEAT_ALL">Repeat playlist</string>
   <string name="PLG_MEDIA_PLAYER_REPEAT_OFF">Repeat off</string>
   <string name="PLG_MEDIA_PLAYER_REPEAT_ONE">Repeat track</string>
+  <string name="PLG_MEDIA_PLAYER_SHUFFLE_OFF">Shuffle off</string>
+  <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Shuffle on</string>
+  <string name="PLG_MEDIA_PLAYER_SPEED">Playback speed</string>
   <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Do you really want to remove #VAR1_BOLD# from the playlist? The file or weblink itself is not deleted.</string>
   <string name="PLG_MEDIA_PLAYER_ZIP_ERROR">The ZIP file could not be created.</string>
 </resources>

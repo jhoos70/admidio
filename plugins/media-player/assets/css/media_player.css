@@ -2,71 +2,355 @@
  ***********************************************************************************************
  * Styles of the media player plugin
  *
+ * The playlist page has a header with the main play button, the list of the items and a player
+ * bar that is fixed at the bottom of the window.
+ *
  * @copyright The Admidio Team
  * @see https://www.admidio.org/
  * @license https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License v2.0 only
  ***********************************************************************************************
  */
 
-.admidio-media-player-sticky {
-    position: sticky;
-    top: 5rem;
+/* header of the playlist */
+.admidio-media-player-hero {
+    margin-bottom: 1rem;
 }
 
-.admidio-media-player-card {
-    border: 1px solid var(--bs-border-color);
-    border-radius: var(--bs-border-radius);
-    overflow: hidden;
+.admidio-media-player-description {
+    margin-bottom: 0.25rem;
 }
 
-.admidio-media-player-header {
+.admidio-media-player-meta {
+    margin-bottom: 0.75rem;
+}
+
+.admidio-media-player-hero-actions {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--bs-border-color);
-    background-color: var(--bs-tertiary-bg);
 }
 
-.admidio-media-player-now {
-    flex-grow: 1;
-    min-width: 0;
-}
-
-.admidio-media-player-stage {
-    display: flex;
-    flex-direction: column;
+.admidio-media-player-main-button {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 5rem;
-    padding: 1rem;
-    text-align: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.admidio-media-player-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    font-size: 1.35rem;
+    color: var(--bs-secondary-color);
+    text-decoration: none;
+}
+
+/* the theme gives all buttons the color of the background, these buttons are icons without background */
+.btn.admidio-media-player-toggle {
     color: var(--bs-secondary-color);
 }
 
-.admidio-media-player-stage.admidio-media-player-video {
-    padding: 0;
+.btn.admidio-media-player-toggle:hover,
+.btn.admidio-media-player-toggle:focus-visible {
+    color: var(--bs-body-color);
+}
+
+.btn.admidio-media-player-toggle[aria-pressed="true"] {
+    color: var(--bs-primary);
+    position: relative;
+}
+
+/* small dot below an active toggle like in other music players */
+.admidio-media-player-toggle[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0.2rem;
+    left: 50%;
+    width: 0.3rem;
+    height: 0.3rem;
+    margin-left: -0.15rem;
+    border-radius: 50%;
+    background-color: var(--bs-primary);
+}
+
+/* video and embedded players */
+.admidio-media-player-stage {
+    max-width: 56rem;
+    margin-bottom: 1rem;
+    border-radius: var(--bs-border-radius);
+    overflow: hidden;
     background-color: #000;
 }
 
-.admidio-media-player-stage .plyr {
-    width: 100%;
+.admidio-media-player-stage.admidio-media-player-external {
+    padding: 1.5rem;
+    text-align: center;
+    background-color: var(--bs-tertiary-bg);
+}
+
+/* list of the items */
+.admidio-media-player-items {
+    --bs-table-bg: transparent;
 }
 
 .admidio-media-player-items tr.admidio-media-player-item {
     cursor: pointer;
 }
 
-.admidio-media-player-items td.admidio-media-player-play {
-    width: 3rem;
+.admidio-media-player-items tr.admidio-media-player-item:hover > td {
+    background-color: var(--bs-tertiary-bg);
 }
 
-.admidio-media-player-items tr.admidio-media-player-active > td {
-    background-color: var(--bs-primary-bg-subtle);
+.admidio-media-player-items td.admidio-media-player-number {
+    width: 2.5rem;
+    text-align: center;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 991.98px) {
-    .admidio-media-player-sticky {
-        position: static;
+.admidio-media-player-items td.admidio-media-player-duration {
+    width: 4rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.btn.admidio-media-player-play-button {
+    display: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--bs-body-color);
+}
+
+.admidio-media-player-equalizer {
+    display: none;
+}
+
+/* the number changes to a play button on hover, the playing item shows an equalizer */
+.admidio-media-player-item:hover .admidio-media-player-index,
+.admidio-media-player-item:focus-within .admidio-media-player-index,
+.admidio-media-player-active .admidio-media-player-index {
+    display: none;
+}
+
+.admidio-media-player-item:hover .admidio-media-player-play-button,
+.admidio-media-player-item:focus-within .admidio-media-player-play-button {
+    display: inline-block;
+}
+
+.admidio-media-player-active.admidio-media-player-playing:not(:hover) .admidio-media-player-equalizer {
+    display: inline-flex;
+}
+
+.admidio-media-player-active:not(.admidio-media-player-playing) .admidio-media-player-play-button,
+.admidio-media-player-active.admidio-media-player-playing:hover .admidio-media-player-play-button {
+    display: inline-block;
+}
+
+.admidio-media-player-active .btn.admidio-media-player-play-button {
+    color: var(--bs-primary);
+}
+
+.admidio-media-player-active .admidio-media-player-track-title {
+    color: var(--bs-primary);
+    font-weight: 600;
+}
+
+.admidio-media-player-equalizer {
+    align-items: flex-end;
+    gap: 2px;
+    height: 0.9rem;
+}
+
+.admidio-media-player-equalizer > span {
+    width: 3px;
+    background-color: var(--bs-primary);
+    animation: admidio-media-player-bounce 0.9s ease-in-out infinite;
+}
+
+.admidio-media-player-equalizer > span:nth-child(2) {
+    animation-delay: -0.3s;
+}
+
+.admidio-media-player-equalizer > span:nth-child(3) {
+    animation-delay: -0.6s;
+}
+
+@keyframes admidio-media-player-bounce {
+    0%, 100% { height: 25%; }
+    50% { height: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admidio-media-player-equalizer > span {
+        animation: none;
+        height: 70%;
     }
+}
+
+/* player bar at the bottom of the window */
+.admidio-media-player-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1030;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+    background-color: var(--bs-body-bg);
+    border-top: 1px solid var(--bs-border-color);
+    box-shadow: 0 -0.25rem 1rem rgba(0, 0, 0, 0.08);
+}
+
+.admidio-media-player-bar[hidden] {
+    display: none;
+}
+
+/* the page needs space at the end, so the bar doesn't hide its content */
+body.admidio-media-player-bar-visible {
+    padding-bottom: 6rem;
+}
+
+.admidio-media-player-bar-title {
+    font-weight: 600;
+}
+
+.admidio-media-player-bar-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+}
+
+.admidio-media-player-bar-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admidio-media-player-bar-play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    font-size: 1.5rem;
+}
+
+.admidio-media-player-bar-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 40rem;
+}
+
+.admidio-media-player-bar-progress .form-range {
+    flex-grow: 1;
+}
+
+.admidio-media-player-time {
+    min-width: 2.75rem;
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.admidio-media-player-bar-extra {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.admidio-media-player-bar-extra .form-select {
+    width: auto;
+}
+
+/* phones: compact bar with the title and the main buttons in one row and the progress below */
+@media (max-width: 767.98px) {
+    .admidio-media-player-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "track controls" "progress progress";
+        gap: 0.25rem 0.5rem;
+        padding: 0.5rem 0.75rem;
+        padding-bottom: calc(0.25rem + env(safe-area-inset-bottom));
+    }
+
+    .admidio-media-player-bar-track {
+        grid-area: track;
+        min-width: 0;
+    }
+
+    .admidio-media-player-bar-center {
+        display: contents;
+    }
+
+    .admidio-media-player-bar-controls {
+        grid-area: controls;
+        gap: 0.25rem;
+    }
+
+    .admidio-media-player-bar-progress {
+        grid-area: progress;
+        max-width: none;
+    }
+
+    .admidio-media-player-bar-extra,
+    .admidio-media-player-desktop-only {
+        display: none;
+    }
+
+    body.admidio-media-player-bar-visible {
+        padding-bottom: 7rem;
+    }
+
+    .admidio-media-player-items td.admidio-media-player-row-actions .admidio-media-item-move {
+        display: none;
+    }
+}
+
+/* the controls use the primary color of the theme */
+.admidio-media-player {
+    --plyr-color-main: var(--bs-primary);
+}
+
+.admidio-media-player-bar .form-range {
+    accent-color: var(--bs-primary);
+}
+
+.admidio-media-player-bar .form-range::-webkit-slider-thumb {
+    background-color: var(--bs-primary);
+}
+
+.admidio-media-player-bar .form-range::-moz-range-thumb {
+    background-color: var(--bs-primary);
+}
+
+/* the play triangle has its weight on the left side, so it is moved a bit to look centered */
+.admidio-media-player-main-button > .bi,
+.admidio-media-player-bar-play > .bi {
+    line-height: 1;
+}
+
+.admidio-media-player-main-button > .bi::before,
+.admidio-media-player-bar-play > .bi::before {
+    vertical-align: 0;
+}
+
+.admidio-media-player-main-button > .bi-play-fill,
+.admidio-media-player-bar-play > .bi-play-fill {
+    transform: translateX(0.18em);
 }

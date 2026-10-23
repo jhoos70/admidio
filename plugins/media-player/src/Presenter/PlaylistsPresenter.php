@@ -104,21 +104,7 @@ class PlaylistsPresenter extends PagePresenter
         $this->setHeadline($playlist->getValue('mpl_name'));
 
         $items = $playlistService->findItems((int)$playlist->getValue('mpl_id'));
-        if (count($items) > 0) {
-            $this->addPageFunctionsMenuItem(
-                'menu_item_media_player_zip',
-                $gL10n->get('PLG_MEDIA_PLAYER_DOWNLOAD_ZIP'),
-                SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'zip', 'playlist_uuid' => $playlistUuid)),
-                'bi-file-earmark-zip-fill'
-            );
-        }
         if ($isEditor) {
-            $this->addPageFunctionsMenuItem(
-                'menu_item_media_player_edit',
-                $gL10n->get('SYS_EDIT'),
-                SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'edit', 'playlist_uuid' => $playlistUuid)),
-                'bi-pencil-square'
-            );
             $this->addJavascript('
                 $(".admidio-media-item-move").click(function() {
                     moveTableRow($(this), "' . MediaPlayer::getPageUrl() . '", "' . $gCurrentSession->getCsrfToken() . '");
@@ -130,6 +116,8 @@ class PlaylistsPresenter extends PagePresenter
         }
 
         $this->smarty->assign('playlistDescription', (string)$playlist->getValue('mpl_description'));
+        $this->smarty->assign('zipUrl', SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'zip', 'playlist_uuid' => $playlistUuid)));
+        $this->smarty->assign('editUrl', SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'edit', 'playlist_uuid' => $playlistUuid)));
         $this->smarty->assign('items', $items);
         $this->smarty->assign('isEditor', $isEditor);
         $this->smarty->assign('csrfToken', $gCurrentSession->getCsrfToken());

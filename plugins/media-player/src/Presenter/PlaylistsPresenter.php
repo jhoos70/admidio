@@ -86,88 +86,53 @@ class PlaylistsPresenter extends PagePresenter
     }
 
     /**
-     * Create the page of a playlist with the player and the list of its items. Users who may change
-     * the playlist could also change the order of the items, remove items and add new files and weblinks.
+     * Create the page of a playlist with the player and the list of its items. In the edit mode the page shows
+     * the items that could be reordered and removed and a browser with the files and weblinks that could be added.
      * @param string $playlistUuid The UUID of the playlist.
+     * @param bool $editMode **true** for the edit mode, only users who may change the playlist could open it.
      * @return void
      * @throws Exception
      */
-    public function createPlaylistPage(string $playlistUuid): void
+    public function createPlaylistPage(string $playlistUuid, bool $editMode = false): void
     {
         global $gDb, $gL10n, $gCurrentSession;
 
         $playlistService = new PlaylistService($gDb);
-        $playlist = $playlistService->getPlaylist($playlistUuid);
+        $playlist = $editMode ? $playlistService->getEditablePlaylist($playlistUuid) : $playlistService->getPlaylist($playlistUuid);
         $isEditor = $playlistService->canEdit($playlist->getValue('mpl_usr_id_owner'), $playlist->getValue('mpl_usr_id_create'));
 
-        $this->setHtmlID('adm_media_player_playlist');
+        $this->setHtmlID($editMode ? 'adm_media_player_playlist_items' : 'adm_media_player_playlist');
         $this->setHeadline($playlist->getValue('mpl_name'));
 
         $items = $playlistService->findItems((int)$playlist->getValue('mpl_id'));
-        if ($isEditor) {
-            $this->addJavascript('
-                $(".admidio-media-item-move").click(function() {
-                    moveTableRow($(this), "' . MediaPlayer::getPageUrl() . '", "' . $gCurrentSession->getCsrfToken() . '");
-                });', true);
-        }
-
+        $url = static function (string $mode, array $parameters = array()) use ($playlistUuid): string {
+            return SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array_merge(array('mode' => $mode, 'playlist_uuid' => $playlistUuid), $parameters));
+        };
         foreach ($items as $key => $item) {
             $items[$key]['removeUrl'] = SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'remove_item', 'item_uuid' => $item['uuid']));
         }
 
         $this->smarty->assign('playlistDescription', (string)$playlist->getValue('mpl_description'));
-        $this->smarty->assign('zipUrl', SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'zip', 'playlist_uuid' => $playlistUuid)));
-        $this->smarty->assign('editUrl', SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'edit', 'playlist_uuid' => $playlistUuid)));
         $this->smarty->assign('items', $items);
         $this->smarty->assign('isEditor', $isEditor);
+        $this->smarty->assign('playlistUrl', $url('playlist'));
+        $this->smarty->assign('itemsUrl', $url('items'));
+        $this->smarty->assign('zipUrl', $url('zip'));
+        $this->smarty->assign('editUrl', $url('edit'));
         $this->smarty->assign('csrfToken', $gCurrentSession->getCsrfToken());
         $this->smarty->assign('l10n', $gL10n);
-        $this->addHtmlByTemplate('plugin.media-player.playlist.tpl');
 
-        if ($isEditor) {
-            $this->createAddItemsForm($playlistUuid, $playlistService);
+        if ($editMode) {
+            $plugin = MediaPlayer::getPlugin();
+            $this->addJavascriptFile(ADMIDIO_URL . FOLDER_LIBS . '/jquery-ui/jquery-ui.min.js');
+            $this->addJavascriptFile($plugin->getAssetUrl('js/media_player_edit.js'));
+            $this->smarty->assign('mediaTreeUrl', $url('media_tree'));
+            $this->smarty->assign('addUrl', $url('add'));
+            $this->smarty->assign('reorderUrl', $url('reorder'));
+            $this->addHtmlByTemplate('plugin.media-player.playlist-edit.tpl');
+        } else {
+            $this->addHtmlByTemplate('plugin.media-player.playlist.tpl');
         }
-    }
-
-    /**
-     * Create the form to add files and weblinks to a playlist.
-     * @param string $playlistUuid The UUID of the playlist.
-     * @param PlaylistService $playlistService The service to read the selectable files and weblinks.
-     * @return void
-     * @throws Exception
-     */
-    private function createAddItemsForm(string $playlistUuid, PlaylistService $playlistService): void
-    {
-        global $gL10n, $gCurrentSession;
-
-        $files = $playlistService->findSelectableFiles();
-        $weblinks = $playlistService->findSelectableWeblinks();
-
-        $form = new FormPresenter(
-            'adm_media_player_items_form',
-            'plugin.media-player.items.tpl',
-            SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'add_items', 'playlist_uuid' => $playlistUuid)),
-            $this,
-            // the form is below the playlist, a focus would scroll the page away from the player
-            array('setFocus' => false)
-        );
-        $form->addSelectBox(
-            'media_player_files',
-            $gL10n->get('SYS_DOCUMENTS_FILES'),
-            $files,
-            array('multiselect' => true, 'search' => true, 'placeholder' => $gL10n->get('PLG_MEDIA_PLAYER_CHOOSE_FILES'),
-                'helpTextId' => 'PLG_MEDIA_PLAYER_CHOOSE_FILES_DESC', 'maximumSelectionNumber' => max(1, count($files)))
-        );
-        $form->addSelectBox(
-            'media_player_weblinks',
-            $gL10n->get('SYS_WEBLINKS'),
-            $weblinks,
-            array('multiselect' => true, 'search' => true, 'placeholder' => $gL10n->get('PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS'),
-                'helpTextId' => 'PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS_DESC', 'maximumSelectionNumber' => max(1, count($weblinks)))
-        );
-        $form->addSubmitButton('adm_button_add_items', $gL10n->get('PLG_MEDIA_PLAYER_ADD_ITEMS'), array('icon' => 'bi-plus-circle'));
-        $form->addToHtmlPage();
-        $gCurrentSession->addFormObject($form);
     }
 
     /**
@@ -199,10 +164,11 @@ class PlaylistsPresenter extends PagePresenter
         $form->addInput('mpl_name', $gL10n->get('SYS_NAME'), (string)$playlist->getValue('mpl_name'),
             array('maxLength' => 255, 'property' => FormPresenter::FIELD_REQUIRED));
         $form->addMultilineTextInput('mpl_description', $gL10n->get('SYS_DESCRIPTION'), (string)$playlist->getValue('mpl_description'), 4);
-        // users who could not create shared playlists always create private playlists, so they don't need the checkbox
+        // users who could not create shared playlists always create private playlists, so they don't need the checkbox;
+        // new playlists are private by default, so nobody shares a playlist by accident
         if ($playlistService->canChangeVisibility($playlist)) {
             $form->addCheckbox('media_player_private', $gL10n->get('PLG_MEDIA_PLAYER_PRIVATE_PLAYLIST'),
-                !empty($playlist->getValue('mpl_usr_id_owner')), array('helpTextId' => 'PLG_MEDIA_PLAYER_PRIVATE_PLAYLIST_DESC'));
+                $playlist->isNewRecord() || !empty($playlist->getValue('mpl_usr_id_owner')), array('helpTextId' => 'PLG_MEDIA_PLAYER_PRIVATE_PLAYLIST_DESC'));
         }
         $form->addSubmitButton('adm_button_save', $gL10n->get('SYS_SAVE'), array('icon' => 'bi-check-lg'));
 

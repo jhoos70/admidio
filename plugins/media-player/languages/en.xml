@@ -1,20 +1,25 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="PLG_MEDIA_PLAYER_ADD_ITEMS">Add files and weblinks</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES">Choose audio and video files</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES_DESC">Audio and video files of the module documents &amp; files that you are allowed to see. Members only hear and see the files of a playlist they could also see in documents &amp; files.</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS">Choose weblinks</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS_DESC">Weblinks of the module weblinks. Videos of YouTube and Vimeo and links to audio and video files are played within the page, all other weblinks are opened in a new window.</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_HINT_PHONE">Add audio and video files and weblinks with "Add media".</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Add media</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_SELECTED">Add (#VAR1#)</string>
   <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Create playlist</string>
   <string name="PLG_MEDIA_PLAYER_DESCRIPTION">Playlists with audio and video files of documents &amp; files and with weblinks, including a player and a ZIP download</string>
+  <string name="PLG_MEDIA_PLAYER_DONE">Done</string>
   <string name="PLG_MEDIA_PLAYER_DOWNLOAD_ZIP">Download playlist as ZIP file</string>
+  <string name="PLG_MEDIA_PLAYER_DRAG">Drag to change the order</string>
+  <string name="PLG_MEDIA_PLAYER_DROP_HINT">Drag files from the media list into the playlist or select them there and add them.</string>
+  <string name="PLG_MEDIA_PLAYER_EDIT_DETAILS">Name and description</string>
   <string name="PLG_MEDIA_PLAYER_EDIT_PLAYLIST">Edit playlist</string>
   <string name="PLG_MEDIA_PLAYER_EXTERNAL_NOTICE">This weblink could not be played within the page.</string>
+  <string name="PLG_MEDIA_PLAYER_IN_PLAYLIST">Already in the playlist</string>
   <string name="PLG_MEDIA_PLAYER_ITEM">Entry</string>
+  <string name="PLG_MEDIA_PLAYER_MEDIA">Media</string>
   <string name="PLG_MEDIA_PLAYER_MINUTES">min</string>
   <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>
   <string name="PLG_MEDIA_PLAYER_NEXT_TRACK">Next track</string>
   <string name="PLG_MEDIA_PLAYER_NO_ITEMS">This playlist doesn't contain any entries you are allowed to see.</string>
+  <string name="PLG_MEDIA_PLAYER_NO_MEDIA_FOUND">No matching audio or video files and weblinks found.</string>
   <string name="PLG_MEDIA_PLAYER_NO_PLAYLISTS">There are no playlists yet.</string>
   <string name="PLG_MEDIA_PLAYER_NUMBER_OF_ITEMS">#VAR1# entries</string>
   <string name="PLG_MEDIA_PLAYER_OPEN_EXTERNAL">Open in new window</string>
@@ -34,6 +39,8 @@
   <string name="PLG_MEDIA_PLAYER_REPEAT_ALL">Repeat playlist</string>
   <string name="PLG_MEDIA_PLAYER_REPEAT_OFF">Repeat off</string>
   <string name="PLG_MEDIA_PLAYER_REPEAT_ONE">Repeat track</string>
+  <string name="PLG_MEDIA_PLAYER_SEARCH_MEDIA">Search files and weblinks</string>
+  <string name="PLG_MEDIA_PLAYER_SELECT_FOLDER">Select all files of the folder</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_OFF">Shuffle off</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Shuffle on</string>
   <string name="PLG_MEDIA_PLAYER_SPEED">Playback speed</string>

@@ -362,3 +362,275 @@ body.admidio-media-player-bar-visible {
 .admidio-media-player-bar-play > .bi-play-fill {
     transform: translateX(0.06em);
 }
+
+/* "Edit" buttons with icon and text, the theme would give them the color of the background */
+.btn.admidio-media-player-edit-button {
+    color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    background-color: transparent;
+}
+
+.btn.admidio-media-player-edit-button:hover,
+.btn.admidio-media-player-edit-button:focus-visible {
+    color: var(--bs-body-bg);
+    background-color: var(--bs-primary);
+}
+
+/* edit mode of a playlist */
+.admidio-media-player-editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.admidio-media-player-edit-items {
+    margin-bottom: 0.5rem;
+}
+
+.admidio-media-player-edit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.25rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    background-color: var(--bs-body-bg);
+}
+
+.admidio-media-player-edit-item.admidio-media-player-edit-new {
+    animation: admidio-media-player-highlight 2s ease-out;
+}
+
+@keyframes admidio-media-player-highlight {
+    from { background-color: var(--bs-primary-bg-subtle); }
+    to { background-color: var(--bs-body-bg); }
+}
+
+.admidio-media-player-drag-handle {
+    cursor: grab;
+    color: var(--bs-secondary-color);
+    font-size: 1.1rem;
+}
+
+.admidio-media-player-edit-number {
+    min-width: 1.75rem;
+    text-align: right;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
+}
+
+.admidio-media-player-edit-track {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.admidio-media-player-edit-actions .btn.admidio-media-player-toggle {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+}
+
+.admidio-media-player-edit-actions .btn.admidio-media-player-toggle:disabled {
+    border-color: transparent;
+    opacity: 0.25;
+}
+
+.admidio-media-player-sort-placeholder {
+    height: 3.25rem;
+    border: 2px dashed var(--bs-primary);
+    border-radius: var(--bs-border-radius);
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.admidio-media-player-drop-indicator {
+    height: 3px;
+    margin: -1px 0;
+    background-color: var(--bs-primary);
+    border-radius: 2px;
+}
+
+.admidio-media-player-drop-hint {
+    padding: 1rem;
+    border: 2px dashed var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.admidio-media-player-drop-active .admidio-media-player-drop-hint {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary) !important;
+}
+
+.admidio-media-player-drag-helper {
+    max-width: 20rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--bs-border-radius);
+    background-color: var(--bs-primary);
+    color: var(--bs-body-bg);
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    position: absolute;
+    top: -100px;
+    left: -1000px;
+}
+
+/* media browser */
+.admidio-media-player-browser {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 992px) {
+    .admidio-media-player-browser {
+        position: sticky;
+        top: 5rem;
+        max-height: calc(100vh - 6rem);
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--bs-border-radius);
+        overflow: hidden;
+    }
+}
+
+.admidio-media-player-browser-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    background-color: var(--bs-tertiary-bg);
+}
+
+.admidio-media-player-browser-search {
+    padding: 0.75rem 1rem 0.5rem;
+}
+
+.admidio-media-player-tree {
+    flex-grow: 1;
+    min-height: 10rem;
+    overflow-y: auto;
+    padding: 0 0.5rem 0.5rem;
+}
+
+.admidio-media-player-browser-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.admidio-media-player-tree-children {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.admidio-media-player-tree-line {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2rem;
+    margin: 0;
+    padding: 0 0.25rem;
+    border-radius: var(--bs-border-radius-sm);
+}
+
+label.admidio-media-player-tree-line {
+    cursor: pointer;
+}
+
+.admidio-media-player-tree-line:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+
+.admidio-media-player-tree-line .form-check-input {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.btn.admidio-media-player-tree-toggle,
+.btn.admidio-media-player-tree-name {
+    padding: 0;
+    border: 0;
+    color: var(--bs-body-color);
+    text-align: left;
+}
+
+.btn.admidio-media-player-tree-toggle {
+    width: 1.25rem;
+    color: var(--bs-secondary-color);
+}
+
+.btn.admidio-media-player-tree-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.btn.admidio-media-player-tree-toggle > .bi,
+.btn.admidio-media-player-tree-name > .bi {
+    margin-right: 0;
+}
+
+.btn.admidio-media-player-tree-name > .bi {
+    margin-right: 0.4rem;
+}
+
+.admidio-media-player-tree-toggle > .bi::before {
+    transition: transform 0.15s;
+}
+
+.admidio-media-player-tree-toggle[aria-expanded="true"] > .bi::before {
+    transform: rotate(90deg);
+}
+
+/* names wrap instead of being cut, because the voice is often at the end of the file name */
+.admidio-media-player-tree-file-name {
+    flex-grow: 1;
+    min-width: 0;
+    padding: 0.2rem 0;
+    overflow-wrap: anywhere;
+}
+
+.admidio-media-player-tree .form-check-input:checked,
+.admidio-media-player-tree .form-check-input:indeterminate {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.admidio-media-player-tree-file .bi {
+    color: var(--bs-secondary-color);
+}
+
+.admidio-media-player-tree-in-playlist {
+    display: none;
+}
+
+.admidio-media-player-tree-file-in-playlist .admidio-media-player-tree-file-name {
+    color: var(--bs-secondary-color);
+}
+
+.admidio-media-player-tree-file-in-playlist .admidio-media-player-tree-in-playlist {
+    display: inline;
+    color: var(--bs-success) !important;
+    font-size: 1.1rem;
+}
+
+@media (pointer: fine) {
+    .admidio-media-player-tree-file-name {
+        cursor: grab;
+    }
+}
+
+/* on small screens the media browser is a panel and the playlist can't be sorted by dragging */
+@media (max-width: 991.98px) {
+    .admidio-media-player-browser.offcanvas-lg {
+        width: 100%;
+        max-width: 28rem;
+    }
+
+    .admidio-media-player-drag-handle {
+        display: none;
+    }
+}

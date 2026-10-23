@@ -24,7 +24,11 @@
                 <button type="button" class="btn btn-link admidio-media-player-toggle admidio-media-player-repeat" aria-pressed="false">
                     <i class="bi bi-repeat"></i></button>
             {/if}
-            <div class="dropdown ms-auto">
+            {if $isEditor}
+                <a id="adm_media_player_edit_items" class="btn admidio-media-player-edit-button ms-auto" href="{$itemsUrl}">
+                    <i class="bi bi-pencil-square"></i>{$l10n->get('SYS_EDIT')}</a>
+            {/if}
+            <div class="dropdown{if !$isEditor} ms-auto{/if}">
                 <button type="button" class="btn btn-link admidio-media-player-toggle" data-bs-toggle="dropdown" aria-expanded="false"
                     title="{$l10n->get('SYS_MORE')}" aria-label="{$l10n->get('SYS_MORE')}">
                     <i class="bi bi-three-dots"></i></button>
@@ -35,9 +39,7 @@
                     {/if}
                     {if $isEditor}
                         <li><a id="menu_item_media_player_edit" class="dropdown-item" href="{$editUrl}">
-                            <i class="bi bi-pencil-square me-2"></i>{$l10n->get('PLG_MEDIA_PLAYER_EDIT_PLAYLIST')}</a></li>
-                        <li><a class="dropdown-item" href="#adm_media_player_items_form">
-                            <i class="bi bi-plus-circle me-2"></i>{$l10n->get('PLG_MEDIA_PLAYER_ADD_ITEMS')}</a></li>
+                            <i class="bi bi-card-text me-2"></i>{$l10n->get('PLG_MEDIA_PLAYER_EDIT_DETAILS')}</a></li>
                     {/if}
                 </ul>
             </div>
@@ -78,13 +80,6 @@
                                 <a class="admidio-icon-link" href="{$item.downloadUrl}"><i class="bi bi-download" data-bs-toggle="tooltip" title="{$l10n->get('SYS_DOWNLOAD_FILE')}"></i></a>
                             {else}
                                 <a class="admidio-icon-link" href="{$item.source|escape:'html'}" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right" data-bs-toggle="tooltip" title="{$l10n->get('PLG_MEDIA_PLAYER_OPEN_EXTERNAL')}"></i></a>
-                            {/if}
-                            {if $isEditor}
-                                <a class="admidio-icon-link admidio-media-item-move" href="javascript:void(0)" data-uuid="{$item.uuid}" data-direction="UP" data-target="mpi_{$item.uuid}"><i class="bi bi-arrow-up-circle-fill" data-bs-toggle="tooltip" title="{$l10n->get('SYS_MOVE_UP', array('PLG_MEDIA_PLAYER_ITEM'))}"></i></a>
-                                <a class="admidio-icon-link admidio-media-item-move" href="javascript:void(0)" data-uuid="{$item.uuid}" data-direction="DOWN" data-target="mpi_{$item.uuid}"><i class="bi bi-arrow-down-circle-fill" data-bs-toggle="tooltip" title="{$l10n->get('SYS_MOVE_DOWN', array('PLG_MEDIA_PLAYER_ITEM'))}"></i></a>
-                                <a class="admidio-icon-link admidio-messagebox" href="javascript:void(0);" data-buttons="yes-no"
-                                    data-message="{$l10n->get('PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM', array($item.title|escape:'html'))}"
-                                    data-href="callUrlHideElement('mpi_{$item.uuid}', '{$item.removeUrl}', '{$csrfToken}')"><i class="bi bi-x-circle" data-bs-toggle="tooltip" title="{$l10n->get('PLG_MEDIA_PLAYER_REMOVE_ITEM')}"></i></a>
                             {/if}
                         </td>
                     </tr>
@@ -136,7 +131,3 @@
         </div>
     </div>
 </div>
-
-{if $isEditor}
-    <h3 class="mt-5">{$l10n->get('PLG_MEDIA_PLAYER_ADD_ITEMS')}</h3>
-{/if}

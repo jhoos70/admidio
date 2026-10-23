@@ -62,7 +62,7 @@ class PlaylistService
      * Get all items of a playlist that the current user could see.
      * @param int $playlistId The id of the playlist.
      * @return array<int,array<string,mixed>> Returns the items in the sequence of the playlist with the keys
-     *         uuid, sequence, kind, fileUuid, type, title, description, origin, source, downloadUrl and mime.
+     *         uuid, sequence, kind, fileUuid, weblinkUuid, type, title, description, origin, source, downloadUrl and mime.
      * @throws Exception
      */
     public function findItems(int $playlistId): array
@@ -113,6 +113,7 @@ class PlaylistService
             'sequence' => (int)$row['mpi_sequence'],
             'kind' => 'file',
             'fileUuid' => $row['fil_uuid'],
+            'weblinkUuid' => '',
             'type' => $mediaType,
             'title' => pathinfo((string)$row['fil_name'], PATHINFO_FILENAME),
             'description' => StringUtils::strStripTags((string)$row['fil_description']),
@@ -142,6 +143,7 @@ class PlaylistService
             'sequence' => (int)$row['mpi_sequence'],
             'kind' => 'weblink',
             'fileUuid' => '',
+            'weblinkUuid' => $row['lnk_uuid'],
             'type' => MediaAccessService::getLinkMediaType((string)$row['lnk_url']),
             'title' => $row['lnk_name'],
             'description' => StringUtils::strStripTags((string)$row['lnk_description']),
@@ -153,55 +155,108 @@ class PlaylistService
     }
 
     /**
-     * Get all audio and video files the current user could add to a playlist. The files are grouped by their folder.
-     * @return array<int,array{0:string,1:string,2:string}> Returns entries for a select box with option groups.
+     * Get all audio and video files and all weblinks the current user could add to a playlist. The files are
+     * returned as a tree of their folders, folders without such files are left out. The weblinks are grouped
+     * by their category.
+     * @return array{folders: array<int,array<string,mixed>>, weblinks: array<int,array<string,mixed>>}
      * @throws Exception
      */
-    public function findSelectableFiles(): array
+    public function findMediaTree(): array
     {
-        global $gCurrentOrgId;
+        global $gCurrentOrgId, $gL10n;
 
-        $sql = 'SELECT fil_uuid, fil_name, fil_locked, fol_id, fol_name, fol_public, fol_org_id
+        $sql = 'SELECT fol_id, fol_fol_id_parent, fol_name
+                  FROM ' . TBL_FOLDERS . '
+                 WHERE fol_org_id = ? -- $gCurrentOrgId
+                   AND fol_type = \'DOCUMENTS\'
+                 ORDER BY fol_name';
+        $folders = array();
+        foreach ($this->db->queryPrepared($sql, array($gCurrentOrgId))->fetchAll() as $row) {
+            $folders[(int)$row['fol_id']] = array(
+                'id' => (int)$row['fol_id'],
+                'parent' => $row['fol_fol_id_parent'] === null ? null : (int)$row['fol_fol_id_parent'],
+                'name' => (string)$row['fol_name'],
+                'folders' => array(),
+                'files' => array()
+            );
+        }
+
+        $sql = 'SELECT fil_uuid, fil_name, fil_locked, fol_id, fol_public, fol_org_id
                   FROM ' . TBL_FILES . '
             INNER JOIN ' . TBL_FOLDERS . ' ON fol_id = fil_fol_id
                  WHERE fol_org_id = ? -- $gCurrentOrgId
                    AND fol_type = \'DOCUMENTS\'
-                 ORDER BY fol_path, fol_name, fil_name';
-        $rows = $this->db->queryPrepared($sql, array($gCurrentOrgId))->fetchAll();
-
-        $files = array();
-        foreach ($rows as $row) {
-            if (MediaAccessService::getFileMediaType((string)$row['fil_name']) !== '' && $this->access->canViewFile($row)) {
-                $files[] = array($row['fil_uuid'], $row['fil_name'], $row['fol_name']);
+                 ORDER BY fil_name';
+        $usedFolders = array();
+        foreach ($this->db->queryPrepared($sql, array($gCurrentOrgId))->fetchAll() as $row) {
+            $type = MediaAccessService::getFileMediaType((string)$row['fil_name']);
+            if ($type === '' || !$this->access->canViewFile($row) || !isset($folders[(int)$row['fol_id']])) {
+                continue;
+            }
+            $folders[(int)$row['fol_id']]['files'][] = array(
+                'uuid' => $row['fil_uuid'],
+                'name' => pathinfo((string)$row['fil_name'], PATHINFO_FILENAME),
+                'type' => $type
+            );
+            // the folder and all its parent folders are shown in the tree
+            for ($id = (int)$row['fol_id']; $id !== null && isset($folders[$id]) && !isset($usedFolders[$id]); $id = $folders[$id]['parent']) {
+                $usedFolders[$id] = true;
             }
         }
-        return $files;
+
+        // build the tree from the bottom up, the root folder of the organization is not shown
+        $build = function (int $id) use (&$build, $folders, $usedFolders): array {
+            $node = array('name' => $folders[$id]['name'], 'folders' => array(), 'files' => $folders[$id]['files']);
+            foreach ($folders as $child) {
+                if ($child['parent'] === $id && isset($usedFolders[$child['id']])) {
+                    $node['folders'][] = $build($child['id']);
+                }
+            }
+            return $node;
+        };
+        $tree = array();
+        foreach ($folders as $folder) {
+            if ($folder['parent'] === null && isset($usedFolders[$folder['id']])) {
+                $root = $build($folder['id']);
+                $tree = array_merge($tree, $root['folders']);
+                // files directly in the root folder are shown in a node with the name of the module
+                if (count($root['files']) > 0) {
+                    array_unshift($tree, array('name' => $gL10n->get('SYS_DOCUMENTS_FILES'), 'folders' => array(), 'files' => $root['files']));
+                }
+            }
+        }
+
+        return array('folders' => $tree, 'weblinks' => $this->findWeblinkTree());
     }
 
     /**
-     * Get all weblinks the current user could add to a playlist. The weblinks are grouped by their category.
-     * @return array<int,array{0:string,1:string,2:string}> Returns entries for a select box with option groups.
+     * Get all weblinks the current user could add to a playlist, grouped by their category.
+     * @return array<int,array{name: string, links: array<int,array<string,string>>}>
      * @throws Exception
      */
-    public function findSelectableWeblinks(): array
+    private function findWeblinkTree(): array
     {
         if (!$this->access->isWeblinksModuleAvailable()) {
             return array();
         }
 
         $categories = array_merge(array(0), $this->access->getVisibleLinkCategories());
-        $sql = 'SELECT lnk_uuid, lnk_name, cat_name
+        $sql = 'SELECT lnk_uuid, lnk_name, lnk_url, cat_name
                   FROM ' . TBL_LINKS . '
             INNER JOIN ' . TBL_CATEGORIES . ' ON cat_id = lnk_cat_id
                  WHERE cat_id IN (' . Database::getQmForValues($categories) . ')
                  ORDER BY cat_sequence, lnk_name';
-        $rows = $this->db->queryPrepared($sql, $categories)->fetchAll();
-
-        $weblinks = array();
-        foreach ($rows as $row) {
-            $weblinks[] = array($row['lnk_uuid'], $row['lnk_name'], Language::translateIfTranslationStrId((string)$row['cat_name']));
+        $groups = array();
+        foreach ($this->db->queryPrepared($sql, $categories)->fetchAll() as $row) {
+            $name = Language::translateIfTranslationStrId((string)$row['cat_name']);
+            $groups[$name]['name'] = $name;
+            $groups[$name]['links'][] = array(
+                'uuid' => $row['lnk_uuid'],
+                'name' => $row['lnk_name'],
+                'type' => MediaAccessService::getLinkMediaType((string)$row['lnk_url'])
+            );
         }
-        return $weblinks;
+        return array_values($groups);
     }
 
     /**
@@ -326,34 +381,113 @@ class PlaylistService
     }
 
     /**
-     * Add the selected files and weblinks of the form to the end of a playlist. Only files and weblinks the
-     * current user could see are added.
+     * Add files and weblinks to a playlist. Only files and weblinks the current user could see are added.
+     * The new items are added at the end of the playlist or before the item with the UUID of the parameter
+     * **before_item_uuid**. The parameters are read from the POST request.
      * @param string $uuid The UUID of the playlist.
-     * @return void
+     * @return array<int,array<string,mixed>> Returns the new items with the data of **findItems()**.
      * @throws Exception
      */
-    public function addItems(string $uuid): void
+    public function addItems(string $uuid): array
     {
-        global $gCurrentSession;
-
+        SecurityUtils::validateCsrfToken($_POST['adm_csrf_token']);
         $playlist = $this->getEditablePlaylist($uuid);
         if ($playlist->isNewRecord()) {
             throw new Exception('SYS_INVALID_PAGE_VIEW');
         }
         $playlistId = (int)$playlist->getValue('mpl_id');
 
-        $form = $gCurrentSession->getFormObject($_POST['adm_csrf_token']);
-        $formValues = $form->validate($_POST);
-
         $sql = 'SELECT MAX(mpi_sequence) FROM ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . ' WHERE mpi_mpl_id = ?';
         $sequence = (int)$this->db->queryPrepared($sql, array($playlistId))->fetchColumn();
 
-        foreach ($this->findFileIds((array)($formValues['media_player_files'] ?? array())) as $fileId) {
-            $this->addItem($playlistId, ++$sequence, $fileId, null);
+        $newItems = array();
+        foreach ($this->findFileIds((array)($_POST['file_uuids'] ?? array())) as $fileId) {
+            $newItems[] = $this->addItem($playlistId, ++$sequence, $fileId, null);
         }
-        foreach ($this->findWeblinkIds((array)($formValues['media_player_weblinks'] ?? array())) as $weblinkId) {
-            $this->addItem($playlistId, ++$sequence, null, $weblinkId);
+        foreach ($this->findWeblinkIds((array)($_POST['weblink_uuids'] ?? array())) as $weblinkId) {
+            $newItems[] = $this->addItem($playlistId, ++$sequence, null, $weblinkId);
         }
+
+        $beforeUuid = (string)($_POST['before_item_uuid'] ?? '');
+        if ($beforeUuid !== '' && count($newItems) > 0) {
+            $order = array();
+            foreach ($this->findAllItemUuids($playlistId) as $itemUuid) {
+                if ($itemUuid === $beforeUuid) {
+                    $order = array_merge($order, $newItems);
+                }
+                if (!in_array($itemUuid, $newItems, true)) {
+                    $order[] = $itemUuid;
+                }
+            }
+            $this->saveSequence($playlistId, $order);
+        }
+
+        return array_values(array_filter($this->findItems($playlistId), static function (array $item) use ($newItems) {
+            return in_array($item['uuid'], $newItems, true);
+        }));
+    }
+
+    /**
+     * Change the order of the items of a playlist. The POST parameter **item_uuids** contains the items the
+     * current user could see in their new order. Items the user could not see keep their positions.
+     * @param string $uuid The UUID of the playlist.
+     * @return void
+     * @throws Exception
+     */
+    public function reorderItems(string $uuid): void
+    {
+        SecurityUtils::validateCsrfToken($_POST['adm_csrf_token']);
+        $playlist = $this->getEditablePlaylist($uuid);
+        if ($playlist->isNewRecord()) {
+            throw new Exception('SYS_INVALID_PAGE_VIEW');
+        }
+        $playlistId = (int)$playlist->getValue('mpl_id');
+
+        $allItems = $this->findAllItemUuids($playlistId);
+        $newOrder = array_values(array_intersect(array_map('strval', (array)($_POST['item_uuids'] ?? array())), $allItems));
+        $visibleItems = array_column($this->findItems($playlistId), 'uuid');
+        if (count(array_diff($visibleItems, $newOrder)) > 0 || count($newOrder) !== count(array_unique($newOrder))) {
+            throw new Exception('SYS_INVALID_PAGE_VIEW');
+        }
+
+        // the visible items fill the positions of the visible items in the new order
+        $order = array();
+        foreach ($allItems as $itemUuid) {
+            $order[] = in_array($itemUuid, $visibleItems, true) ? array_shift($newOrder) : $itemUuid;
+        }
+        $this->saveSequence($playlistId, $order);
+    }
+
+    /**
+     * Get the UUIDs of all items of a playlist in their order, also of the items the current user could not see.
+     * @param int $playlistId The id of the playlist.
+     * @return array<int,string>
+     * @throws Exception
+     */
+    private function findAllItemUuids(int $playlistId): array
+    {
+        $sql = 'SELECT mpi_uuid FROM ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . '
+                 WHERE mpi_mpl_id = ? -- $playlistId
+                 ORDER BY mpi_sequence, mpi_id';
+        return $this->db->queryPrepared($sql, array($playlistId))->fetchAll(\PDO::FETCH_COLUMN);
+    }
+
+    /**
+     * Save the order of the items of a playlist. The sequence gets steps of 10, so items could later be
+     * placed between other items.
+     * @param int $playlistId The id of the playlist.
+     * @param array<int,string> $itemUuids The UUIDs of all items of the playlist in their new order.
+     * @return void
+     * @throws Exception
+     */
+    private function saveSequence(int $playlistId, array $itemUuids): void
+    {
+        $sql = 'UPDATE ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . ' SET mpi_sequence = ? WHERE mpi_mpl_id = ? AND mpi_uuid = ?';
+        $this->db->startTransaction();
+        foreach (array_values($itemUuids) as $index => $itemUuid) {
+            $this->db->queryPrepared($sql, array(($index + 1) * 10, $playlistId, $itemUuid));
+        }
+        $this->db->endTransaction();
     }
 
     /**
@@ -362,10 +496,10 @@ class PlaylistService
      * @param int $sequence The position of the item within the playlist.
      * @param int|null $fileId The id of the file or null if the item references a weblink.
      * @param int|null $weblinkId The id of the weblink or null if the item references a file.
-     * @return void
+     * @return string Returns the UUID of the new item.
      * @throws Exception
      */
-    private function addItem(int $playlistId, int $sequence, ?int $fileId, ?int $weblinkId): void
+    private function addItem(int $playlistId, int $sequence, ?int $fileId, ?int $weblinkId): string
     {
         $item = new PlaylistItem($this->db);
         $item->setValue('mpi_mpl_id', $playlistId);
@@ -376,6 +510,8 @@ class PlaylistService
             $item->setValue('mpi_lnk_id', $weblinkId);
         }
         $item->save();
+
+        return (string)$item->getValue('mpi_uuid');
     }
 
     /**
@@ -475,19 +611,5 @@ class PlaylistService
     {
         SecurityUtils::validateCsrfToken($_POST['adm_csrf_token']);
         $this->getEditableItem($uuid)->delete();
-    }
-
-    /**
-     * Move an item one position up or down within its playlist.
-     * @param string $uuid The UUID of the item.
-     * @return void
-     * @throws Exception
-     */
-    public function moveItem(string $uuid): void
-    {
-        SecurityUtils::validateCsrfToken($_POST['adm_csrf_token']);
-        $direction = admFuncVariableIsValid($_POST, 'direction', 'string',
-            array('requireValue' => true, 'validValues' => array(PlaylistItem::MOVE_UP, PlaylistItem::MOVE_DOWN)));
-        $this->getEditableItem($uuid)->moveSequence($direction);
     }
 }

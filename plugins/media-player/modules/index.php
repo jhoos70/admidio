@@ -13,22 +13,24 @@
  *
  * mode          : list         - (default) show all playlists
  *                 playlist     - show a playlist with the player
+ *                 items        - edit mode of a playlist with the media browser
  *                 edit         - form to create or edit a playlist
  *                 save         - save the name and the description of a playlist
  *                 delete       - delete a playlist
- *                 add_items    - add files and weblinks to a playlist
+ *                 media_tree   - files and weblinks that could be added to a playlist (JSON)
+ *                 add          - add files and weblinks to a playlist (JSON)
+ *                 reorder      - save the new order of the items of a playlist
  *                 remove_item  - remove an item from a playlist
- *                 sequence     - move an item within a playlist
  *                 stream       - send an audio or video file to the player
  *                 zip          - download a playlist as ZIP file
  * playlist_uuid : UUID of the playlist
  * item_uuid     : UUID of the playlist item
- * uuid          : UUID of the playlist item (used by the mode sequence)
  * file_uuid     : UUID of the file that should be streamed
  ***********************************************************************************************
  */
 
 use Admidio\Infrastructure\Exception;
+use Admidio\Infrastructure\Utils\SecurityUtils;
 use AdmidioPlugin\MediaPlayer\MediaPlayer;
 use AdmidioPlugin\MediaPlayer\Presenter\PlaylistsPresenter;
 use AdmidioPlugin\MediaPlayer\Service\PlaylistService;
@@ -41,15 +43,10 @@ try {
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
-        'validValues' => array('list', 'playlist', 'edit', 'save', 'delete', 'add_items', 'remove_item', 'sequence', 'stream', 'zip')
+        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'media_tree', 'add', 'reorder', 'remove_item', 'stream', 'zip')
     ));
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
-    // moveTableRow() of the common functions sends the item as parameter uuid
-    if ($getMode === 'sequence') {
-        $getItemUuid = admFuncVariableIsValid($_GET, 'uuid', 'uuid');
-    } else {
-        $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
-    }
+    $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
     $getFileUuid = admFuncVariableIsValid($_GET, 'file_uuid', 'uuid');
 
     MediaPlayer::checkAccess();
@@ -67,6 +64,32 @@ try {
             $page->createPlaylistPage($getPlaylistUuid);
             $gNavigation->addUrl(CURRENT_URL, $page->getHeadline());
             $page->show();
+            break;
+
+        case 'items':
+            $page = new PlaylistsPresenter($getPlaylistUuid);
+            $page->createPlaylistPage($getPlaylistUuid, true);
+            $gNavigation->addUrl(CURRENT_URL, $page->getHeadline());
+            $page->show();
+            break;
+
+        case 'media_tree':
+            (new PlaylistService($gDb))->getEditablePlaylist($getPlaylistUuid);
+            header('Content-Type: application/json');
+            echo json_encode((new PlaylistService($gDb))->findMediaTree());
+            break;
+
+        case 'add':
+            $items = (new PlaylistService($gDb))->addItems($getPlaylistUuid);
+            foreach ($items as $key => $item) {
+                $items[$key]['removeUrl'] = SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'remove_item', 'item_uuid' => $item['uuid']));
+            }
+            echo json_encode(array('status' => 'success', 'items' => $items));
+            break;
+
+        case 'reorder':
+            (new PlaylistService($gDb))->reorderItems($getPlaylistUuid);
+            echo json_encode(array('status' => 'success'));
             break;
 
         case 'edit':
@@ -87,18 +110,8 @@ try {
             echo json_encode(array('status' => 'success'));
             break;
 
-        case 'add_items':
-            (new PlaylistService($gDb))->addItems($getPlaylistUuid);
-            echo json_encode(array('status' => 'success', 'url' => $gNavigation->getUrl()));
-            break;
-
         case 'remove_item':
             (new PlaylistService($gDb))->removeItem($getItemUuid);
-            echo json_encode(array('status' => 'success'));
-            break;
-
-        case 'sequence':
-            (new PlaylistService($gDb))->moveItem($getItemUuid);
             echo json_encode(array('status' => 'success'));
             break;
 
@@ -117,5 +130,5 @@ try {
         http_response_code(404);
         exit();
     }
-    handleException($e, in_array($getMode, array('save', 'delete', 'add_items', 'remove_item', 'sequence'), true));
+    handleException($e, in_array($getMode, array('save', 'delete', 'media_tree', 'add', 'reorder', 'remove_item'), true));
 }

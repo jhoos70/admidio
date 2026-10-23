@@ -20,8 +20,6 @@ use AdmidioPlugin\MediaPlayer\MediaPlayer;
  */
 class PlaylistItem extends Entity
 {
-    public const MOVE_UP = 'UP';
-    public const MOVE_DOWN = 'DOWN';
 
     /**
      * Constructor that will create an object of a recordset of the table media_playlist_items.
@@ -45,38 +43,6 @@ class PlaylistItem extends Entity
     public function getHookId(): ?string
     {
         return 'media_playlist_item';
-    }
-
-    /**
-     * Change the sequence of the item within its playlist. The item will be swapped with the previous
-     * or the next item.
-     * @param string $mode The direction of the move, **MOVE_UP** or **MOVE_DOWN**.
-     * @return bool Returns **true** if the sequence was changed.
-     * @throws Exception
-     */
-    public function moveSequence(string $mode): bool
-    {
-        $sequence = (int)$this->getValue('mpi_sequence');
-        if ($mode === self::MOVE_UP) {
-            $sql = 'SELECT mpi_id, mpi_sequence FROM ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . '
-                     WHERE mpi_mpl_id = ? AND mpi_sequence < ?
-                     ORDER BY mpi_sequence DESC';
-        } else {
-            $sql = 'SELECT mpi_id, mpi_sequence FROM ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . '
-                     WHERE mpi_mpl_id = ? AND mpi_sequence > ?
-                     ORDER BY mpi_sequence ASC';
-        }
-        $neighbour = $this->db->queryPrepared($sql, array((int)$this->getValue('mpi_mpl_id'), $sequence))->fetch();
-
-        if ($neighbour === false) {
-            return false;
-        }
-
-        $sql = 'UPDATE ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . ' SET mpi_sequence = ? WHERE mpi_id = ?';
-        $this->db->queryPrepared($sql, array($sequence, (int)$neighbour['mpi_id']));
-        $this->setValue('mpi_sequence', (int)$neighbour['mpi_sequence']);
-
-        return $this->save();
     }
 
     /**

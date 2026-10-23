@@ -1,20 +1,25 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
-  <string name="PLG_MEDIA_PLAYER_ADD_ITEMS">Dateien und Weblinks hinzufügen</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES">Audio- und Videodateien auswählen</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_FILES_DESC">Audio- und Videodateien aus Dokumente &amp; Dateien, die Sie sehen dürfen. Mitglieder hören und sehen in einer Playlist nur die Dateien, die sie auch in Dokumente &amp; Dateien sehen dürfen.</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS">Weblinks auswählen</string>
-  <string name="PLG_MEDIA_PLAYER_CHOOSE_WEBLINKS_DESC">Weblinks aus dem Modul Weblinks. Videos von YouTube und Vimeo sowie Links auf Audio- und Videodateien werden auf der Seite abgespielt, alle anderen Weblinks öffnen sich in einem neuen Fenster.</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_HINT_PHONE">Fügen Sie Audio- und Videodateien sowie Weblinks über „Medien hinzufügen“ hinzu.</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Medien hinzufügen</string>
+  <string name="PLG_MEDIA_PLAYER_ADD_SELECTED">Hinzufügen (#VAR1#)</string>
   <string name="PLG_MEDIA_PLAYER_CREATE_PLAYLIST">Playlist anlegen</string>
   <string name="PLG_MEDIA_PLAYER_DESCRIPTION">Playlists mit Audio- und Videodateien aus Dokumente &amp; Dateien und mit Weblinks, inklusive Player und ZIP-Download</string>
+  <string name="PLG_MEDIA_PLAYER_DONE">Fertig</string>
   <string name="PLG_MEDIA_PLAYER_DOWNLOAD_ZIP">Playlist als ZIP-Datei herunterladen</string>
+  <string name="PLG_MEDIA_PLAYER_DRAG">Ziehen, um die Reihenfolge zu ändern</string>
+  <string name="PLG_MEDIA_PLAYER_DROP_HINT">Ziehen Sie Dateien aus der Medienliste in die Playlist oder wählen Sie sie dort aus und fügen Sie sie hinzu.</string>
+  <string name="PLG_MEDIA_PLAYER_EDIT_DETAILS">Name und Beschreibung</string>
   <string name="PLG_MEDIA_PLAYER_EDIT_PLAYLIST">Playlist bearbeiten</string>
   <string name="PLG_MEDIA_PLAYER_EXTERNAL_NOTICE">Dieser Weblink kann nicht auf der Seite abgespielt werden.</string>
+  <string name="PLG_MEDIA_PLAYER_IN_PLAYLIST">Bereits in der Playlist</string>
   <string name="PLG_MEDIA_PLAYER_ITEM">Eintrag</string>
+  <string name="PLG_MEDIA_PLAYER_MEDIA">Medien</string>
   <string name="PLG_MEDIA_PLAYER_MINUTES">Min.</string>
   <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>
   <string name="PLG_MEDIA_PLAYER_NEXT_TRACK">Nächster Titel</string>
   <string name="PLG_MEDIA_PLAYER_NO_ITEMS">Diese Playlist enthält keine Einträge, die Sie sehen dürfen.</string>
+  <string name="PLG_MEDIA_PLAYER_NO_MEDIA_FOUND">Keine passenden Audio- und Videodateien oder Weblinks gefunden.</string>
   <string name="PLG_MEDIA_PLAYER_NO_PLAYLISTS">Es sind noch keine Playlists vorhanden.</string>
   <string name="PLG_MEDIA_PLAYER_NUMBER_OF_ITEMS">#VAR1# Einträge</string>
   <string name="PLG_MEDIA_PLAYER_OPEN_EXTERNAL">In neuem Fenster öffnen</string>
@@ -34,6 +39,8 @@
   <string name="PLG_MEDIA_PLAYER_REPEAT_ALL">Playliste wiederholen</string>
   <string name="PLG_MEDIA_PLAYER_REPEAT_OFF">Wiederholung aus</string>
   <string name="PLG_MEDIA_PLAYER_REPEAT_ONE">Titel wiederholen</string>
+  <string name="PLG_MEDIA_PLAYER_SEARCH_MEDIA">Dateien und Weblinks durchsuchen</string>
+  <string name="PLG_MEDIA_PLAYER_SELECT_FOLDER">Alle Dateien des Ordners auswählen</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_OFF">Zufallswiedergabe aus</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Zufallswiedergabe an</string>
   <string name="PLG_MEDIA_PLAYER_SPEED">Wiedergabegeschwindigkeit</string>

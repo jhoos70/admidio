@@ -634,3 +634,15 @@ label.admidio-media-player-tree-line {
         display: none;
     }
 }
+
+/* sum of the lengths below the list */
+.admidio-media-player-items tfoot td {
+    border-bottom: 0;
+    border-top: 2px solid var(--bs-border-color);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.admidio-media-player-items td.admidio-media-player-total-label {
+    color: var(--bs-secondary-color);
+}

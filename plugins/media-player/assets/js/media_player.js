@@ -519,12 +519,18 @@ $(function() {
             row.dataset.duration = seconds;
             row.querySelector(".admidio-media-player-duration").textContent = formatTime(seconds);
         };
+        const totalRow = document.getElementById("adm_media_player_total_row");
         const showTotal = function() {
             const total = rows.reduce(function(sum, row) {
-                return sum + (parseFloat(row.dataset.duration) || 0);
+                return sum + (Math.floor(parseFloat(row.dataset.duration)) || 0);
             }, 0);
             if (total > 0 && totalElement) {
                 totalElement.textContent = " · " + Math.max(1, Math.round(total / 60)) + " " + labels.labelMinutes;
+            }
+            // the sum below the lengths of the items
+            if (total > 0 && totalRow) {
+                document.getElementById("adm_media_player_total").textContent = formatTime(total);
+                totalRow.hidden = false;
             }
         };
         const post = function(url, data) {

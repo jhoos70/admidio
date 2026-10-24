@@ -46,6 +46,7 @@
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_OFF">Shuffle off</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Shuffle on</string>
   <string name="PLG_MEDIA_PLAYER_SPEED">Playback speed</string>
+  <string name="PLG_MEDIA_PLAYER_TOTAL_DURATION">Total length</string>
   <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Do you really want to remove #VAR1_BOLD# from the playlist? The file or weblink itself is not deleted.</string>
   <string name="PLG_MEDIA_PLAYER_ZIP_ERROR">The ZIP file could not be created.</string>
 </resources>

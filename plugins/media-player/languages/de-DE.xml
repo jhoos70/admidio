@@ -46,6 +46,7 @@
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_OFF">Zufallswiedergabe aus</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Zufallswiedergabe an</string>
   <string name="PLG_MEDIA_PLAYER_SPEED">Wiedergabegeschwindigkeit</string>
+  <string name="PLG_MEDIA_PLAYER_TOTAL_DURATION">Gesamtdauer</string>
   <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Wollen Sie #VAR1_BOLD# wirklich aus der Playlist entfernen? Die Datei oder der Weblink selbst wird nicht gelöscht.</string>
   <string name="PLG_MEDIA_PLAYER_ZIP_ERROR">Die ZIP-Datei konnte nicht erstellt werden.</string>
 </resources>

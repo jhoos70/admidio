@@ -92,6 +92,15 @@
                     </tr>
                 {/foreach}
             </tbody>
+            {* the sum of the lengths, filled in by the script as soon as the lengths are known *}
+            <tfoot id="adm_media_player_total_row" hidden>
+                <tr>
+                    <td></td>
+                    <td class="admidio-media-player-total-label text-end">{$l10n->get('PLG_MEDIA_PLAYER_TOTAL_DURATION')}</td>
+                    <td id="adm_media_player_total" class="admidio-media-player-duration admidio-media-player-total text-end"></td>
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
     {/if}
 

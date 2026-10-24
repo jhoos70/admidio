@@ -505,45 +505,91 @@ $(function() {
     }
 
     /**
-     * Read the length of the audio and video files one after the other and show it in the list and as
-     * total length of the playlist. Only the metadata of the files is loaded.
+     * Show the length of the items and the total length of the playlist. Stored lengths come with the page.
+     * Files without a stored length are measured one after the other by loading only their metadata, and
+     * the lengths are sent to the server, so the next visitors don't have to load the files. The server
+     * reads the length of YouTube and Vimeo videos.
      */
     function loadDurations() {
-        const rows = getRows().filter(function(row) {
-            return row.dataset.type === "audio" || row.dataset.type === "video";
-        });
+        const rows = getRows();
         const totalElement = document.getElementById("adm_media_player_total_duration");
-        let total = 0;
-        let index = 0;
+        const measured = {};
 
+        const showDuration = function(row, seconds) {
+            row.dataset.duration = seconds;
+            row.querySelector(".admidio-media-player-duration").textContent = formatTime(seconds);
+        };
         const showTotal = function() {
+            const total = rows.reduce(function(sum, row) {
+                return sum + (parseFloat(row.dataset.duration) || 0);
+            }, 0);
             if (total > 0 && totalElement) {
                 totalElement.textContent = " · " + Math.max(1, Math.round(total / 60)) + " " + labels.labelMinutes;
             }
         };
-        const loadNext = function() {
-            if (index >= rows.length) {
-                showTotal();
+        const post = function(url, data) {
+            return $.post(url, $.param(Object.assign({adm_csrf_token: labels.csrfToken}, data)), null, "json");
+        };
+
+        rows.forEach(function(row) {
+            if (row.dataset.duration !== "") {
+                showDuration(row, parseFloat(row.dataset.duration));
+            }
+        });
+        showTotal();
+
+        const files = rows.filter(function(row) {
+            return row.dataset.duration === "" && (row.dataset.type === "audio" || row.dataset.type === "video") && row.dataset.fileUuid !== "";
+        });
+        const links = rows.filter(function(row) {
+            return row.dataset.duration === "" && (row.dataset.type === "youtube" || row.dataset.type === "vimeo") && row.dataset.weblinkUuid !== "";
+        });
+
+        const measureNext = function(index) {
+            if (index >= files.length) {
+                if (Object.keys(measured).length > 0) {
+                    const data = {};
+                    Object.keys(measured).forEach(function(uuid) {
+                        data["durations[" + uuid + "]"] = measured[uuid];
+                    });
+                    post(labels.durationsUrl, data);
+                }
                 return;
             }
-            const row = rows[index++];
+            const row = files[index];
             const probe = document.createElement(row.dataset.type);
             probe.preload = "metadata";
             const finish = function() {
                 if (isFinite(probe.duration) && probe.duration > 0) {
-                    row.dataset.duration = probe.duration;
-                    row.querySelector(".admidio-media-player-duration").textContent = formatTime(probe.duration);
-                    total += probe.duration;
+                    showDuration(row, probe.duration);
+                    measured[row.dataset.fileUuid] = Math.floor(probe.duration);
+                    showTotal();
                 }
                 probe.removeAttribute("src");
                 probe.load();
-                loadNext();
+                measureNext(index + 1);
             };
             probe.addEventListener("loadedmetadata", finish, {once: true});
             probe.addEventListener("error", finish, {once: true});
             probe.src = row.dataset.source;
         };
-        loadNext();
+        const askNext = function(index) {
+            if (index >= links.length) {
+                return;
+            }
+            post(labels.linkDurationUrl, {weblink_uuid: links[index].dataset.weblinkUuid})
+                .done(function(response) {
+                    if (response && response.status === "success" && response.duration) {
+                        showDuration(links[index], response.duration);
+                        showTotal();
+                    }
+                })
+                .always(function() {
+                    askNext(index + 1);
+                });
+        };
+        measureNext(0);
+        askNext(0);
     }
 
     // play an item with a click on its row, links of the row have their own function

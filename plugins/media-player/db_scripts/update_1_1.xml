@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<update>
+    <step id="10">CREATE TABLE %PREFIX%_media_durations (
+        mdu_id                      integer unsigned    NOT NULL    AUTO_INCREMENT,
+        mdu_fil_id                  integer unsigned,
+        mdu_lnk_id                  integer unsigned,
+        mdu_url                     varchar(2000),
+        mdu_duration                integer unsigned,
+        mdu_timestamp               timestamp           NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (mdu_id)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci</step>
+    <step id="20">CREATE UNIQUE INDEX %PREFIX%_idx_mdu_fil_id ON %PREFIX%_media_durations (mdu_fil_id)</step>
+    <step id="30">CREATE UNIQUE INDEX %PREFIX%_idx_mdu_lnk_id ON %PREFIX%_media_durations (mdu_lnk_id)</step>
+    <step id="40">ALTER TABLE %PREFIX%_media_durations
+        ADD CONSTRAINT %PREFIX%_fk_mdu_fil FOREIGN KEY (mdu_fil_id) REFERENCES %PREFIX%_files (fil_id) ON DELETE CASCADE ON UPDATE RESTRICT</step>
+    <step id="50">ALTER TABLE %PREFIX%_media_durations
+        ADD CONSTRAINT %PREFIX%_fk_mdu_lnk FOREIGN KEY (mdu_lnk_id) REFERENCES %PREFIX%_links (lnk_id) ON DELETE CASCADE ON UPDATE RESTRICT</step>
+    <step>stop</step>
+</update>

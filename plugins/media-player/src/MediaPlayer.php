@@ -29,6 +29,7 @@ final class MediaPlayer
 
     public const TABLE_PLAYLISTS = TABLE_PREFIX . '_media_playlists';
     public const TABLE_PLAYLIST_ITEMS = TABLE_PREFIX . '_media_playlist_items';
+    public const TABLE_DURATIONS = TABLE_PREFIX . '_media_durations';
 
     /**
      * The class only offers static methods and must not be instantiated.

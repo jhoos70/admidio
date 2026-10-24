@@ -62,7 +62,7 @@ class PlaylistService
      * Get all items of a playlist that the current user could see.
      * @param int $playlistId The id of the playlist.
      * @return array<int,array<string,mixed>> Returns the items in the sequence of the playlist with the keys
-     *         uuid, sequence, kind, fileUuid, weblinkUuid, type, title, description, origin, source, downloadUrl and mime.
+     *         uuid, sequence, kind, duration, fileUuid, weblinkUuid, type, title, description, origin, source, downloadUrl and mime.
      * @throws Exception
      */
     public function findItems(int $playlistId): array
@@ -70,12 +70,15 @@ class PlaylistService
         $sql = 'SELECT mpi_uuid, mpi_sequence, mpi_fil_id, mpi_lnk_id,
                        fil_uuid, fil_name, fil_description, fil_locked,
                        fol_id, fol_name, fol_public, fol_org_id,
-                       lnk_uuid, lnk_name, lnk_url, lnk_description, lnk_cat_id, cat_name
+                       lnk_uuid, lnk_name, lnk_url, lnk_description, lnk_cat_id, cat_name,
+                       COALESCE(fdu.mdu_duration, ldu.mdu_duration) AS duration
                   FROM ' . MediaPlayer::TABLE_PLAYLIST_ITEMS . '
              LEFT JOIN ' . TBL_FILES . ' ON fil_id = mpi_fil_id
              LEFT JOIN ' . TBL_FOLDERS . ' ON fol_id = fil_fol_id
              LEFT JOIN ' . TBL_LINKS . ' ON lnk_id = mpi_lnk_id
              LEFT JOIN ' . TBL_CATEGORIES . ' ON cat_id = lnk_cat_id
+             LEFT JOIN ' . MediaPlayer::TABLE_DURATIONS . ' fdu ON fdu.mdu_fil_id = mpi_fil_id
+             LEFT JOIN ' . MediaPlayer::TABLE_DURATIONS . ' ldu ON ldu.mdu_lnk_id = mpi_lnk_id AND ldu.mdu_url = lnk_url
                  WHERE mpi_mpl_id = ? -- $playlistId
                  ORDER BY mpi_sequence, mpi_id';
         $rows = $this->db->queryPrepared($sql, array($playlistId))->fetchAll();
@@ -112,6 +115,7 @@ class PlaylistService
             'uuid' => $row['mpi_uuid'],
             'sequence' => (int)$row['mpi_sequence'],
             'kind' => 'file',
+            'duration' => $row['duration'] === null ? null : (int)$row['duration'],
             'fileUuid' => $row['fil_uuid'],
             'weblinkUuid' => '',
             'type' => $mediaType,
@@ -142,6 +146,7 @@ class PlaylistService
             'uuid' => $row['mpi_uuid'],
             'sequence' => (int)$row['mpi_sequence'],
             'kind' => 'weblink',
+            'duration' => $row['duration'] === null ? null : (int)$row['duration'],
             'fileUuid' => '',
             'weblinkUuid' => $row['lnk_uuid'],
             'type' => MediaAccessService::getLinkMediaType((string)$row['lnk_url']),

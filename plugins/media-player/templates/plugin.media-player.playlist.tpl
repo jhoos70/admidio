@@ -5,7 +5,8 @@
     data-label-repeat-off="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_OFF')}" data-label-repeat-all="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_ALL')}"
     data-label-repeat-one="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_ONE')}"
     data-label-shuffle-off="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_OFF')}" data-label-shuffle-on="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_ON')}"
-    data-label-minutes="{$l10n->get('PLG_MEDIA_PLAYER_MINUTES')}">
+    data-label-minutes="{$l10n->get('PLG_MEDIA_PLAYER_MINUTES')}"
+    data-durations-url="{$durationsUrl}" data-link-duration-url="{$linkDurationUrl}" data-csrf-token="{$csrfToken}">
 
     <div class="admidio-media-player-hero">
         {if $playlistDescription !== ''}
@@ -62,7 +63,8 @@
                 {foreach $items as $item}
                     <tr id="mpi_{$item.uuid}" class="admidio-media-player-item"
                         data-type="{$item.type}" data-source="{$item.source|escape:'html'}" data-mime="{$item.mime|escape:'html'}"
-                        data-download="{$item.downloadUrl|escape:'html'}" data-title="{$item.title|escape:'html'}" data-origin="{$item.origin|escape:'html'}">
+                        data-download="{$item.downloadUrl|escape:'html'}" data-title="{$item.title|escape:'html'}" data-origin="{$item.origin|escape:'html'}"
+                        data-file-uuid="{$item.fileUuid}" data-weblink-uuid="{$item.weblinkUuid}" data-duration="{$item.duration}">
                         <td class="admidio-media-player-number">
                             <span class="admidio-media-player-index">{$item@iteration}</span>
                             <button type="button" class="btn btn-link p-0 admidio-media-player-play-button"

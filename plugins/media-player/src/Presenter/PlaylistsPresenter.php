@@ -120,6 +120,8 @@ class PlaylistsPresenter extends PagePresenter
         $this->smarty->assign('zipUrl', $url('zip'));
         $this->smarty->assign('editUrl', $url('edit'));
         $this->smarty->assign('copyUrl', $url('copy'));
+        $this->smarty->assign('durationsUrl', $url('durations'));
+        $this->smarty->assign('linkDurationUrl', $url('link_duration'));
         $this->smarty->assign('validLogin', $GLOBALS['gValidLogin']);
         $this->smarty->assign('csrfToken', $gCurrentSession->getCsrfToken());
         $this->smarty->assign('l10n', $gL10n);

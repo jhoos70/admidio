@@ -58,6 +58,28 @@ COLLATE = utf8mb4_unicode_ci;
 CREATE UNIQUE INDEX %PREFIX%_idx_mpi_uuid ON %PREFIX%_media_playlist_items (mpi_uuid);
 
 /*==============================================================*/
+/* Table: media_durations                                       */
+/* Length of files and weblinks, so the browsers don't have to  */
+/* load the files and the server asks YouTube or Vimeo only once */
+/*==============================================================*/
+CREATE TABLE %PREFIX%_media_durations
+(
+    mdu_id                      integer unsigned    NOT NULL    AUTO_INCREMENT,
+    mdu_fil_id                  integer unsigned,
+    mdu_lnk_id                  integer unsigned,
+    mdu_url                     varchar(2000),
+    mdu_duration                integer unsigned,
+    mdu_timestamp               timestamp           NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (mdu_id)
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+CREATE UNIQUE INDEX %PREFIX%_idx_mdu_fil_id ON %PREFIX%_media_durations (mdu_fil_id);
+CREATE UNIQUE INDEX %PREFIX%_idx_mdu_lnk_id ON %PREFIX%_media_durations (mdu_lnk_id);
+
+/*==============================================================*/
 /* Constraints                                                  */
 /*==============================================================*/
 ALTER TABLE %PREFIX%_media_playlists
@@ -73,3 +95,8 @@ ALTER TABLE %PREFIX%_media_playlist_items
     ADD CONSTRAINT %PREFIX%_fk_mpi_lnk         FOREIGN KEY (mpi_lnk_id)         REFERENCES %PREFIX%_links (lnk_id)           ON DELETE CASCADE ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mpi_usr_create  FOREIGN KEY (mpi_usr_id_create)  REFERENCES %PREFIX%_users (usr_id)           ON DELETE SET NULL ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mpi_usr_change  FOREIGN KEY (mpi_usr_id_change)  REFERENCES %PREFIX%_users (usr_id)           ON DELETE SET NULL ON UPDATE RESTRICT;
+
+-- the length is removed together with its file or weblink
+ALTER TABLE %PREFIX%_media_durations
+    ADD CONSTRAINT %PREFIX%_fk_mdu_fil         FOREIGN KEY (mdu_fil_id)         REFERENCES %PREFIX%_files (fil_id)           ON DELETE CASCADE ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mdu_lnk         FOREIGN KEY (mdu_lnk_id)         REFERENCES %PREFIX%_links (lnk_id)           ON DELETE CASCADE ON UPDATE RESTRICT;

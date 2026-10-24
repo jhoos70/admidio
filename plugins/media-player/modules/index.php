@@ -19,6 +19,8 @@
  *                 delete       - delete a playlist
  *                 copy         - create a private copy of a playlist for the current user
  *                 media_tree   - files and weblinks that could be added to a playlist (JSON)
+ *                 durations    - store the length of files that the browser has measured (JSON)
+ *                 link_duration - length of a YouTube or Vimeo weblink (JSON)
  *                 add          - add files and weblinks to a playlist (JSON)
  *                 reorder      - save the new order of the items of a playlist
  *                 remove_item  - remove an item from a playlist
@@ -34,6 +36,7 @@ use Admidio\Infrastructure\Exception;
 use Admidio\Infrastructure\Utils\SecurityUtils;
 use AdmidioPlugin\MediaPlayer\MediaPlayer;
 use AdmidioPlugin\MediaPlayer\Presenter\PlaylistsPresenter;
+use AdmidioPlugin\MediaPlayer\Service\DurationService;
 use AdmidioPlugin\MediaPlayer\Service\PlaylistService;
 use AdmidioPlugin\MediaPlayer\Service\StreamService;
 use AdmidioPlugin\MediaPlayer\Service\ZipExportService;
@@ -44,7 +47,7 @@ try {
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
-        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'copy', 'media_tree', 'add', 'reorder', 'remove_item', 'stream', 'zip')
+        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip')
     ));
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
     $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
@@ -78,6 +81,14 @@ try {
             $copyUuid = (new PlaylistService($gDb))->copyPlaylist($getPlaylistUuid);
             echo json_encode(array('status' => 'success',
                 'url' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'items', 'playlist_uuid' => $copyUuid))));
+            break;
+
+        case 'durations':
+            echo json_encode(array('status' => 'success', 'count' => (new DurationService($gDb))->saveFileDurations()));
+            break;
+
+        case 'link_duration':
+            echo json_encode(array('status' => 'success', 'duration' => (new DurationService($gDb))->getWeblinkDuration()));
             break;
 
         case 'media_tree':
@@ -137,5 +148,5 @@ try {
         http_response_code(404);
         exit();
     }
-    handleException($e, in_array($getMode, array('save', 'delete', 'copy', 'media_tree', 'add', 'reorder', 'remove_item'), true));
+    handleException($e, in_array($getMode, array('save', 'delete', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item'), true));
 }

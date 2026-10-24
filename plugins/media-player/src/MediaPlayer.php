@@ -109,6 +109,21 @@ final class MediaPlayer
     }
 
     /**
+     * Get the URL of a file of the assets of the plugin. The time of the last change of the file is added as
+     * version, so browsers load the file again after an update instead of using an old copy from their cache.
+     * @param string $file The path of the file within the assets folder, e.g. **js/media_player.js**.
+     * @return string Returns the URL of the file.
+     * @throws Exception
+     */
+    public static function getAssetUrl(string $file): string
+    {
+        $plugin = self::getPlugin();
+        $path = $plugin->getDirectory(Plugin::DIR_ASSETS) . '/' . ltrim($file, '/');
+
+        return $plugin->getAssetUrl($file) . (is_file($path) ? '?v=' . filemtime($path) : '');
+    }
+
+    /**
      * Check if the current user may create shared playlists and edit the shared playlists the user has created.
      * Administrators and playlist managers may always do this, other users must be a member of one of the
      * roles that are set in the preferences.

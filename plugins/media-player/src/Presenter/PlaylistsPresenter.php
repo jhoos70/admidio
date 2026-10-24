@@ -34,10 +34,10 @@ class PlaylistsPresenter extends PagePresenter
 
         $plugin = MediaPlayer::getPlugin();
         $this->addTemplateFolder($plugin->getDirectory(Plugin::DIR_TEMPLATES));
-        $this->addCssFile($plugin->getAssetUrl('libs/plyr/plyr.css'));
-        $this->addCssFile($plugin->getAssetUrl('css/media_player.css'));
-        $this->addJavascriptFile($plugin->getAssetUrl('libs/plyr/plyr.js'));
-        $this->addJavascriptFile($plugin->getAssetUrl('js/media_player.js'));
+        $this->addCssFile(MediaPlayer::getAssetUrl('libs/plyr/plyr.css'));
+        $this->addCssFile(MediaPlayer::getAssetUrl('css/media_player.css'));
+        $this->addJavascriptFile(MediaPlayer::getAssetUrl('libs/plyr/plyr.js'));
+        $this->addJavascriptFile(MediaPlayer::getAssetUrl('js/media_player.js'));
     }
 
     /**
@@ -129,9 +129,8 @@ class PlaylistsPresenter extends PagePresenter
         if ($editMode) {
             // the playlist and the media browser are shown side by side, so the edit mode uses the full width
             $this->setContentFullWidth();
-            $plugin = MediaPlayer::getPlugin();
             $this->addJavascriptFile(ADMIDIO_URL . FOLDER_LIBS . '/jquery-ui/jquery-ui.min.js');
-            $this->addJavascriptFile($plugin->getAssetUrl('js/media_player_edit.js'));
+            $this->addJavascriptFile(MediaPlayer::getAssetUrl('js/media_player_edit.js'));
             $this->smarty->assign('mediaTreeUrl', $url('media_tree'));
             $this->smarty->assign('addUrl', $url('add'));
             $this->smarty->assign('reorderUrl', $url('reorder'));

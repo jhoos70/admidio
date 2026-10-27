@@ -381,8 +381,10 @@ $(function() {
     /**
      * Create a Plyr player for a video in the stage.
      * @param {HTMLElement} element
+     * @param {number} startTime Position in seconds where the video starts.
+     * @param {boolean} autoplay Start the playback when the player is ready.
      */
-    function startVideo(element) {
+    function startVideo(element, startTime, autoplay) {
         stage.className = "admidio-media-player-stage";
         stage.appendChild(element);
         const player = new Plyr(element, {
@@ -394,8 +396,15 @@ $(function() {
         });
         media = createMedia(player, false);
         connectMedia();
+        if (startTime > 0) {
+            player.once("loadedmetadata", function() {
+                player.currentTime = startTime;
+            });
+        }
         player.on("ready", function() {
-            media.play();
+            if (autoplay) {
+                media.play();
+            }
         });
         // on phones the video should be visible when it starts
         if (window.innerWidth < 992) {
@@ -421,24 +430,62 @@ $(function() {
     }
 
     /**
+     * Get the next item that can be played while the page is in the background, starting with the item itself.
+     * Links can't be played there, e.g. a YouTube video while the screen of the phone is off.
+     * @param {HTMLElement} row
+     * @returns {HTMLElement|null}
+     */
+    function getPlayableInBackground(row) {
+        const start = order.indexOf(row);
+        for (let step = 0; step < order.length; step++) {
+            if (start + step >= order.length && repeatMode !== "all") {
+                return null;
+            }
+            const item = order[(start + step) % order.length];
+            if (item.dataset.type === "audio" || item.dataset.type === "video") {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Play an item of the playlist.
      * @param {HTMLElement} row
+     * @param {number} [startTime] Position in seconds where the item starts.
+     * @param {boolean} [autoplay] Start the playback, default true.
      */
-    function play(row) {
+    function play(row, startTime, autoplay) {
+        startTime = startTime || 0;
+        autoplay = autoplay !== false;
+        if (!order.includes(row)) {
+            createOrder();
+        }
+
+        // In the background (e.g. the screen of the phone is off) browsers don't start videos: links are skipped
+        // and video files are played as sound. The video is shown when the page is visible again.
+        const background = document.visibilityState === "hidden";
+        if (background && row.dataset.type !== "audio" && row.dataset.type !== "video") {
+            const playable = getPlayableInBackground(row);
+            if (playable !== null) {
+                play(playable);
+            } else {
+                showPlayState();
+            }
+            return;
+        }
         const type = row.dataset.type;
         const source = row.dataset.source;
+        const soundOnly = background && type === "video";
 
         // From one audio file to the next the audio element is not stopped and emptied. Otherwise Chrome on
         // Android could refuse to start the next file while the page is in the background.
-        stop(type === "audio" && media !== null && media.isAudio);
+        stop((type === "audio" || soundOnly) && media !== null && media.isAudio);
         getRows().forEach(function(item) {
             item.classList.remove("admidio-media-player-active", "admidio-media-player-playing");
         });
         row.classList.add("admidio-media-player-active");
         currentRow = row;
-        if (!order.includes(row)) {
-            createOrder();
-        }
 
         bar.hidden = false;
         document.body.classList.add("admidio-media-player-bar-visible");
@@ -454,11 +501,19 @@ $(function() {
         }
         updateMediaSession(row);
 
-        if (type === "audio") {
+        if (type === "audio" || soundOnly) {
             audio.src = source;
             media = createMedia(audio, true);
+            media.soundOnly = soundOnly;
             connectMedia();
-            media.play();
+            if (startTime > 0) {
+                audio.addEventListener("loadedmetadata", function() {
+                    audio.currentTime = startTime;
+                }, {once: true});
+            }
+            if (autoplay) {
+                media.play();
+            }
         } else if (type === "video") {
             const video = document.createElement("video");
             video.preload = "metadata";
@@ -469,12 +524,12 @@ $(function() {
                 sourceElement.type = row.dataset.mime;
             }
             video.appendChild(sourceElement);
-            startVideo(video);
+            startVideo(video, startTime, autoplay);
         } else if ((type === "youtube" && getYouTubeId(source) !== null) || (type === "vimeo" && getVimeoId(source) !== null)) {
             const embed = document.createElement("div");
             embed.dataset.plyrProvider = type;
             embed.dataset.plyrEmbedId = (type === "youtube") ? getYouTubeId(source) : getVimeoId(source);
-            startVideo(embed);
+            startVideo(embed, 0, true);
         } else {
             // other weblinks could not be played within the page
             stage.className = "admidio-media-player-stage admidio-media-player-external";
@@ -713,6 +768,13 @@ $(function() {
         if (event.code === "Space" && media !== null && !event.target.closest("input, textarea, select, button, a, [contenteditable]")) {
             event.preventDefault();
             togglePlay();
+        }
+    });
+
+    // a video that was played as sound in the background is shown again at the same position
+    document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "visible" && media !== null && media.soundOnly && currentRow !== null) {
+            play(currentRow, media.currentTime(), !media.paused());
         }
     });
 

@@ -279,11 +279,19 @@ $(function() {
                 player.loop = value;
             },
             on: on,
-            destroy: function() {
+            isAudio: isElement,
+            /**
+             * @param {boolean} keepPlaying For the audio element: only remove the events, the element keeps
+             *                              playing until the next file is set.
+             */
+            destroy: function(keepPlaying) {
                 if (isElement) {
                     handlers.forEach(function(entry) {
                         player.removeEventListener(entry[0], entry[1]);
                     });
+                    if (keepPlaying) {
+                        return;
+                    }
                     player.pause();
                     player.removeAttribute("src");
                     player.load();
@@ -321,9 +329,9 @@ $(function() {
     /**
      * Stop the current item and remove its player.
      */
-    function stop() {
+    function stop(keepAudio) {
         if (media !== null) {
-            media.destroy();
+            media.destroy(keepAudio === true);
             media = null;
         }
         stage.replaceChildren();
@@ -420,7 +428,9 @@ $(function() {
         const type = row.dataset.type;
         const source = row.dataset.source;
 
-        stop();
+        // From one audio file to the next the audio element is not stopped and emptied. Otherwise Chrome on
+        // Android could refuse to start the next file while the page is in the background.
+        stop(type === "audio" && media !== null && media.isAudio);
         getRows().forEach(function(item) {
             item.classList.remove("admidio-media-player-active", "admidio-media-player-playing");
         });

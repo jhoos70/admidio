@@ -55,6 +55,8 @@ $(function() {
         // without a cover image the phone shows its default
     }
     let lastPositionUpdate = 0;
+    // stopped from the lock screen: the media session stays ended although the player only pauses
+    let sessionStopped = false;
 
     /**
      * Read a setting that is remembered in the browser.
@@ -173,7 +175,10 @@ $(function() {
             currentRow.classList.toggle("admidio-media-player-playing", playing);
         }
         if ("mediaSession" in navigator) {
-            navigator.mediaSession.playbackState = media === null ? "none" : (playing ? "playing" : "paused");
+            if (playing) {
+                sessionStopped = false;
+            }
+            navigator.mediaSession.playbackState = (media === null || sessionStopped) ? "none" : (playing ? "playing" : "paused");
         }
     }
 
@@ -713,6 +718,7 @@ $(function() {
             play: function() { if (media !== null) { media.play(); } else { togglePlay(); } },
             pause: function() { if (media !== null) { media.pause(); } },
             stop: function() {
+                sessionStopped = true;
                 if (media !== null) {
                     media.pause();
                     media.currentTime(0);

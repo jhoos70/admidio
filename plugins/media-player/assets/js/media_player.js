@@ -47,6 +47,14 @@ $(function() {
     let repeatMode = readSetting(storageKeys.repeat, repeatModes, "off");
     let shuffle = readSetting(storageKeys.shuffle, ["0", "1"], "0") === "1";
     let seeking = false;
+    // cover image of the media controls of phones: the icons of the web app manifest or the Admidio logo
+    let artwork = [];
+    try {
+        artwork = JSON.parse(labels.artwork || "[]");
+    } catch (exception) {
+        // without a cover image the phone shows its default
+    }
+    let lastPositionUpdate = 0;
 
     /**
      * Read a setting that is remembered in the browser.
@@ -183,6 +191,34 @@ $(function() {
             timeElement.textContent = formatTime(position);
             seekElement.max = isFinite(duration) ? duration : 0;
             seekElement.value = position;
+        }
+        // the lock screen needs the position only now and then, it moves the progress bar itself
+        if (Date.now() - lastPositionUpdate > 1000) {
+            updatePositionState();
+        }
+    }
+
+    /**
+     * Tell the phone the position, the length and the speed of the item, so the lock screen and the
+     * notification show a progress bar that could be moved.
+     */
+    function updatePositionState() {
+        if (!("mediaSession" in navigator) || typeof navigator.mediaSession.setPositionState !== "function" || media === null) {
+            return;
+        }
+        const duration = media.duration();
+        if (!isFinite(duration) || duration <= 0) {
+            return;
+        }
+        lastPositionUpdate = Date.now();
+        try {
+            navigator.mediaSession.setPositionState({
+                duration: duration,
+                playbackRate: parseFloat(speedElement.value) || 1,
+                position: Math.min(Math.max(media.currentTime(), 0), duration)
+            });
+        } catch (exception) {
+            // some browsers refuse the state while the media is loading
         }
     }
 
@@ -366,7 +402,8 @@ $(function() {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: row.dataset.title,
             artist: row.dataset.origin,
-            album: headline ? headline.textContent.trim() : ""
+            album: headline ? headline.textContent.trim() : "",
+            artwork: artwork
         });
     }
 
@@ -598,8 +635,10 @@ $(function() {
         askNext(0);
     }
 
-    // play an item with a click on its row, links of the row have their own function
-    $(document).on("click", ".admidio-media-player-item", function(event) {
+    // play an item with a click on its row, links of the row have their own function; the handler is bound to
+    // the table and not to the document, because Safari on the iPhone only turns a tap on a table row into a click
+    // if the row or one of its parents up to the table listens to clicks
+    $("#adm_media_player_items").on("click", ".admidio-media-player-item", function(event) {
         if ($(event.target).closest("a").length > 0) {
             return;
         }
@@ -650,6 +689,7 @@ $(function() {
     speedElement.addEventListener("change", function() {
         if (media !== null) {
             media.setSpeed(parseFloat(speedElement.value));
+            updatePositionState();
         }
     });
 
@@ -663,13 +703,38 @@ $(function() {
 
     // controls on the lock screen of phones and in the media keys of the keyboard
     if ("mediaSession" in navigator) {
+        const seekBy = function(seconds) {
+            if (media !== null) {
+                media.currentTime(Math.min(Math.max(media.currentTime() + seconds, 0), media.duration() || 0));
+                updatePositionState();
+            }
+        };
         const actions = {
             play: function() { if (media !== null) { media.play(); } else { togglePlay(); } },
             pause: function() { if (media !== null) { media.pause(); } },
+            stop: function() {
+                if (media !== null) {
+                    media.pause();
+                    media.currentTime(0);
+                }
+                navigator.mediaSession.playbackState = "none";
+            },
             previoustrack: playPrevious,
             nexttrack: playNext,
-            seekto: function(details) { if (media !== null) { media.currentTime(details.seekTime); } }
+            seekto: function(details) {
+                if (media !== null) {
+                    media.currentTime(details.seekTime);
+                    updatePositionState();
+                }
+            }
         };
+        // the iPhone shows either the skip buttons or previous/next on the lock screen, so the skip buttons
+        // are only offered to the other devices, which show both
+        const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        if (!isApple) {
+            actions.seekbackward = function(details) { seekBy(-((details && details.seekOffset) || 10)); };
+            actions.seekforward = function(details) { seekBy((details && details.seekOffset) || 10); };
+        }
         Object.keys(actions).forEach(function(action) {
             try {
                 navigator.mediaSession.setActionHandler(action, actions[action]);
@@ -694,6 +759,41 @@ $(function() {
                 messageBox(xhr.responseText || xhr.statusText, "", "error");
             });
     });
+
+    // the icons of the web app manifest (e.g. the logo of the organization) are the cover image
+    const manifestLink = document.querySelector("link[rel=manifest]");
+    if (manifestLink && "mediaSession" in navigator && typeof fetch === "function") {
+        fetch(manifestLink.href, {credentials: "same-origin"})
+            .then(function(response) { return response.json(); })
+            .then(function(manifest) {
+                const icons = (manifest.icons || []).filter(function(icon) {
+                    return icon.src && (!icon.purpose || icon.purpose.split(" ").includes("any"));
+                }).map(function(icon) {
+                    return {src: new URL(icon.src, manifestLink.href).href, sizes: icon.sizes || "", type: icon.type || "image/png"};
+                });
+                // only icons that could be loaded are used, otherwise the phone would show an empty cover
+                return Promise.all(icons.map(function(icon) {
+                    return new Promise(function(resolve) {
+                        const image = new Image();
+                        image.onload = function() { resolve(icon); };
+                        image.onerror = function() { resolve(null); };
+                        image.src = icon.src;
+                    });
+                }));
+            })
+            .then(function(icons) {
+                icons = icons.filter(function(icon) { return icon !== null; });
+                if (icons.length > 0) {
+                    artwork = icons;
+                    if (currentRow !== null) {
+                        updateMediaSession(currentRow);
+                    }
+                }
+            })
+            .catch(function() {
+                // the Admidio logo stays the cover image
+            });
+    }
 
     showRepeatMode();
     showShuffleMode();

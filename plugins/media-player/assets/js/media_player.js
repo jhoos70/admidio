@@ -52,6 +52,9 @@ $(function() {
     let nextAudioRow = null;
     // seconds before the end of a file when the next file starts
     const handoffTime = 0.6;
+    // the picture of the current video file: Plyr player and video element, its sound plays in the audio element
+    let picture = null;
+    let pictureAudioContext = null;
 
     let media = null;
     let currentRow = null;
@@ -412,6 +415,7 @@ $(function() {
      * Stop the current item and remove its player.
      */
     function stop(keepAudio) {
+        hidePicture();
         if (keepAudio !== true) {
             nextAudio.pause();
         }
@@ -466,6 +470,11 @@ $(function() {
         });
         media.on("ended", playAfterEnd);
         if (media.isAudio) {
+            media.on("play", syncPicture);
+            media.on("pause", syncPicture);
+            media.on("seeked", syncPicture);
+            media.on("timeupdate", syncPicture);
+
             // Chrome doesn't load a file again if its first request fails, e.g. when a phone changes from WLAN to the
             // mobile network. So the file is loaded again up to three times and continues at the same position.
             const current = media;
@@ -510,6 +519,130 @@ $(function() {
         }
         media.setSpeed(parseFloat(speedElement.value));
         media.setLoop(repeatMode === "one");
+    }
+
+    /**
+     * Show the picture of a video file in the stage. Its sound plays in the audio element, so the playback goes on
+     * when the page goes to the background, where browsers pause videos. The picture follows the sound; play, pause,
+     * seeking and the volume of the video player control the sound.
+     * @param {HTMLElement} row
+     */
+    function showPicture(row) {
+        hidePicture();
+        const video = document.createElement("video");
+        video.preload = "auto";
+        video.setAttribute("playsinline", "");
+        const sourceElement = document.createElement("source");
+        sourceElement.src = row.dataset.source;
+        if (row.dataset.mime !== "") {
+            sourceElement.type = row.dataset.mime;
+        }
+        video.appendChild(sourceElement);
+        stage.className = "admidio-media-player-stage";
+        stage.appendChild(video);
+
+        // The own sound of the video goes to an audio graph without output, so it is never heard twice and the
+        // volume control of the video player can still be used for the sound. Without Web Audio it is muted.
+        let silenced = false;
+        try {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            pictureAudioContext = pictureAudioContext || new AudioContextClass();
+            pictureAudioContext.createMediaElementSource(video);
+            silenced = true;
+        } catch (exception) {
+            video.muted = true;
+        }
+        if (silenced) {
+            video.muted = audio.muted;
+            video.volume = audio.volume;
+        }
+
+        const player = new Plyr(video, {
+            seekTime: 10,
+            controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "fullscreen"],
+            clickToPlay: true,
+            muted: video.muted
+        });
+        const current = {player: player, video: video};
+        picture = current;
+        const isActive = function() {
+            return picture === current && media !== null && media.isAudio;
+        };
+        video.addEventListener("loadedmetadata", function() {
+            syncPicture();
+        });
+        video.addEventListener("play", function() {
+            if (isActive() && audio.paused) {
+                media.play();
+            }
+        });
+        // the browser pauses the video in the background, the sound goes on
+        video.addEventListener("pause", function() {
+            if (isActive() && document.visibilityState === "visible" && !audio.paused && !video.ended) {
+                media.pause();
+            }
+        });
+        video.addEventListener("seeked", function() {
+            if (isActive() && Math.abs(video.currentTime - audio.currentTime) > 0.5) {
+                audio.currentTime = video.currentTime;
+            }
+        });
+        video.addEventListener("volumechange", function() {
+            if (isActive() && silenced) {
+                audio.muted = video.muted;
+                audio.volume = video.volume;
+            }
+        });
+        if (debugEnabled) {
+            ["play", "pause", "waiting", "ended"].forEach(function(name) {
+                video.addEventListener(name, function() {
+                    debug("picture " + name, {time: Math.round(video.currentTime * 10) / 10});
+                });
+            });
+        }
+        // on phones the video should be visible when it starts
+        if (window.innerWidth < 992) {
+            stage.scrollIntoView({behavior: "smooth", block: "start"});
+        }
+    }
+
+    /**
+     * Remove the picture of a video file from the stage.
+     */
+    function hidePicture() {
+        if (picture !== null) {
+            const former = picture;
+            picture = null;
+            try {
+                former.player.destroy();
+            } catch (exception) {
+                // the player is removed together with the stage content
+            }
+        }
+    }
+
+    /**
+     * The picture of a video follows the sound in the audio element: play, pause, position and speed.
+     */
+    function syncPicture() {
+        if (picture === null || media === null || !media.isAudio || document.visibilityState !== "visible") {
+            return;
+        }
+        const video = picture.video;
+        if (video.readyState >= 1 && Math.abs(video.currentTime - audio.currentTime) > 0.4) {
+            video.currentTime = audio.currentTime;
+        }
+        video.playbackRate = audio.playbackRate;
+        if (audio.paused && !video.paused) {
+            video.pause();
+        } else if (!audio.paused && video.paused && !video.ended) {
+            const promise = video.play();
+            if (promise && typeof promise.catch === "function") {
+                promise.catch(function() {
+                    // the picture starts with the next synchronisation
+                });
+            }
+        }
     }
 
     /**
@@ -605,7 +738,7 @@ $(function() {
         let source = "";
         if (next.dataset.type === "audio") {
             source = next.dataset.source;
-        } else if (next.dataset.type === "video" && background) {
+        } else if (next.dataset.type === "video") {
             source = getSoundUrl(next);
         } else {
             return;
@@ -651,8 +784,8 @@ $(function() {
             createOrder();
         }
 
-        // In the background (e.g. the screen of the phone is off) browsers don't start videos: links are skipped
-        // and video files are played as sound. The video is shown when the page is visible again.
+        // In the background (e.g. the screen of the phone is off) browsers don't start videos: links are skipped.
+        // The sound of video files always plays in the audio element, the picture is shown when the page is visible.
         const background = document.visibilityState === "hidden";
         if (background && row.dataset.type !== "audio" && row.dataset.type !== "video") {
             const playable = getPlayableInBackground(row);
@@ -665,12 +798,12 @@ $(function() {
         }
         const type = row.dataset.type;
         const source = row.dataset.source;
-        const soundOnly = background && type === "video";
-        debug("play item", {next: row.dataset.title, nextType: type, background: background, soundOnly: soundOnly, startTime: startTime, autoplay: autoplay});
+        const isFile = type === "audio" || type === "video";
+        debug("play item", {next: row.dataset.title, nextType: type, background: background, startTime: startTime, autoplay: autoplay});
 
         // From one audio file to the next the audio element is not stopped and emptied. Otherwise Chrome on
         // Android could refuse to start the next file while the page is in the background.
-        stop((type === "audio" || soundOnly) && media !== null && media.isAudio);
+        stop(isFile && media !== null && media.isAudio);
         getRows().forEach(function(item) {
             item.classList.remove("admidio-media-player-active", "admidio-media-player-playing");
         });
@@ -692,8 +825,8 @@ $(function() {
         updateMediaSession(row);
 
         let previousAudio = null;
-        if (type === "audio" || soundOnly) {
-            const audioSource = soundOnly ? getSoundUrl(row) : source;
+        if (isFile) {
+            const audioSource = type === "video" ? getSoundUrl(row) : source;
             if (row === nextAudioRow && nextAudio.getAttribute("src") === audioSource && nextAudio.error === null && nextAudio.readyState >= 2) {
                 // the file is loaded in the second element: it becomes the active one, the former element plays
                 // the last part of its file
@@ -707,7 +840,7 @@ $(function() {
             }
             nextAudioRow = null;
             media = createMedia(audio, true);
-            media.soundOnly = soundOnly;
+            media.soundOnly = type === "video";
             connectMedia();
             if (startTime > 0) {
                 audio.addEventListener("loadedmetadata", function() {
@@ -717,17 +850,9 @@ $(function() {
             if (autoplay) {
                 media.play();
             }
-        } else if (type === "video") {
-            const video = document.createElement("video");
-            video.preload = "metadata";
-            video.setAttribute("playsinline", "");
-            const sourceElement = document.createElement("source");
-            sourceElement.src = source;
-            if (row.dataset.mime !== "") {
-                sourceElement.type = row.dataset.mime;
+            if (type === "video" && !background) {
+                showPicture(row);
             }
-            video.appendChild(sourceElement);
-            startVideo(video, startTime, autoplay);
         } else if ((type === "youtube" && getYouTubeId(source) !== null) || (type === "vimeo" && getVimeoId(source) !== null)) {
             const embed = document.createElement("div");
             embed.dataset.plyrProvider = type;
@@ -1012,7 +1137,12 @@ $(function() {
             continueInBackground();
             preloadNextAudio();
         } else if (document.visibilityState === "visible" && media !== null && media.soundOnly && currentRow !== null) {
-            play(currentRow, media.currentTime(), !media.paused());
+            // the sound goes on, the picture follows it
+            if (picture === null) {
+                showPicture(currentRow);
+            } else {
+                syncPicture();
+            }
         }
     });
 

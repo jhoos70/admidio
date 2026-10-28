@@ -57,6 +57,8 @@ $(function() {
     let lastPositionUpdate = 0;
     // stopped from the lock screen: the media session stays ended although the player only pauses
     let sessionStopped = false;
+    // set while a video is replaced by its sound, the removed player must not start the switch again
+    let switchingToBackground = false;
 
     /**
      * Read a setting that is remembered in the browser.
@@ -373,6 +375,12 @@ $(function() {
         media.on("play", showPlayState);
         media.on("playing", showPlayState);
         media.on("pause", showPlayState);
+        media.on("pause", function() {
+            // the browser paused the video because the page went to the background
+            if (document.visibilityState === "hidden") {
+                continueInBackground();
+            }
+        });
         media.on("ended", playAfterEnd);
         media.setSpeed(parseFloat(speedElement.value));
         media.setLoop(repeatMode === "one");
@@ -771,9 +779,29 @@ $(function() {
         }
     });
 
-    // a video that was played as sound in the background is shown again at the same position
+    /**
+     * Browsers pause videos while the page is in the background, e.g. when the screen of the phone is turned off.
+     * A video file continues as sound at the same position, a YouTube or Vimeo video continues with the next item
+     * that can be played in the background.
+     */
+    function continueInBackground() {
+        if (switchingToBackground || media === null || media.isAudio || currentRow === null) {
+            return;
+        }
+        switchingToBackground = true;
+        try {
+            play(currentRow, currentRow.dataset.type === "video" ? media.currentTime() : 0);
+        } finally {
+            switchingToBackground = false;
+        }
+    }
+
+    // a playing video continues in the background, a video that was played as sound there is shown again at the
+    // same position when the page is visible
     document.addEventListener("visibilitychange", function() {
-        if (document.visibilityState === "visible" && media !== null && media.soundOnly && currentRow !== null) {
+        if (document.visibilityState === "hidden" && media !== null && !media.paused()) {
+            continueInBackground();
+        } else if (document.visibilityState === "visible" && media !== null && media.soundOnly && currentRow !== null) {
             play(currentRow, media.currentTime(), !media.paused());
         }
     });

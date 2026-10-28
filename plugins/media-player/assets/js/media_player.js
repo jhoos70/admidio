@@ -64,8 +64,9 @@ $(function() {
     const maxSoundOfVideoSize = 100 * 1024 * 1024;
 
     // Diagnostic mode for problems with the playback in the background, e.g. on a phone with the screen off. It is
-    // switched on for this browser with the parameter media_debug=1 and off with media_debug=0. The events of the
-    // player are sent to the server, which writes them to a log file.
+    // switched on for this browser with the parameter media_debug=1 and off with media_debug=0, or on the server for
+    // the users in adm_my_files/media_player_debug_users.txt. The events of the player are sent to the server, which
+    // writes them to a log file.
     const debugEnabled = (function() {
         const key = "admidio.media_player.debug";
         try {
@@ -75,7 +76,7 @@ $(function() {
             } else if (parameter === "0") {
                 window.localStorage.removeItem(key);
             }
-            return window.localStorage.getItem(key) === "1" && typeof navigator.sendBeacon === "function";
+            return (labels.debugUser === "1" || window.localStorage.getItem(key) === "1") && typeof navigator.sendBeacon === "function";
         } catch (exception) {
             return false;
         }

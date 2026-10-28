@@ -7,7 +7,7 @@
     data-label-shuffle-off="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_OFF')}" data-label-shuffle-on="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_ON')}"
     data-label-minutes="{$l10n->get('PLG_MEDIA_PLAYER_MINUTES')}"
     data-artwork="{$artwork|escape:'html'}"
-    data-durations-url="{$durationsUrl}" data-debug-log-url="{$debugLogUrl}" data-link-duration-url="{$linkDurationUrl}" data-csrf-token="{$csrfToken}">
+    data-durations-url="{$durationsUrl}" data-debug-log-url="{$debugLogUrl}" data-debug-user="{if $debugUser}1{else}0{/if}" data-link-duration-url="{$linkDurationUrl}" data-csrf-token="{$csrfToken}">
 
     <div class="admidio-media-player-hero">
         {if $playlistDescription !== ''}

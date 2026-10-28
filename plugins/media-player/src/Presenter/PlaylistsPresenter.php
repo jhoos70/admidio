@@ -122,6 +122,11 @@ class PlaylistsPresenter extends PagePresenter
         $this->smarty->assign('copyUrl', $url('copy'));
         $this->smarty->assign('durationsUrl', $url('durations'));
         $this->smarty->assign('debugLogUrl', $url('debug_log'));
+        // the diagnostic mode can also be switched on on the server for users whose UUID is in this file, e.g. for an
+        // installed app that has no address field for the parameter media_debug
+        $debugUsersFile = ADMIDIO_PATH . FOLDER_DATA . '/media_player_debug_users.txt';
+        $this->smarty->assign('debugUser', is_file($debugUsersFile)
+            && in_array($GLOBALS['gCurrentUser']->getValue('usr_uuid'), array_map('trim', file($debugUsersFile)), true));
         // cover image for the media controls of phones, if the web app manifest has no icons
         $this->smarty->assign('artwork', json_encode(array(
             array('src' => ADMIDIO_URL . '/system/logo/admidio_logo_192.png', 'sizes' => '192x192', 'type' => 'image/png'),

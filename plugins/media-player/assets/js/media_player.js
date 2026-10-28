@@ -59,8 +59,8 @@ $(function() {
     let sessionStopped = false;
     // set while a video is replaced by its sound, the removed player must not start the switch again
     let switchingToBackground = false;
-    // the whole file of a video that is played as sound in the background: row, download and object url
-    let soundOfVideo = null;
+    // the sound files of videos that are played in the background (row -> download), the current and the next item
+    const soundsOfVideos = new Map();
     const maxSoundOfVideoSize = 100 * 1024 * 1024;
 
     // Diagnostic mode for problems with the playback in the background, e.g. on a phone with the screen off. It is
@@ -636,24 +636,24 @@ $(function() {
     }
 
     /**
-     * Browsers don't load further parts of a video file while the page is in the background, also not for the audio
-     * element. The sound of a video would stop when the loaded part is played. So the whole file is loaded and the
-     * sound continues from memory at the same position. Files over 100 MB are only streamed. The file of the next
-     * item is loaded while the current item plays, then the video starts from memory without a gap.
+     * Browsers don't play a video file reliably while the page is in the background: they don't load further parts
+     * of the file, and Chrome on Android stops the playback when it loses the video decoder. So the whole file is
+     * loaded and only its sound track is played from memory. Files over 100 MB and other formats than MP4 are
+     * played as they are. The file of the next item is loaded while the current item plays.
      * @param {HTMLElement} row
+     * @returns {object} The download: url of the sound file when it is loaded, failed if it can't be loaded and
+     *                   waiting, a function that is called when the download is finished.
      */
     function loadSoundOfVideo(row) {
-        if (soundOfVideo !== null && soundOfVideo.row === row) {
-            return;
+        if (soundsOfVideos.has(row)) {
+            return soundsOfVideos.get(row);
         }
-        releaseSoundOfVideo();
-        const source = row.dataset.source;
-        const download = {row: row, controller: new AbortController(), url: null};
-        soundOfVideo = download;
+        const download = {controller: new AbortController(), url: null, failed: false, waiting: null};
+        soundsOfVideos.set(row, download);
         debug("load sound of video", {file: row.dataset.title});
         // with the range header the request doesn't go through the service worker of the installed app, which the
         // browser may suspend in the background
-        fetch(source, {credentials: "same-origin", headers: {Range: "bytes=0-"}, signal: download.controller.signal})
+        fetch(row.dataset.source, {credentials: "same-origin", headers: {Range: "bytes=0-"}, signal: download.controller.signal})
             .then(function(response) {
                 const size = parseInt(response.headers.get("Content-Length") || "0", 10);
                 if (!response.ok || size === 0 || size > maxSoundOfVideoSize) {
@@ -663,52 +663,50 @@ $(function() {
                 return response.arrayBuffer();
             })
             .then(function(buffer) {
-                if (buffer === null || soundOfVideo !== download) {
-                    return;
-                }
-                // only the sound track, so the browser needs no video decoder; other formats are played as they are
-                const blob = extractSoundOfMp4(buffer) || new Blob([buffer]);
-                download.url = URL.createObjectURL(blob);
-                debug("sound of video loaded", {size: blob.size, soundOnly: blob.type === "audio/mp4", file: row.dataset.title});
-                if (currentRow !== row || media === null || !media.soundOnly || audio.src === download.url) {
-                    return;
-                }
-                // the item plays as streamed sound: continue from memory
-                const position = audio.currentTime;
-                const playing = !audio.paused;
-                audio.src = download.url;
-                audio.addEventListener("loadedmetadata", function() {
-                    audio.currentTime = position;
-                }, {once: true});
-                if (playing) {
-                    media.play();
+                if (buffer === null) {
+                    download.failed = true;
+                } else if (soundsOfVideos.get(row) === download) {
+                    // only the sound track, so the browser needs no video decoder
+                    const blob = extractSoundOfMp4(buffer) || new Blob([buffer]);
+                    download.url = URL.createObjectURL(blob);
+                    debug("sound of video loaded", {size: blob.size, soundOnly: blob.type === "audio/mp4", file: row.dataset.title});
                 }
             })
             .catch(function() {
-                // the sound is streamed as before
+                download.failed = true;
+            })
+            .finally(function() {
+                if (download.waiting !== null && soundsOfVideos.get(row) === download) {
+                    const waiting = download.waiting;
+                    download.waiting = null;
+                    waiting();
+                }
             });
+        return download;
     }
 
     /**
-     * Stop the download of the sound of a video and release its memory.
+     * Stop the downloads and release the sound files of all videos except the given items.
+     * @param {HTMLElement[]} rows
      */
-    function releaseSoundOfVideo() {
-        if (soundOfVideo !== null) {
-            soundOfVideo.controller.abort();
-            if (soundOfVideo.url !== null) {
-                URL.revokeObjectURL(soundOfVideo.url);
+    function keepSoundsOfVideos(rows) {
+        soundsOfVideos.forEach(function(download, row) {
+            if (!rows.includes(row)) {
+                download.controller.abort();
+                if (download.url !== null) {
+                    URL.revokeObjectURL(download.url);
+                }
+                soundsOfVideos.delete(row);
             }
-            soundOfVideo = null;
-        }
+        });
     }
 
     /**
-     * Load the file of the next item while the page is in the background, if it is a video. The video then starts
-     * as sound from memory. The file of a video that currently plays from memory is kept.
+     * Load the sound file of the next item while the page is in the background, if it is a video, so the next video
+     * starts without waiting.
      */
     function loadNextSoundOfVideo() {
-        if (document.visibilityState !== "hidden" || currentRow === null || order.length === 0
-            || (soundOfVideo !== null && soundOfVideo.row === currentRow)) {
+        if (document.visibilityState !== "hidden" || currentRow === null || order.length === 0) {
             return;
         }
         const index = order.indexOf(currentRow);
@@ -774,9 +772,7 @@ $(function() {
         // From one audio file to the next the audio element is not stopped and emptied. Otherwise Chrome on
         // Android could refuse to start the next file while the page is in the background.
         stop((type === "audio" || soundOnly) && media !== null && media.isAudio);
-        if (soundOfVideo !== null && soundOfVideo.row !== row) {
-            releaseSoundOfVideo();
-        }
+        keepSoundsOfVideos([row]);
         getRows().forEach(function(item) {
             item.classList.remove("admidio-media-player-active", "admidio-media-player-playing");
         });
@@ -798,21 +794,36 @@ $(function() {
         updateMediaSession(row);
 
         if (type === "audio" || soundOnly) {
-            // the sound of a video plays from memory if its file was loaded before
-            audio.src = (soundOnly && soundOfVideo !== null && soundOfVideo.row === row && soundOfVideo.url !== null) ? soundOfVideo.url : source;
             media = createMedia(audio, true);
             media.soundOnly = soundOnly;
-            if (soundOnly) {
-                loadSoundOfVideo(row);
-            }
             connectMedia();
-            if (startTime > 0) {
-                audio.addEventListener("loadedmetadata", function() {
-                    audio.currentTime = startTime;
-                }, {once: true});
-            }
-            if (autoplay) {
-                media.play();
+            const current = media;
+            const start = function(src) {
+                audio.src = src;
+                if (startTime > 0) {
+                    audio.addEventListener("loadedmetadata", function() {
+                        audio.currentTime = startTime;
+                    }, {once: true});
+                }
+                if (autoplay) {
+                    media.play();
+                }
+            };
+            if (!soundOnly) {
+                start(source);
+            } else {
+                const download = loadSoundOfVideo(row);
+                if (download.url !== null || download.failed) {
+                    start(download.url !== null ? download.url : source);
+                } else {
+                    // the sound starts when its file is loaded, a streamed video would stop in the background
+                    audio.pause();
+                    download.waiting = function() {
+                        if (media === current) {
+                            start(download.url !== null ? download.url : source);
+                        }
+                    };
+                }
             }
         } else if (type === "video") {
             const video = document.createElement("video");

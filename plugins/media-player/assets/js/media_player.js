@@ -3,7 +3,7 @@
  * Player of the media player plugin
  *
  * Plays the items of a playlist one after the other. The player bar at the bottom of the window
- * controls all items. Audio files are played by one audio element without a visible player, so the
+ * controls all items. Audio files are played by audio elements without a visible player, so the
  * playback continues with the next item even if the screen of a phone is locked. Video files and
  * YouTube and Vimeo videos are shown with the Plyr player above the list; embedded players are only
  * loaded after the user started an item. All other weblinks are opened in a new window.
@@ -36,10 +36,22 @@ $(function() {
     const repeatModes = ["off", "all", "one"];
     const storageKeys = {repeat: "admidio-media-player-repeat", shuffle: "admidio-media-player-shuffle"};
 
-    // one audio element for all audio files, so mobile browsers continue the playback in the background
-    const audio = document.createElement("audio");
-    audio.preload = "metadata";
-    bar.appendChild(audio);
+    // Two audio elements: the active one plays the current audio file, the other one loads the next file, which
+    // starts shortly before the current file ends. So there is no moment without playback; otherwise Chrome on
+    // Android stops its media service in the background and is not allowed to start it again for the next file.
+    const createAudioElement = function() {
+        const element = document.createElement("audio");
+        element.preload = "metadata";
+        bar.appendChild(element);
+        return element;
+    };
+    let audio = createAudioElement();
+    audio.dataset.active = "1";
+    let nextAudio = createAudioElement();
+    // the item whose file is loaded in the second element
+    let nextAudioRow = null;
+    // seconds before the end of a file when the next file starts
+    const handoffTime = 0.6;
 
     let media = null;
     let currentRow = null;
@@ -59,8 +71,6 @@ $(function() {
     let sessionStopped = false;
     // set while a video is replaced by its sound, the removed player must not start the switch again
     let switchingToBackground = false;
-    // the videos whose sound file was already requested from the server
-    const preparedSounds = new Set();
 
     // Diagnostic mode for problems with the playback in the background, e.g. on a phone with the screen off. It is
     // switched on for this browser with the parameter media_debug=1 and off with media_debug=0, or on the server for
@@ -107,8 +117,11 @@ $(function() {
 
     if (debugEnabled) {
         ["play", "playing", "pause", "waiting", "stalled", "suspend", "ended", "error", "emptied", "loadstart", "canplay"].forEach(function(name) {
-            audio.addEventListener(name, function() {
-                debug("audio " + name, name === "error" && audio.error ? {error: audio.error.code + " " + audio.error.message} : {readyState: audio.readyState, networkState: audio.networkState});
+            [audio, nextAudio].forEach(function(element) {
+                element.addEventListener(name, function() {
+                    debug("audio " + name, Object.assign({element: element === audio ? "active" : "next"},
+                        name === "error" && element.error ? {error: element.error.code + " " + element.error.message} : {readyState: element.readyState, networkState: element.networkState}));
+                });
             });
         });
         document.addEventListener("visibilitychange", function() {
@@ -399,6 +412,9 @@ $(function() {
      * Stop the current item and remove its player.
      */
     function stop(keepAudio) {
+        if (keepAudio !== true) {
+            nextAudio.pause();
+        }
         if (media !== null) {
             media.destroy(keepAudio === true);
             media = null;
@@ -449,6 +465,49 @@ $(function() {
             }
         });
         media.on("ended", playAfterEnd);
+        if (media.isAudio) {
+            // Chrome doesn't load a file again if its first request fails, e.g. when a phone changes from WLAN to the
+            // mobile network. So the file is loaded again up to three times and continues at the same position.
+            const current = media;
+            let attempts = 0;
+            media.on("error", function() {
+                const error = audio.error;
+                if (media !== current || error === null || error.code === MediaError.MEDIA_ERR_ABORTED || attempts >= 3) {
+                    return;
+                }
+                attempts++;
+                const source = audio.getAttribute("src");
+                const position = audio.currentTime;
+                debug("retry after error", {attempt: attempts, error: error.code});
+                window.setTimeout(function() {
+                    if (media !== current) {
+                        return;
+                    }
+                    audio.src = source;
+                    if (position > 0) {
+                        audio.addEventListener("loadedmetadata", function() {
+                            audio.currentTime = position;
+                        }, {once: true});
+                    }
+                    media.play();
+                }, 1000 * attempts);
+            });
+
+            // the next file starts shortly before the end of the current file, the end event is the fallback
+            let handedOver = false;
+            media.on("timeupdate", function() {
+                const remaining = audio.duration - audio.currentTime;
+                if (handedOver || media !== current || audio.paused || repeatMode === "one" || nextAudioRow === null
+                    || !(remaining > 0 && remaining <= handoffTime)) {
+                    return;
+                }
+                handedOver = true;
+                debug("handoff", {file: nextAudioRow.dataset.title, readyState: nextAudio.readyState});
+                if (nextAudio.readyState >= 3) {
+                    play(nextAudioRow);
+                }
+            });
+        }
         media.setSpeed(parseFloat(speedElement.value));
         media.setLoop(repeatMode === "one");
     }
@@ -523,27 +582,40 @@ $(function() {
     }
 
     /**
-     * The server creates the sound file of a video on the first request, which takes some seconds for a large video.
-     * While the page is in the background and the item before plays, the first bytes of the sound file of the next
-     * video are requested, so the server has the file ready when the video starts.
+     * Load the file of the next item in the second audio element, if it is an audio file or, in the background, the
+     * sound of a video. The file starts shortly before the current file ends, see connectMedia().
      */
-    function prepareNextSound() {
-        if (document.visibilityState !== "hidden" || currentRow === null || order.length === 0) {
+    function preloadNextAudio() {
+        nextAudioRow = null;
+        if (currentRow === null || order.length === 0 || repeatMode === "one" || media === null || !media.isAudio) {
             return;
         }
         const index = order.indexOf(currentRow);
         if (index === order.length - 1 && repeatMode !== "all") {
             return;
         }
-        const next = getPlayableInBackground(order[(index + 1) % order.length]);
-        if (next !== null && next.dataset.type === "video" && !preparedSounds.has(next)) {
-            preparedSounds.add(next);
-            debug("prepare sound of video", {file: next.dataset.title});
-            // with the range header the request doesn't go through the service worker of the installed app
-            fetch(getSoundUrl(next), {credentials: "same-origin", headers: {Range: "bytes=0-1"}}).catch(function() {
-                preparedSounds.delete(next);
-            });
+        const background = document.visibilityState === "hidden";
+        let next = order[(index + 1) % order.length];
+        if (background) {
+            next = getPlayableInBackground(next);
         }
+        if (next === null || next === currentRow) {
+            return;
+        }
+        let source = "";
+        if (next.dataset.type === "audio") {
+            source = next.dataset.source;
+        } else if (next.dataset.type === "video" && background) {
+            source = getSoundUrl(next);
+        } else {
+            return;
+        }
+        if (nextAudio.getAttribute("src") !== source) {
+            nextAudio.preload = "auto";
+            nextAudio.src = source;
+        }
+        nextAudioRow = next;
+        debug("preload next", {file: next.dataset.title});
     }
 
     /**
@@ -619,8 +691,21 @@ $(function() {
         }
         updateMediaSession(row);
 
+        let previousAudio = null;
         if (type === "audio" || soundOnly) {
-            audio.src = soundOnly ? getSoundUrl(row) : source;
+            const audioSource = soundOnly ? getSoundUrl(row) : source;
+            if (row === nextAudioRow && nextAudio.getAttribute("src") === audioSource && nextAudio.error === null && nextAudio.readyState >= 2) {
+                // the file is loaded in the second element: it becomes the active one, the former element plays
+                // the last part of its file
+                previousAudio = audio;
+                audio = nextAudio;
+                nextAudio = previousAudio;
+                delete previousAudio.dataset.active;
+                audio.dataset.active = "1";
+            } else {
+                audio.src = audioSource;
+            }
+            nextAudioRow = null;
             media = createMedia(audio, true);
             media.soundOnly = soundOnly;
             connectMedia();
@@ -662,7 +747,19 @@ $(function() {
             stage.append(notice, link);
         }
         showPlayState();
-        prepareNextSound();
+        if (previousAudio === null) {
+            preloadNextAudio();
+        } else {
+            // the next file is loaded when the former element has played the end of its file
+            const tail = previousAudio;
+            const preload = function() {
+                if (tail === nextAudio && media !== null && media.isAudio) {
+                    preloadNextAudio();
+                }
+            };
+            tail.addEventListener("ended", preload, {once: true});
+            tail.addEventListener("pause", preload, {once: true});
+        }
     }
 
     /**
@@ -913,7 +1010,7 @@ $(function() {
     document.addEventListener("visibilitychange", function() {
         if (document.visibilityState === "hidden" && media !== null && !media.paused()) {
             continueInBackground();
-            prepareNextSound();
+            preloadNextAudio();
         } else if (document.visibilityState === "visible" && media !== null && media.soundOnly && currentRow !== null) {
             play(currentRow, media.currentTime(), !media.paused());
         }

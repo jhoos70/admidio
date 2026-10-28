@@ -59,6 +59,9 @@ $(function() {
     let sessionStopped = false;
     // set while a video is replaced by its sound, the removed player must not start the switch again
     let switchingToBackground = false;
+    // the whole file of a video that is played as sound in the background: row, download and object url
+    let soundOfVideo = null;
+    const maxSoundOfVideoSize = 100 * 1024 * 1024;
 
     // Diagnostic mode for problems with the playback in the background, e.g. on a phone with the screen off. It is
     // switched on for this browser with the parameter media_debug=1 and off with media_debug=0. The events of the
@@ -509,6 +512,62 @@ $(function() {
     }
 
     /**
+     * Browsers don't load further parts of a video file while the page is in the background, also not for the audio
+     * element. The sound of a video would stop when the loaded part is played. So the whole file is loaded and the
+     * sound continues from memory at the same position. Files over 100 MB are only streamed.
+     * @param {HTMLElement} row
+     * @param {string} source
+     */
+    function loadSoundOfVideo(row, source) {
+        releaseSoundOfVideo();
+        const download = {row: row, controller: new AbortController(), url: null};
+        soundOfVideo = download;
+        // with the range header the request doesn't go through the service worker of the installed app, which the
+        // browser may suspend in the background
+        fetch(source, {credentials: "same-origin", headers: {Range: "bytes=0-"}, signal: download.controller.signal})
+            .then(function(response) {
+                const size = parseInt(response.headers.get("Content-Length") || "0", 10);
+                if (!response.ok || size === 0 || size > maxSoundOfVideoSize) {
+                    download.controller.abort();
+                    return null;
+                }
+                return response.blob();
+            })
+            .then(function(blob) {
+                if (blob === null || soundOfVideo !== download || currentRow !== row || media === null || !media.soundOnly) {
+                    return;
+                }
+                download.url = URL.createObjectURL(blob);
+                const position = audio.currentTime;
+                const playing = !audio.paused;
+                debug("sound of video loaded", {size: blob.size});
+                audio.src = download.url;
+                audio.addEventListener("loadedmetadata", function() {
+                    audio.currentTime = position;
+                }, {once: true});
+                if (playing) {
+                    media.play();
+                }
+            })
+            .catch(function() {
+                // the sound is streamed as before
+            });
+    }
+
+    /**
+     * Stop the download of the sound of a video and release its memory.
+     */
+    function releaseSoundOfVideo() {
+        if (soundOfVideo !== null) {
+            soundOfVideo.controller.abort();
+            if (soundOfVideo.url !== null) {
+                URL.revokeObjectURL(soundOfVideo.url);
+            }
+            soundOfVideo = null;
+        }
+    }
+
+    /**
      * Get the next item that can be played while the page is in the background, starting with the item itself.
      * Links can't be played there, e.g. a YouTube video while the screen of the phone is off.
      * @param {HTMLElement} row
@@ -561,6 +620,7 @@ $(function() {
         // From one audio file to the next the audio element is not stopped and emptied. Otherwise Chrome on
         // Android could refuse to start the next file while the page is in the background.
         stop((type === "audio" || soundOnly) && media !== null && media.isAudio);
+        releaseSoundOfVideo();
         getRows().forEach(function(item) {
             item.classList.remove("admidio-media-player-active", "admidio-media-player-playing");
         });
@@ -585,6 +645,9 @@ $(function() {
             audio.src = source;
             media = createMedia(audio, true);
             media.soundOnly = soundOnly;
+            if (soundOnly) {
+                loadSoundOfVideo(row, source);
+            }
             connectMedia();
             if (startTime > 0) {
                 audio.addEventListener("loadedmetadata", function() {

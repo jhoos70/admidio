@@ -512,6 +512,130 @@ $(function() {
     }
 
     /**
+     * Create an audio file (m4a) from the sound track of an MP4 video. The sound data is copied without decoding.
+     * Chrome on Android also decodes the picture of a video in the audio element and stops the playback with a
+     * decode error when the system takes the video decoder away in the background; a file without a picture
+     * needs no video decoder.
+     * @param {ArrayBuffer} buffer The whole video file.
+     * @returns {Blob|null} The audio file or null if the file is no MP4 with a sound track.
+     */
+    function extractSoundOfMp4(buffer) {
+        const view = new DataView(buffer);
+        const bytes = new Uint8Array(buffer);
+        const type = function(offset) {
+            return String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+        };
+        // the boxes between start and end: {type, start, header, end}
+        const boxes = function(start, end) {
+            const list = [];
+            let offset = start;
+            while (offset + 8 <= end) {
+                let size = view.getUint32(offset);
+                let header = 8;
+                if (size === 1) {
+                    size = Number(view.getBigUint64(offset + 8));
+                    header = 16;
+                } else if (size === 0) {
+                    size = end - offset;
+                }
+                if (size < header || offset + size > end) {
+                    break;
+                }
+                list.push({type: type(offset + 4), start: offset, header: header, end: offset + size});
+                offset += size;
+            }
+            return list;
+        };
+        const child = function(box, name) {
+            return boxes(box.start + box.header, box.end).find(function(item) {
+                return item.type === name;
+            }) || null;
+        };
+
+        try {
+            const moov = boxes(0, buffer.byteLength).find(function(item) {
+                return item.type === "moov";
+            });
+            if (!moov) {
+                return null;
+            }
+            const mvhd = child(moov, "mvhd");
+            const trak = boxes(moov.start + moov.header, moov.end).find(function(item) {
+                if (item.type !== "trak") {
+                    return false;
+                }
+                const mdia = child(item, "mdia");
+                const hdlr = mdia ? child(mdia, "hdlr") : null;
+                return hdlr !== null && type(hdlr.start + hdlr.header + 8) === "soun";
+            });
+            if (!mvhd || !trak) {
+                return null;
+            }
+            const stbl = child(child(child(trak, "mdia"), "minf"), "stbl");
+            const stsc = child(stbl, "stsc");
+            const stsz = child(stbl, "stsz");
+            const chunkBox = child(stbl, "stco") || child(stbl, "co64");
+            const wide = chunkBox.type === "co64";
+
+            // size of each chunk from the samples per chunk (stsc) and the sample sizes (stsz)
+            const chunkCount = view.getUint32(chunkBox.start + chunkBox.header + 4);
+            const stscCount = view.getUint32(stsc.start + stsc.header + 4);
+            const sampleSize = view.getUint32(stsz.start + stsz.header + 4);
+            let sample = 0;
+            const chunks = [];
+            for (let chunk = 1, entry = 0; chunk <= chunkCount; chunk++) {
+                while (entry + 1 < stscCount && view.getUint32(stsc.start + stsc.header + 8 + (entry + 1) * 12) <= chunk) {
+                    entry++;
+                }
+                const samples = view.getUint32(stsc.start + stsc.header + 8 + entry * 12 + 4);
+                let size = 0;
+                for (let i = 0; i < samples; i++, sample++) {
+                    size += sampleSize !== 0 ? sampleSize : view.getUint32(stsz.start + stsz.header + 12 + sample * 4);
+                }
+                const position = chunkBox.start + chunkBox.header + 8 + (chunk - 1) * (wide ? 8 : 4);
+                chunks.push({offset: wide ? Number(view.getBigUint64(position)) : view.getUint32(position), size: size});
+            }
+
+            // new file: ftyp, moov with the movie header and the sound track, mdat with the sound data
+            const ftyp = new Uint8Array([0, 0, 0, 24, 102, 116, 121, 112, 77, 52, 65, 32, 0, 0, 0, 0, 77, 52, 65, 32, 105, 115, 111, 109]);
+            const moovSize = 8 + (mvhd.end - mvhd.start) + (trak.end - trak.start);
+            const moovBytes = new Uint8Array(moovSize);
+            const moovView = new DataView(moovBytes.buffer);
+            moovView.setUint32(0, moovSize);
+            moovBytes.set([109, 111, 111, 118], 4);
+            moovBytes.set(bytes.subarray(mvhd.start, mvhd.end), 8);
+            const trakStart = 8 + (mvhd.end - mvhd.start);
+            moovBytes.set(bytes.subarray(trak.start, trak.end), trakStart);
+
+            // the chunk offsets of the track point into the new mdat
+            let offset = ftyp.length + moovSize + 8;
+            chunks.forEach(function(chunk, index) {
+                const position = trakStart + (chunkBox.start - trak.start) + chunkBox.header + 8 + index * (wide ? 8 : 4);
+                if (wide) {
+                    moovView.setBigUint64(position, BigInt(offset));
+                } else {
+                    moovView.setUint32(position, offset);
+                }
+                offset += chunk.size;
+            });
+            const dataSize = offset - (ftyp.length + moovSize);
+            if (!wide && dataSize > 0xFFFFFFFF) {
+                return null;
+            }
+            const mdatHeader = new Uint8Array(8);
+            new DataView(mdatHeader.buffer).setUint32(0, dataSize);
+            mdatHeader.set([109, 100, 97, 116], 4);
+            const parts = [ftyp, moovBytes, mdatHeader];
+            chunks.forEach(function(chunk) {
+                parts.push(bytes.subarray(chunk.offset, chunk.offset + chunk.size));
+            });
+            return new Blob(parts, {type: "audio/mp4"});
+        } catch (exception) {
+            return null;
+        }
+    }
+
+    /**
      * Browsers don't load further parts of a video file while the page is in the background, also not for the audio
      * element. The sound of a video would stop when the loaded part is played. So the whole file is loaded and the
      * sound continues from memory at the same position. Files over 100 MB are only streamed. The file of the next
@@ -536,14 +660,16 @@ $(function() {
                     download.controller.abort();
                     return null;
                 }
-                return response.blob();
+                return response.arrayBuffer();
             })
-            .then(function(blob) {
-                if (blob === null || soundOfVideo !== download) {
+            .then(function(buffer) {
+                if (buffer === null || soundOfVideo !== download) {
                     return;
                 }
+                // only the sound track, so the browser needs no video decoder; other formats are played as they are
+                const blob = extractSoundOfMp4(buffer) || new Blob([buffer]);
                 download.url = URL.createObjectURL(blob);
-                debug("sound of video loaded", {size: blob.size, file: row.dataset.title});
+                debug("sound of video loaded", {size: blob.size, soundOnly: blob.type === "audio/mp4", file: row.dataset.title});
                 if (currentRow !== row || media === null || !media.soundOnly || audio.src === download.url) {
                     return;
                 }

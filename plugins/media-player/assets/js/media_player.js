@@ -53,6 +53,8 @@ $(function() {
     let nextAudioRow = null;
     // seconds before the end of a file when the next file starts
     const handoffTime = 0.6;
+    // set during the handoff, then the former file plays its last part; any other change of the item stops it
+    let handingOver = false;
     // the picture of the current video file: Plyr player and video element, its sound plays in the audio element
     let picture = null;
 
@@ -513,7 +515,12 @@ $(function() {
                 handedOver = true;
                 debug("handoff", {file: nextAudioRow.dataset.title, readyState: nextAudio.readyState});
                 if (nextAudio.readyState >= 3) {
-                    play(nextAudioRow);
+                    handingOver = true;
+                    try {
+                        play(nextAudioRow);
+                    } finally {
+                        handingOver = false;
+                    }
                 }
             });
         }
@@ -833,6 +840,10 @@ $(function() {
                 nextAudio = previousAudio;
                 delete previousAudio.dataset.active;
                 audio.dataset.active = "1";
+                if (!handingOver) {
+                    // the user selected another item: the former file stops at once
+                    previousAudio.pause();
+                }
             } else {
                 audio.src = audioSource;
             }

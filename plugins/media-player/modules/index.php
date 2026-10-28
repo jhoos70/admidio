@@ -52,6 +52,7 @@ try {
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
     $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
     $getFileUuid = admFuncVariableIsValid($_GET, 'file_uuid', 'uuid');
+    $getSound = admFuncVariableIsValid($_GET, 'sound', 'bool');
 
     MediaPlayer::checkAccess();
 
@@ -146,7 +147,7 @@ try {
             break;
 
         case 'stream':
-            (new StreamService($gDb))->stream($getFileUuid);
+            (new StreamService($gDb))->stream($getFileUuid, $getSound);
             break;
 
         case 'zip':

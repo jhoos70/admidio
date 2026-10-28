@@ -33,10 +33,12 @@ class StreamService
     /**
      * Send an audio or video file to the browser. If the browser requests a part of the file, only this part is sent.
      * @param string $fileUuid The UUID of the file of the module documents & files.
+     * @param bool $soundOnly Send only the sound track of an MP4 video, e.g. for the playback in the background.
+     *                        Other files are sent as they are.
      * @return void
      * @throws Exception
      */
-    public function stream(string $fileUuid): void
+    public function stream(string $fileUuid, bool $soundOnly = false): void
     {
         $access = new MediaAccessService($this->db);
         if (!$access->isDocumentsModuleAvailable()) {
@@ -52,6 +54,15 @@ class StreamService
         if (MediaAccessService::getFileMediaType($fileName) === '' || !is_file($filePath)) {
             throw new Exception('SYS_FILE_NOT_EXIST');
         }
+        $mimeType = MediaAccessService::getFileMimeType($fileName);
+        if ($soundOnly && MediaAccessService::getFileMediaType($fileName) === 'video') {
+            $soundPath = (new SoundTrackService())->getSoundFile($fileUuid, $filePath);
+            if ($soundPath !== null) {
+                $filePath = $soundPath;
+                $fileName = pathinfo($fileName, PATHINFO_FILENAME) . '.m4a';
+                $mimeType = 'audio/mp4';
+            }
+        }
 
         // release the session, otherwise all other requests of the user wait until the stream is finished
         session_write_close();
@@ -63,7 +74,7 @@ class StreamService
             ob_end_clean();
         }
 
-        header('Content-Type: ' . MediaAccessService::getFileMimeType($fileName));
+        header('Content-Type: ' . $mimeType);
         header('Content-Disposition: inline; filename="' . str_replace('"', '', $fileName) . '"');
         header('Accept-Ranges: bytes');
         header('Cache-Control: private, max-age=3600');

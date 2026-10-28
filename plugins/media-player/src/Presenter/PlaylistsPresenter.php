@@ -121,6 +121,7 @@ class PlaylistsPresenter extends PagePresenter
         $this->smarty->assign('editUrl', $url('edit'));
         $this->smarty->assign('copyUrl', $url('copy'));
         $this->smarty->assign('durationsUrl', $url('durations'));
+        $this->smarty->assign('debugLogUrl', $url('debug_log'));
         // cover image for the media controls of phones, if the web app manifest has no icons
         $this->smarty->assign('artwork', json_encode(array(
             array('src' => ADMIDIO_URL . '/system/logo/admidio_logo_192.png', 'sizes' => '192x192', 'type' => 'image/png'),

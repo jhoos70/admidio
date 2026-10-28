@@ -47,7 +47,7 @@ try {
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
-        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip')
+        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip', 'debug_log')
     ));
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
     $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
@@ -131,6 +131,18 @@ try {
         case 'remove_item':
             (new PlaylistService($gDb))->removeItem($getItemUuid);
             echo json_encode(array('status' => 'success'));
+            break;
+
+        case 'debug_log':
+            // events of the diagnostic mode of the player, see debug() in media_player.js
+            SecurityUtils::validateCsrfToken($_POST['adm_csrf_token'] ?? '');
+            $entry = json_decode(substr((string)($_POST['entry'] ?? ''), 0, 4000), true);
+            $logFile = ADMIDIO_PATH . FOLDER_DATA . '/media_player_debug.log';
+            if (is_array($entry) && (!is_file($logFile) || filesize($logFile) < 2000000)) {
+                $entry['user'] = $gCurrentUser->getValue('usr_uuid');
+                file_put_contents($logFile, json_encode($entry, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+            }
+            http_response_code(204);
             break;
 
         case 'stream':

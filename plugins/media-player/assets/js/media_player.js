@@ -60,6 +60,69 @@ $(function() {
     // set while a video is replaced by its sound, the removed player must not start the switch again
     let switchingToBackground = false;
 
+    // Diagnostic mode for problems with the playback in the background, e.g. on a phone with the screen off. It is
+    // switched on for this browser with the parameter media_debug=1 and off with media_debug=0. The events of the
+    // player are sent to the server, which writes them to a log file.
+    const debugEnabled = (function() {
+        const key = "admidio.media_player.debug";
+        try {
+            const parameter = new URLSearchParams(window.location.search).get("media_debug");
+            if (parameter === "1") {
+                window.localStorage.setItem(key, "1");
+            } else if (parameter === "0") {
+                window.localStorage.removeItem(key);
+            }
+            return window.localStorage.getItem(key) === "1" && typeof navigator.sendBeacon === "function";
+        } catch (exception) {
+            return false;
+        }
+    })();
+
+    /**
+     * Send an event of the player to the server log in the diagnostic mode.
+     * @param {string} event
+     * @param {object} [details]
+     */
+    function debug(event, details) {
+        if (!debugEnabled) {
+            return;
+        }
+        const entry = Object.assign({
+            time: new Date().toISOString(),
+            event: event,
+            visibility: document.visibilityState,
+            item: currentRow !== null ? currentRow.dataset.title : "",
+            type: currentRow !== null ? currentRow.dataset.type : "",
+            player: media === null ? "none" : (media.isAudio ? (media.soundOnly ? "audio (sound of video)" : "audio") : "video"),
+            position: media !== null ? Math.round(media.currentTime() * 10) / 10 : null
+        }, details || {});
+        const data = new FormData();
+        data.append("adm_csrf_token", labels.csrfToken);
+        data.append("entry", JSON.stringify(entry));
+        navigator.sendBeacon(labels.debugLogUrl, data);
+    }
+
+    if (debugEnabled) {
+        ["play", "playing", "pause", "waiting", "stalled", "suspend", "ended", "error", "emptied", "loadstart", "canplay"].forEach(function(name) {
+            audio.addEventListener(name, function() {
+                debug("audio " + name, name === "error" && audio.error ? {error: audio.error.code + " " + audio.error.message} : {readyState: audio.readyState, networkState: audio.networkState});
+            });
+        });
+        document.addEventListener("visibilitychange", function() {
+            debug("visibility");
+        });
+        window.addEventListener("pagehide", function() {
+            debug("pagehide");
+        });
+        document.addEventListener("freeze", function() {
+            debug("freeze");
+        });
+        document.addEventListener("resume", function() {
+            debug("resume");
+        });
+        debug("debug mode on", {userAgent: navigator.userAgent});
+    }
+
     /**
      * Read a setting that is remembered in the browser.
      * @param {string} key
@@ -250,7 +313,8 @@ $(function() {
                 const promise = player.play();
                 if (promise && typeof promise.catch === "function") {
                     // the browser could prevent the autoplay, then the user starts the playback
-                    promise.catch(function() {
+                    promise.catch(function(error) {
+                        debug("play rejected", {error: String(error && error.name) + ": " + String(error && error.message)});
                         showPlayState();
                     });
                 }
@@ -404,6 +468,13 @@ $(function() {
         });
         media = createMedia(player, false);
         connectMedia();
+        if (debugEnabled) {
+            ["play", "playing", "pause", "waiting", "stalled", "ended", "error"].forEach(function(name) {
+                player.on(name, function() {
+                    debug("video " + name);
+                });
+            });
+        }
         if (startTime > 0) {
             player.once("loadedmetadata", function() {
                 player.currentTime = startTime;
@@ -485,6 +556,7 @@ $(function() {
         const type = row.dataset.type;
         const source = row.dataset.source;
         const soundOnly = background && type === "video";
+        debug("play item", {next: row.dataset.title, nextType: type, background: background, soundOnly: soundOnly, startTime: startTime, autoplay: autoplay});
 
         // From one audio file to the next the audio element is not stopped and emptied. Otherwise Chrome on
         // Android could refuse to start the next file while the page is in the background.
@@ -789,6 +861,7 @@ $(function() {
             return;
         }
         switchingToBackground = true;
+        debug("continue in background");
         try {
             play(currentRow, currentRow.dataset.type === "video" ? media.currentTime() : 0);
         } finally {
@@ -843,7 +916,10 @@ $(function() {
         }
         Object.keys(actions).forEach(function(action) {
             try {
-                navigator.mediaSession.setActionHandler(action, actions[action]);
+                navigator.mediaSession.setActionHandler(action, function(details) {
+                    debug("media session " + action);
+                    actions[action](details);
+                });
             } catch (exception) {
                 // the browser doesn't support this action
             }

@@ -32,6 +32,7 @@ $(function() {
     const durationElement = document.getElementById("adm_media_player_duration");
     const seekElement = document.getElementById("adm_media_player_seek");
     const speedElement = document.getElementById("adm_media_player_speed");
+    const muteElement = document.getElementById("adm_media_player_mute");
     const playButtons = [document.getElementById("adm_media_player_play_all"), document.getElementById("adm_media_player_play_pause")];
     const repeatModes = ["off", "all", "one"];
     const storageKeys = {repeat: "admidio-media-player-repeat", shuffle: "admidio-media-player-shuffle"};
@@ -54,7 +55,6 @@ $(function() {
     const handoffTime = 0.6;
     // the picture of the current video file: Plyr player and video element, its sound plays in the audio element
     let picture = null;
-    let pictureAudioContext = null;
 
     let media = null;
     let currentRow = null;
@@ -523,14 +523,15 @@ $(function() {
 
     /**
      * Show the picture of a video file in the stage. Its sound plays in the audio element, so the playback goes on
-     * when the page goes to the background, where browsers pause videos. The picture follows the sound; play, pause,
-     * seeking and the volume of the video player control the sound.
+     * when the page goes to the background, where browsers pause videos. The picture is muted and follows the sound;
+     * play, pause and seeking in the video player control the sound. The sound is muted with the button in the bar.
      * @param {HTMLElement} row
      */
     function showPicture(row) {
         hidePicture();
         const video = document.createElement("video");
         video.preload = "auto";
+        video.muted = true;
         video.setAttribute("playsinline", "");
         const sourceElement = document.createElement("source");
         sourceElement.src = row.dataset.source;
@@ -541,29 +542,14 @@ $(function() {
         stage.className = "admidio-media-player-stage";
         stage.appendChild(video);
 
-        // The own sound of the video goes to an audio graph without output, so it is never heard twice and the
-        // volume control of the video player can still be used for the sound. Without Web Audio it is muted.
-        let silenced = false;
-        try {
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            pictureAudioContext = pictureAudioContext || new AudioContextClass();
-            pictureAudioContext.createMediaElementSource(video);
-            silenced = true;
-        } catch (exception) {
-            video.muted = true;
-        }
-        if (silenced) {
-            video.muted = audio.muted;
-            video.volume = audio.volume;
-        }
-
         const player = new Plyr(video, {
             seekTime: 10,
-            controls: ["play-large", "play", "progress", "current-time", "mute", "volume", "fullscreen"],
+            controls: ["play-large", "play", "progress", "current-time", "fullscreen"],
             clickToPlay: true,
-            muted: video.muted
+            muted: true
         });
-        const current = {player: player, video: video};
+        // ownSeek: the position was set by syncPicture(), lastSeek: time of that change
+        const current = {player: player, video: video, ownSeek: false, lastSeek: 0};
         picture = current;
         const isActive = function() {
             return picture === current && media !== null && media.isAudio;
@@ -582,21 +568,26 @@ $(function() {
                 media.pause();
             }
         });
+        // only a new position that the user selected in the video player is taken over by the sound
         video.addEventListener("seeked", function() {
+            if (current.ownSeek) {
+                current.ownSeek = false;
+                return;
+            }
             if (isActive() && Math.abs(video.currentTime - audio.currentTime) > 0.5) {
                 audio.currentTime = video.currentTime;
             }
         });
+        // the picture never plays its own sound, e.g. after the user changed it in the fullscreen of the browser
         video.addEventListener("volumechange", function() {
-            if (isActive() && silenced) {
-                audio.muted = video.muted;
-                audio.volume = video.volume;
+            if (!video.muted) {
+                video.muted = true;
             }
         });
         if (debugEnabled) {
             ["play", "pause", "waiting", "ended"].forEach(function(name) {
                 video.addEventListener(name, function() {
-                    debug("picture " + name, {time: Math.round(video.currentTime * 10) / 10});
+                    debug("picture " + name, {pictureTime: Math.round(video.currentTime * 10) / 10});
                 });
             });
         }
@@ -622,17 +613,24 @@ $(function() {
     }
 
     /**
-     * The picture of a video follows the sound in the audio element: play, pause, position and speed.
+     * The picture of a video follows the sound in the audio element: play, pause, position and speed. A jump makes
+     * the picture wait for the decoder, so small differences are evened out with the speed of the picture (up to 10
+     * percent faster or slower); only differences over one second, e.g. after the background or at the start, are a
+     * jump, at most every three seconds.
      */
     function syncPicture() {
         if (picture === null || media === null || !media.isAudio || document.visibilityState !== "visible") {
             return;
         }
         const video = picture.video;
-        if (video.readyState >= 1 && Math.abs(video.currentTime - audio.currentTime) > 0.4) {
+        const difference = audio.currentTime - video.currentTime;
+        if (video.readyState >= 1 && !video.seeking && Math.abs(difference) > 1 && Date.now() - picture.lastSeek > 3000) {
+            picture.ownSeek = true;
+            picture.lastSeek = Date.now();
             video.currentTime = audio.currentTime;
         }
-        video.playbackRate = audio.playbackRate;
+        const correction = Math.abs(difference) < 0.1 ? 0 : Math.max(-0.1, Math.min(0.1, difference * 0.25));
+        video.playbackRate = audio.playbackRate * (1 + correction);
         if (audio.paused && !video.paused) {
             video.pause();
         } else if (!audio.paused && video.paused && !video.ended) {
@@ -1097,6 +1095,18 @@ $(function() {
     Array.from(speedElement.options).forEach(function(option) {
         option.textContent = parseFloat(option.value).toLocaleString(document.documentElement.lang || undefined) + "×";
     });
+    // the sound of all items is muted and switched on again with the button in the bar
+    muteElement.addEventListener("click", function() {
+        const muted = !audio.muted;
+        audio.muted = muted;
+        nextAudio.muted = muted;
+        muteElement.setAttribute("aria-pressed", muted ? "true" : "false");
+        const label = muted ? muteElement.dataset.labelUnmute : muteElement.dataset.labelMute;
+        muteElement.title = label;
+        muteElement.setAttribute("aria-label", label);
+        muteElement.querySelector("i").className = "bi " + (muted ? "bi-volume-mute-fill" : "bi-volume-up-fill");
+    });
+
     speedElement.addEventListener("change", function() {
         if (media !== null) {
             media.setSpeed(parseFloat(speedElement.value));

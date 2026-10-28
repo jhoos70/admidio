@@ -18,6 +18,7 @@
   <string name="PLG_MEDIA_PLAYER_ITEM">Entry</string>
   <string name="PLG_MEDIA_PLAYER_MEDIA">Media</string>
   <string name="PLG_MEDIA_PLAYER_MINUTES">min</string>
+  <string name="PLG_MEDIA_PLAYER_MUTE">Mute</string>
   <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>
   <string name="PLG_MEDIA_PLAYER_NEXT_TRACK">Next track</string>
   <string name="PLG_MEDIA_PLAYER_NO_ITEMS">This playlist doesn't contain any entries you are allowed to see.</string>
@@ -47,6 +48,7 @@
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Shuffle on</string>
   <string name="PLG_MEDIA_PLAYER_SPEED">Playback speed</string>
   <string name="PLG_MEDIA_PLAYER_TOTAL_DURATION">Total length</string>
+  <string name="PLG_MEDIA_PLAYER_UNMUTE">Unmute</string>
   <string name="PLG_MEDIA_PLAYER_WANT_REMOVE_ITEM">Do you really want to remove #VAR1_BOLD# from the playlist? The file or weblink itself is not deleted.</string>
   <string name="PLG_MEDIA_PLAYER_ZIP_ERROR">The ZIP file could not be created.</string>
 </resources>

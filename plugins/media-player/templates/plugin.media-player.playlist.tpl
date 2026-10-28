@@ -135,6 +135,10 @@
             </div>
         </div>
         <div class="admidio-media-player-bar-extra">
+            <button type="button" id="adm_media_player_mute" class="btn btn-link admidio-media-player-toggle" aria-pressed="false"
+                title="{$l10n->get('PLG_MEDIA_PLAYER_MUTE')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_MUTE')}"
+                data-label-mute="{$l10n->get('PLG_MEDIA_PLAYER_MUTE')}" data-label-unmute="{$l10n->get('PLG_MEDIA_PLAYER_UNMUTE')}">
+                <i class="bi bi-volume-up-fill"></i></button>
             <select id="adm_media_player_speed" class="form-select form-select-sm" title="{$l10n->get('PLG_MEDIA_PLAYER_SPEED')}"
                 aria-label="{$l10n->get('PLG_MEDIA_PLAYER_SPEED')}">
                 <option value="0.5"></option>

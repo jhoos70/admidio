@@ -46,6 +46,8 @@
   <string name="PLG_MEDIA_PLAYER_SELECT_FOLDER">Alle Dateien des Ordners auswählen</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_OFF">Zufallswiedergabe aus</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Zufallswiedergabe an</string>
+  <string name="PLG_MEDIA_PLAYER_SOUND_ONLY_OFF">Videos nur als Ton abspielen</string>
+  <string name="PLG_MEDIA_PLAYER_SOUND_ONLY_ON">Nur Ton an (ohne Videobild)</string>
   <string name="PLG_MEDIA_PLAYER_SPEED">Wiedergabegeschwindigkeit</string>
   <string name="PLG_MEDIA_PLAYER_TOTAL_DURATION">Gesamtdauer</string>
   <string name="PLG_MEDIA_PLAYER_UNMUTE">Ton an</string>

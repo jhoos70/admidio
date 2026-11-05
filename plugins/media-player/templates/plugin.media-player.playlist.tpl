@@ -5,6 +5,7 @@
     data-label-repeat-off="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_OFF')}" data-label-repeat-all="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_ALL')}"
     data-label-repeat-one="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_ONE')}"
     data-label-shuffle-off="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_OFF')}" data-label-shuffle-on="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_ON')}"
+    data-label-sound-only-off="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_OFF')}" data-label-sound-only-on="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_ON')}"
     data-label-minutes="{$l10n->get('PLG_MEDIA_PLAYER_MINUTES')}"
     data-artwork="{$artwork|escape:'html'}"
     data-durations-url="{$durationsUrl}" data-debug-log-url="{$debugLogUrl}" data-debug-user="{if $debugUser}1{else}0{/if}" data-link-duration-url="{$linkDurationUrl}" data-csrf-token="{$csrfToken}">
@@ -25,6 +26,8 @@
                     <i class="bi bi-shuffle"></i></button>
                 <button type="button" class="btn btn-link admidio-media-player-toggle admidio-media-player-repeat" aria-pressed="false">
                     <i class="bi bi-repeat"></i></button>
+                <button type="button" class="btn btn-link admidio-media-player-toggle admidio-media-player-sound-only" aria-pressed="false">
+                    <i class="bi bi-soundwave"></i></button>
             {/if}
             {if $isEditor}
                 <a id="adm_media_player_edit_items" class="btn admidio-media-player-edit-button ms-auto" href="{$itemsUrl}">

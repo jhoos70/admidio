@@ -46,6 +46,8 @@
   <string name="PLG_MEDIA_PLAYER_SELECT_FOLDER">Select all files of the folder</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_OFF">Shuffle off</string>
   <string name="PLG_MEDIA_PLAYER_SHUFFLE_ON">Shuffle on</string>
+  <string name="PLG_MEDIA_PLAYER_SOUND_ONLY_OFF">Play videos as sound only</string>
+  <string name="PLG_MEDIA_PLAYER_SOUND_ONLY_ON">Sound only on (no video picture)</string>
   <string name="PLG_MEDIA_PLAYER_SPEED">Playback speed</string>
   <string name="PLG_MEDIA_PLAYER_TOTAL_DURATION">Total length</string>
   <string name="PLG_MEDIA_PLAYER_UNMUTE">Unmute</string>

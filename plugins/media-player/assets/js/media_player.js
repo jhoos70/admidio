@@ -35,7 +35,7 @@ $(function() {
     const muteElement = document.getElementById("adm_media_player_mute");
     const playButtons = [document.getElementById("adm_media_player_play_all"), document.getElementById("adm_media_player_play_pause")];
     const repeatModes = ["off", "all", "one"];
-    const storageKeys = {repeat: "admidio-media-player-repeat", shuffle: "admidio-media-player-shuffle"};
+    const storageKeys = {repeat: "admidio-media-player-repeat", shuffle: "admidio-media-player-shuffle", soundOnly: "admidio-media-player-sound-only"};
 
     // Two audio elements: the active one plays the current audio file, the other one loads the next file, which
     // starts shortly before the current file ends. So there is no moment without playback; otherwise Chrome on
@@ -63,6 +63,8 @@ $(function() {
     let order = [];
     let repeatMode = readSetting(storageKeys.repeat, repeatModes, "off");
     let shuffle = readSetting(storageKeys.shuffle, ["0", "1"], "0") === "1";
+    // play only the sound of video files, without loading the picture (saves data, no stuttering on weak phones)
+    let soundOnlyMode = readSetting(storageKeys.soundOnly, ["0", "1"], "0") === "1";
     let seeking = false;
     // cover image of the media controls of phones: the icons of the web app manifest or the Admidio logo
     let artwork = [];
@@ -240,6 +242,18 @@ $(function() {
         const label = shuffle ? labels.labelShuffleOn : labels.labelShuffleOff;
         document.querySelectorAll(".admidio-media-player-shuffle").forEach(function(button) {
             button.setAttribute("aria-pressed", shuffle.toString());
+            button.title = label;
+            button.setAttribute("aria-label", label);
+        });
+    }
+
+    /**
+     * Show the sound only mode at all sound only buttons.
+     */
+    function showSoundOnlyMode() {
+        const label = soundOnlyMode ? labels.labelSoundOnlyOn : labels.labelSoundOnlyOff;
+        document.querySelectorAll(".admidio-media-player-sound-only").forEach(function(button) {
+            button.setAttribute("aria-pressed", soundOnlyMode.toString());
             button.title = label;
             button.setAttribute("aria-label", label);
         });
@@ -859,7 +873,7 @@ $(function() {
             if (autoplay) {
                 media.play();
             }
-            if (type === "video" && !background) {
+            if (type === "video" && !background && !soundOnlyMode) {
                 showPicture(row);
             }
         } else if ((type === "youtube" && getYouTubeId(source) !== null) || (type === "vimeo" && getVimeoId(source) !== null)) {
@@ -1090,6 +1104,22 @@ $(function() {
         showShuffleMode();
     });
 
+    $(document).on("click", ".admidio-media-player-sound-only", function() {
+        soundOnlyMode = !soundOnlyMode;
+        writeSetting(storageKeys.soundOnly, soundOnlyMode ? "1" : "0");
+        showSoundOnlyMode();
+        if (media !== null && media.soundOnly && currentRow !== null) {
+            if (soundOnlyMode) {
+                // the sound goes on, the picture is removed and not loaded any more
+                hidePicture();
+                stage.replaceChildren();
+                stage.className = "admidio-media-player-stage d-none";
+            } else if (document.visibilityState === "visible") {
+                showPicture(currentRow);
+            }
+        }
+    });
+
     // the position slider: while the user drags it, the time shows the new position
     seekElement.addEventListener("input", function() {
         seeking = true;
@@ -1157,7 +1187,7 @@ $(function() {
         if (document.visibilityState === "hidden" && media !== null && !media.paused()) {
             continueInBackground();
             preloadNextAudio();
-        } else if (document.visibilityState === "visible" && media !== null && media.soundOnly && currentRow !== null) {
+        } else if (document.visibilityState === "visible" && media !== null && media.soundOnly && currentRow !== null && !soundOnlyMode) {
             // the sound goes on, the picture follows it
             if (picture === null) {
                 showPicture(currentRow);
@@ -1267,6 +1297,7 @@ $(function() {
 
     showRepeatMode();
     showShuffleMode();
+    showSoundOnlyMode();
     showPlayState();
     loadDurations();
 });

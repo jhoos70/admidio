@@ -408,6 +408,33 @@ class PlaylistService
     }
 
     /**
+     * Move a playlist into another folder, e.g. after the user has dragged it onto the folder. The folder is read
+     * from the POST parameter **folder_uuid** (UUID of a folder or the name of a root, see FolderService). A
+     * playlist can only be moved into a folder of its own kind: a shared playlist into a shared folder, a
+     * private playlist into a private folder.
+     * @param string $uuid The UUID of the playlist.
+     * @return void
+     * @throws Exception
+     */
+    public function move(string $uuid): void
+    {
+        SecurityUtils::validateCsrfToken($_POST['adm_csrf_token']);
+        $playlist = $this->getEditablePlaylist($uuid);
+        if ($playlist->isNewRecord()) {
+            throw new Exception('SYS_INVALID_PAGE_VIEW');
+        }
+
+        $folderUuid = (string)($_POST['folder_uuid'] ?? '');
+        $folderService = new FolderService($this->db);
+        if ($folderUuid === '' || $folderService->isPrivate($folderUuid) !== ($playlist->getValue('mpl_usr_id_owner') !== null)) {
+            throw new Exception('PLG_MEDIA_PLAYER_MOVE_WRONG_KIND');
+        }
+
+        $playlist->setValue('mpl_mpf_id', $folderService->getFolderIdForPlaylist($folderUuid, $playlist->getValue('mpl_usr_id_owner') !== null));
+        $playlist->save();
+    }
+
+    /**
      * Add files and weblinks to a playlist. Only files and weblinks the current user could see are added.
      * The new items are added at the end of the playlist or before the item with the UUID of the parameter
      * **before_item_uuid**. The parameters are read from the POST request.

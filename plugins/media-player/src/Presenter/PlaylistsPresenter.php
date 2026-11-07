@@ -110,7 +110,8 @@ class PlaylistsPresenter extends PagePresenter
                 'url' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'playlist', 'playlist_uuid' => $row['mpl_uuid'])),
                 'editUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'edit', 'playlist_uuid' => $row['mpl_uuid'])),
                 'deleteUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'delete', 'playlist_uuid' => $row['mpl_uuid'])),
-                'zipUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'zip', 'playlist_uuid' => $row['mpl_uuid']))
+                'zipUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'zip', 'playlist_uuid' => $row['mpl_uuid'])),
+                'moveUrl' => SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'move', 'playlist_uuid' => $row['mpl_uuid']))
             );
         }
 
@@ -121,6 +122,8 @@ class PlaylistsPresenter extends PagePresenter
             $breadcrumb[] = array(
                 'name' => $key === 0 ? $gL10n->get($uuid === FolderService::ROOT_PRIVATE ? 'PLG_MEDIA_PLAYER_MY_PLAYLISTS' : 'PLG_MEDIA_PLAYER_NAME')
                     : $folderService->getFolder($uuid)->getValue('mpf_name'),
+                'uuid' => $uuid,
+                'private' => $path[0] === FolderService::ROOT_PRIVATE,
                 'url' => $folderService->getFolderUrl($uuid),
                 'current' => $key === count($path) - 1
             );
@@ -133,6 +136,7 @@ class PlaylistsPresenter extends PagePresenter
         $this->smarty->assign('playlists', $playlists);
         $this->smarty->assign('treeUrl', SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('mode' => 'folder_tree')));
         $this->smarty->assign('treeRoots', $gValidLogin ? array(FolderService::ROOT_SHARED, FolderService::ROOT_PRIVATE) : array(FolderService::ROOT_SHARED));
+        $this->smarty->assign('dragTitle', $gL10n->get('PLG_MEDIA_PLAYER_DRAG_TO_FOLDER'));
         $this->smarty->assign('treeCurrentUuid', $folderUuid);
         $this->smarty->assign('treePath', json_encode($path));
         $this->smarty->assign('csrfToken', $gCurrentSession->getCsrfToken());

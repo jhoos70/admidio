@@ -21,7 +21,7 @@
                     {if $crumb.current}
                         <li class="breadcrumb-item active" aria-current="page">{$crumb.name|escape:'html'}</li>
                     {else}
-                        <li class="breadcrumb-item"><a href="{$crumb.url}">{$crumb.name|escape:'html'}</a></li>
+                        <li class="breadcrumb-item" data-drop-folder="{$crumb.uuid}" data-private="{if $crumb.private}1{else}0{/if}"><a href="{$crumb.url}">{$crumb.name|escape:'html'}</a></li>
                     {/if}
                 {/foreach}
             </ol>
@@ -34,7 +34,7 @@
                 <div class="row admidio-margin-bottom">
                     {if $privateRoot !== null}
                         <div class="col-sm-6 col-lg-4 col-xl-3">
-                            <div class="card admidio-card">
+                            <div class="card admidio-card" data-drop-folder="private" data-private="1">
                                 <div class="card-body">
                                     <h5 class="card-title mb-0">
                                         <i class="bi bi-lock-fill text-body-secondary"></i>
@@ -46,7 +46,7 @@
                     {/if}
                     {foreach $folders as $folder}
                         <div id="mpf_{$folder.uuid}" class="col-sm-6 col-lg-4 col-xl-3">
-                            <div class="card admidio-card">
+                            <div class="card admidio-card" data-drop-folder="{$folder.uuid}" data-private="{if $folder.private}1{else}0{/if}">
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">
                                         <i class="bi bi-folder-fill text-body-secondary"></i>
@@ -69,7 +69,7 @@
                     {/foreach}
                     {foreach $playlists as $playlist}
                         <div id="mpl_{$playlist.uuid}" class="col-sm-6 col-lg-4 col-xl-3">
-                            <div class="card admidio-card">
+                            <div class="card admidio-card"{if $playlist.editable} draggable="true" data-move-url="{$playlist.moveUrl}" data-private="{if $playlist.private}1{else}0{/if}" title="{$dragTitle}"{/if}>
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">
                                         <a href="{$playlist.url}">{$playlist.name|escape:'html'}</a>
@@ -163,6 +163,91 @@ document.addEventListener("DOMContentLoaded", function () {
         setState(pane.classList.contains("collapsed") ? "1" : "2");
     });
     setState(readState());
+});
+
+// Drag a playlist onto a folder (tile, tree or breadcrumb) to move it. A playlist can only be moved into a folder of
+// the same kind (shared or private). Without a mouse the folder is changed in the form of the playlist.
+document.addEventListener("DOMContentLoaded", function () {
+    const csrfToken = {/literal}{$csrfToken|json_encode}{literal};
+    const pane = document.getElementById("adm_media_player_list_pane");
+    if (!pane) return;
+    let dragged = null;
+
+    // the element that is the drop target at an event target and the kind of its folder
+    const findTarget = function (element) {
+        if (!(element instanceof Element)) return null;
+        const direct = element.closest("[data-drop-folder]");
+        if (direct) {
+            return {element: direct, uuid: direct.dataset.dropFolder, isPrivate: direct.dataset.private === "1"};
+        }
+        const line = element.closest(".admidio-tree-line");
+        const item = line ? line.closest("li.admidio-tree-node") : null;
+        const tree = item ? item.closest("ul.adm-media-player-tree") : null;
+        if (item && tree) {
+            return {element: line, uuid: item.dataset.id, isPrivate: tree.dataset.rootUuid === "private"};
+        }
+        return null;
+    };
+
+    const clear = function () {
+        document.querySelectorAll(".admidio-media-drop-over").forEach(function (e) { e.classList.remove("admidio-media-drop-over"); });
+    };
+
+    document.addEventListener("dragstart", function (event) {
+        const card = event.target instanceof Element ? event.target.closest("[data-move-url]") : null;
+        if (!card) return;
+        dragged = card;
+        card.classList.add("admidio-media-dragging");
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", card.id);
+    });
+
+    document.addEventListener("dragend", function () {
+        if (dragged) dragged.classList.remove("admidio-media-dragging");
+        dragged = null;
+        clear();
+    });
+
+    document.addEventListener("dragover", function (event) {
+        if (!dragged) return;
+        const target = findTarget(event.target);
+        clear();
+        if (!target || target.isPrivate !== (dragged.dataset.private === "1")) {
+            event.dataTransfer.dropEffect = "none";
+            return;
+        }
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        target.element.classList.add("admidio-media-drop-over");
+    });
+
+    document.addEventListener("drop", function (event) {
+        if (!dragged) return;
+        const target = findTarget(event.target);
+        const card = dragged;
+        clear();
+        if (!target || target.isPrivate !== (card.dataset.private === "1")) return;
+        event.preventDefault();
+
+        card.classList.add("admidio-media-moving");
+        fetch(card.dataset.moveUrl, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: "adm_csrf_token=" + encodeURIComponent(csrfToken) + "&folder_uuid=" + encodeURIComponent(target.uuid)
+        }).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            if (data.status === "success") {
+                window.location.reload();
+                return;
+            }
+            card.classList.remove("admidio-media-moving");
+            alert(data.message ? data.message.replace(/<[^>]*>/g, "") : "");
+        }).catch(function () {
+            card.classList.remove("admidio-media-moving");
+        });
+    });
 });
 </script>
 {/literal}

@@ -17,6 +17,7 @@
  *                 edit         - form to create or edit a playlist
  *                 save         - save the name and the description of a playlist
  *                 delete       - delete a playlist
+ *                 move         - move a playlist into another folder (POST folder_uuid)
  *                 folder_edit  - form to create or edit a playlist folder
  *                 folder_save  - save a playlist folder
  *                 folder_delete - delete an empty playlist folder
@@ -56,7 +57,7 @@ try {
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
-        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'folder_edit', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip', 'debug_log')
+        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'move', 'folder_edit', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip', 'debug_log')
     ));
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
     $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
@@ -141,6 +142,11 @@ try {
             echo json_encode(array('status' => 'success'));
             break;
 
+        case 'move':
+            (new PlaylistService($gDb))->move($getPlaylistUuid);
+            echo json_encode(array('status' => 'success'));
+            break;
+
         case 'folder_edit':
             $page = new PlaylistsPresenter();
             $page->createFolderForm($getFolderUuid, $getParentUuid);
@@ -201,5 +207,5 @@ try {
         http_response_code(404);
         exit();
     }
-    handleException($e, in_array($getMode, array('save', 'delete', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item'), true));
+    handleException($e, in_array($getMode, array('save', 'delete', 'move', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item'), true));
 }

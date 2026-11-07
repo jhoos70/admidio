@@ -12,6 +12,7 @@
   <string name="PLG_MEDIA_PLAYER_DONE">Done</string>
   <string name="PLG_MEDIA_PLAYER_DOWNLOAD_ZIP">Download playlist as ZIP file</string>
   <string name="PLG_MEDIA_PLAYER_DRAG">Drag to change the order</string>
+  <string name="PLG_MEDIA_PLAYER_DRAG_TO_FOLDER">Drag onto a folder to move the playlist</string>
   <string name="PLG_MEDIA_PLAYER_DROP_HINT">Drag files from the media list into the playlist or select them there and add them.</string>
   <string name="PLG_MEDIA_PLAYER_EDIT_DETAILS">Name and description</string>
   <string name="PLG_MEDIA_PLAYER_EDIT_FOLDER">Edit folder</string>
@@ -26,6 +27,7 @@
   <string name="PLG_MEDIA_PLAYER_ITEM">Entry</string>
   <string name="PLG_MEDIA_PLAYER_MEDIA">Media</string>
   <string name="PLG_MEDIA_PLAYER_MINUTES">min</string>
+  <string name="PLG_MEDIA_PLAYER_MOVE_WRONG_KIND">A shared playlist can only be moved into a shared folder, a private playlist into one of your private folders.</string>
   <string name="PLG_MEDIA_PLAYER_MUTE">Mute</string>
   <string name="PLG_MEDIA_PLAYER_MY_PLAYLISTS">My playlists</string>
   <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>

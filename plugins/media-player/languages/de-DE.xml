@@ -12,6 +12,7 @@
   <string name="PLG_MEDIA_PLAYER_DONE">Fertig</string>
   <string name="PLG_MEDIA_PLAYER_DOWNLOAD_ZIP">Playlist als ZIP-Datei herunterladen</string>
   <string name="PLG_MEDIA_PLAYER_DRAG">Ziehen, um die Reihenfolge zu ändern</string>
+  <string name="PLG_MEDIA_PLAYER_DRAG_TO_FOLDER">Auf einen Ordner ziehen, um die Playlist zu verschieben</string>
   <string name="PLG_MEDIA_PLAYER_DROP_HINT">Ziehen Sie Dateien aus der Medienliste in die Playlist oder wählen Sie sie dort aus und fügen Sie sie hinzu.</string>
   <string name="PLG_MEDIA_PLAYER_EDIT_DETAILS">Name und Beschreibung</string>
   <string name="PLG_MEDIA_PLAYER_EDIT_FOLDER">Ordner bearbeiten</string>
@@ -26,6 +27,7 @@
   <string name="PLG_MEDIA_PLAYER_ITEM">Eintrag</string>
   <string name="PLG_MEDIA_PLAYER_MEDIA">Medien</string>
   <string name="PLG_MEDIA_PLAYER_MINUTES">Min.</string>
+  <string name="PLG_MEDIA_PLAYER_MOVE_WRONG_KIND">Eine geteilte Playlist kann nur in einen geteilten Ordner verschoben werden, eine private Playlist nur in einen Ihrer privaten Ordner.</string>
   <string name="PLG_MEDIA_PLAYER_MUTE">Ton aus</string>
   <string name="PLG_MEDIA_PLAYER_MY_PLAYLISTS">Meine Playlists</string>
   <string name="PLG_MEDIA_PLAYER_NAME">Audio &amp; Video</string>

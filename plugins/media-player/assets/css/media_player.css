@@ -661,3 +661,23 @@ label.admidio-media-player-tree-line {
     background-color: var(--bs-tertiary-bg);
     border-radius: var(--bs-border-radius);
 }
+
+/* drag a playlist onto a folder */
+#adm_media_player_playlists_list .card[draggable="true"] {
+    cursor: grab;
+}
+
+.admidio-media-dragging {
+    opacity: .5;
+}
+
+.admidio-media-moving {
+    opacity: .4;
+    pointer-events: none;
+}
+
+.admidio-media-drop-over {
+    outline: 2px dashed var(--bs-primary);
+    outline-offset: -2px;
+    background-color: var(--bs-primary-bg-subtle);
+}

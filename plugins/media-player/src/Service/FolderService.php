@@ -267,11 +267,71 @@ class FolderService
      */
     public function getFolderUrl(string $uuid): string
     {
-        $parameters = array();
-        if ($uuid !== '' && $uuid !== self::ROOT_SHARED) {
-            $parameters['folder_uuid'] = $uuid;
+        // the parameter is always set, because the page without it opens at the place where the user has left off
+        return SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), array('folder_uuid' => $uuid === '' ? self::ROOT_SHARED : $uuid));
+    }
+
+    /**
+     * Get the place where the current user has left off the last time. The place is checked, so it is the root of the
+     * shared playlists if the folder doesn't exist any more or the user may not see it any more.
+     * @return string The UUID of the folder or the name of a root. Always the root of the shared playlists for visitors.
+     * @throws Exception
+     */
+    public function getLastPlace(): string
+    {
+        global $gCurrentOrgId, $gCurrentUserId, $gValidLogin;
+
+        if (!$gValidLogin) {
+            return self::ROOT_SHARED;
         }
-        return SecurityUtils::encodeUrl(MediaPlayer::getPageUrl(), $parameters);
+
+        $sql = 'SELECT mus_location FROM ' . MediaPlayer::TABLE_USER_STATES . '
+                 WHERE mus_usr_id = ? -- $gCurrentUserId
+                   AND mus_org_id = ? -- $gCurrentOrgId';
+        $location = $this->db->queryPrepared($sql, array($gCurrentUserId, $gCurrentOrgId))->fetchColumn();
+        if (!is_string($location) || $location === '' || $location === self::ROOT_SHARED) {
+            return self::ROOT_SHARED;
+        }
+        if ($location === self::ROOT_PRIVATE) {
+            return $location;
+        }
+
+        try {
+            $this->getFolder($location);
+        } catch (Exception) {
+            return self::ROOT_SHARED;
+        }
+        return $location;
+    }
+
+    /**
+     * Remember the place the current user is looking at, so the plugin opens there the next time. Nothing is
+     * saved for visitors.
+     * @param string $uuid The UUID of the folder or the name of a root.
+     * @return void
+     * @throws Exception
+     */
+    public function rememberPlace(string $uuid): void
+    {
+        global $gCurrentOrgId, $gCurrentUserId, $gValidLogin;
+
+        if (!$gValidLogin) {
+            return;
+        }
+
+        $sql = 'SELECT mus_id, mus_location FROM ' . MediaPlayer::TABLE_USER_STATES . '
+                 WHERE mus_usr_id = ? -- $gCurrentUserId
+                   AND mus_org_id = ? -- $gCurrentOrgId';
+        $state = $this->db->queryPrepared($sql, array($gCurrentUserId, $gCurrentOrgId))->fetch();
+        if ($state === false) {
+            $sql = 'INSERT INTO ' . MediaPlayer::TABLE_USER_STATES . ' (mus_usr_id, mus_org_id, mus_location)
+                    VALUES (?, ?, ?) -- $gCurrentUserId, $gCurrentOrgId, $uuid';
+            $this->db->queryPrepared($sql, array($gCurrentUserId, $gCurrentOrgId, $uuid));
+        } elseif ($state['mus_location'] !== $uuid) {
+            $sql = 'UPDATE ' . MediaPlayer::TABLE_USER_STATES . ' SET mus_location = ?, mus_timestamp = CURRENT_TIMESTAMP
+                     WHERE mus_id = ? -- $uuid, $state[\'mus_id\']';
+            $this->db->queryPrepared($sql, array($uuid, (int)$state['mus_id']));
+        }
     }
 
     /**

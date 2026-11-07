@@ -122,9 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const rootUrl = new URL(window.location.href);
         rootUrl.search = "";
         rootUrl.hash = "";
-        if (tree.dataset.rootUuid !== "shared") {
-            rootUrl.searchParams.set("folder_uuid", tree.dataset.rootUuid);
-        }
+        rootUrl.searchParams.set("folder_uuid", tree.dataset.rootUuid);
         // only the tree of the current place is opened down to the current folder
         const isCurrentTree = path[0] === tree.dataset.rootUuid;
         return new AdmTreeView(tree, {

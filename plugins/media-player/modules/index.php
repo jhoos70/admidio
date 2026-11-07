@@ -32,8 +32,8 @@
  *                 stream       - send an audio or video file to the player
  *                 zip          - download a playlist as ZIP file
  * playlist_uuid : UUID of the playlist
- * folder_uuid   : UUID of the playlist folder or the name of a root (shared or private). Without it the shared
- *                 playlists without a folder are shown. For mode=edit and mode=folder_edit it is the place
+ * folder_uuid   : UUID of the playlist folder or the name of a root (shared or private). Without it the page opens
+ *                 at the place where the user has left off, for a new user the shared playlists without a folder. For mode=edit and mode=folder_edit it is the place
  *                 where the new playlist or folder is created.
  * with_path     : 1 = the folder tree also gets the path to the folder
  * item_uuid     : UUID of the playlist item
@@ -71,8 +71,18 @@ try {
 
     switch ($getMode) {
         case 'list':
+            $folderService = new FolderService($gDb);
+            if ($getFolderUuid === '') {
+                // the page was opened without a place, e.g. from the menu: continue where the user has left off
+                $lastPlace = $folderService->getLastPlace();
+                if ($lastPlace !== FolderService::ROOT_SHARED) {
+                    admRedirect($folderService->getFolderUrl($lastPlace));
+                    // => EXIT
+                }
+            }
             $page = new PlaylistsPresenter();
             $page->createList($getFolderUuid);
+            $folderService->rememberPlace($getFolderUuid === '' ? FolderService::ROOT_SHARED : $getFolderUuid);
             $gNavigation->addStartUrl(CURRENT_URL, $page->getHeadline(), MediaPlayer::getPlugin()->icon);
             $page->show();
             break;

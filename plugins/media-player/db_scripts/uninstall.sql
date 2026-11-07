@@ -9,6 +9,7 @@
  */
 
 DROP TABLE IF EXISTS %PREFIX%_media_durations;
+DROP TABLE IF EXISTS %PREFIX%_media_user_states;
 DROP TABLE IF EXISTS %PREFIX%_media_playlist_items;
 DROP TABLE IF EXISTS %PREFIX%_media_playlists;
 DROP TABLE IF EXISTS %PREFIX%_media_playlist_folders;

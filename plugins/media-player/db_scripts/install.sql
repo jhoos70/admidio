@@ -84,6 +84,26 @@ COLLATE = utf8mb4_unicode_ci;
 CREATE UNIQUE INDEX %PREFIX%_idx_mpi_uuid ON %PREFIX%_media_playlist_items (mpi_uuid);
 
 /*==============================================================*/
+/* Table: media_user_states                                     */
+/* The place in the folder tree where a user has left off, so   */
+/* the plugin opens there the next time                         */
+/*==============================================================*/
+CREATE TABLE %PREFIX%_media_user_states
+(
+    mus_id                      integer unsigned    NOT NULL    AUTO_INCREMENT,
+    mus_usr_id                  integer unsigned    NOT NULL,
+    mus_org_id                  integer unsigned    NOT NULL,
+    mus_location                varchar(36)         NOT NULL,
+    mus_timestamp               timestamp           NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (mus_id)
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+CREATE UNIQUE INDEX %PREFIX%_idx_mus_usr_org ON %PREFIX%_media_user_states (mus_usr_id, mus_org_id);
+
+/*==============================================================*/
 /* Table: media_durations                                       */
 /* Length of files and weblinks, so the browsers don't have to  */
 /* load the files and the server asks YouTube or Vimeo only once */
@@ -130,6 +150,11 @@ ALTER TABLE %PREFIX%_media_playlist_items
     ADD CONSTRAINT %PREFIX%_fk_mpi_lnk         FOREIGN KEY (mpi_lnk_id)         REFERENCES %PREFIX%_links (lnk_id)           ON DELETE CASCADE ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mpi_usr_create  FOREIGN KEY (mpi_usr_id_create)  REFERENCES %PREFIX%_users (usr_id)           ON DELETE SET NULL ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mpi_usr_change  FOREIGN KEY (mpi_usr_id_change)  REFERENCES %PREFIX%_users (usr_id)           ON DELETE SET NULL ON UPDATE RESTRICT;
+
+-- the state is removed together with its user
+ALTER TABLE %PREFIX%_media_user_states
+    ADD CONSTRAINT %PREFIX%_fk_mus_usr         FOREIGN KEY (mus_usr_id)         REFERENCES %PREFIX%_users (usr_id)          ON DELETE CASCADE ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mus_org         FOREIGN KEY (mus_org_id)         REFERENCES %PREFIX%_organizations (org_id)  ON DELETE CASCADE ON UPDATE RESTRICT;
 
 -- the length is removed together with its file or weblink
 ALTER TABLE %PREFIX%_media_durations

@@ -1,7 +1,7 @@
 {
     "name": "PLG_MEDIA_PLAYER_NAME",
     "description": "PLG_MEDIA_PLAYER_DESCRIPTION",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": "Admidio Team",
     "url": "https://www.admidio.org",
     "icon": "bi-music-note-beamed",

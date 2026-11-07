@@ -646,3 +646,18 @@ label.admidio-media-player-tree-line {
 .admidio-media-player-items td.admidio-media-player-total-label {
     color: var(--bs-secondary-color);
 }
+
+/* folder tree of the playlists: the button of the collapsed sidebar is at the top left of the list, so the
+   breadcrumb starts to the right of it */
+@media (min-width: 768px) {
+    .admidio-folder-sidebar.collapsed ~ .admidio-documents-list > nav[aria-label="breadcrumb"] {
+        margin-left: 8.5rem;
+    }
+}
+
+#adm_media_player_list_pane .breadcrumb {
+    margin-bottom: 1rem;
+    padding: .5rem .75rem;
+    background-color: var(--bs-tertiary-bg);
+    border-radius: var(--bs-border-radius);
+}

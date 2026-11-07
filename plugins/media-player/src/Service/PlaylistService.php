@@ -37,20 +37,36 @@ class PlaylistService
     }
 
     /**
-     * Get all playlists of the current organization with the number of items the current user could see.
-     * Personal playlists of other users are not returned.
+     * Get the playlists of a place with the number of items the current user could see. Personal playlists of
+     * other users are not returned.
+     * @param string $folderUuid The UUID of a playlist folder or the name of a root of the folder tree, see
+     *        FolderService. The shared playlists without a folder are in the root **shared**, the personal
+     *        playlists of the current user without a folder are in the root **private**.
      * @return array<int,array<string,mixed>> Returns the playlists ordered by name.
      * @throws Exception
      */
-    public function findAll(): array
+    public function findAll(string $folderUuid = FolderService::ROOT_SHARED): array
     {
         global $gCurrentOrgId, $gCurrentUserId;
 
+        $folderService = new FolderService($this->db);
+        $private = $folderService->isPrivate($folderUuid);
+        $folderId = FolderService::isRoot($folderUuid) || $folderUuid === ''
+            ? null : (int)$folderService->getFolder($folderUuid)->getValue('mpf_id');
+
         $sql = 'SELECT * FROM ' . MediaPlayer::TABLE_PLAYLISTS . '
                  WHERE mpl_org_id = ? -- $gCurrentOrgId
-                   AND (mpl_usr_id_owner IS NULL OR mpl_usr_id_owner = ?) -- $gCurrentUserId
+                   AND ' . ($private ? 'mpl_usr_id_owner = ?' : 'mpl_usr_id_owner IS NULL') . '
+                   AND ' . ($folderId === null ? 'mpl_mpf_id IS NULL' : 'mpl_mpf_id = ?') . '
                  ORDER BY mpl_name';
-        $playlists = $this->db->queryPrepared($sql, array($gCurrentOrgId, $gCurrentUserId))->fetchAll();
+        $params = array($gCurrentOrgId);
+        if ($private) {
+            $params[] = $gCurrentUserId;
+        }
+        if ($folderId !== null) {
+            $params[] = $folderId;
+        }
+        $playlists = $this->db->queryPrepared($sql, $params)->fetchAll();
 
         foreach ($playlists as $key => $playlist) {
             $playlists[$key]['item_count'] = count($this->findItems((int)$playlist['mpl_id']));
@@ -365,6 +381,12 @@ class PlaylistService
         } elseif ($playlist->isNewRecord()) {
             $playlist->setValue('mpl_usr_id_owner', $gCurrentUserId);
         }
+
+        // the folder must have the same kind as the playlist, otherwise the playlist is in the root
+        $playlist->setValue('mpl_mpf_id', (new FolderService($this->db))->getFolderIdForPlaylist(
+            (string)($formValues['media_player_folder_uuid'] ?? ''),
+            $playlist->getValue('mpl_usr_id_owner') !== null
+        ));
         $playlist->save();
 
         return $playlist->getValue('mpl_uuid');

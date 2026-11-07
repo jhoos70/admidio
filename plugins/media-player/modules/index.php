@@ -17,6 +17,10 @@
  *                 edit         - form to create or edit a playlist
  *                 save         - save the name and the description of a playlist
  *                 delete       - delete a playlist
+ *                 folder_edit  - form to create or edit a playlist folder
+ *                 folder_save  - save a playlist folder
+ *                 folder_delete - delete an empty playlist folder
+ *                 folder_tree  - child folders of a folder or of a root for the folder tree (JSON)
  *                 copy         - create a private copy of a playlist for the current user
  *                 media_tree   - files and weblinks that could be added to a playlist (JSON)
  *                 durations    - store the length of files that the browser has measured (JSON)
@@ -27,6 +31,10 @@
  *                 stream       - send an audio or video file to the player
  *                 zip          - download a playlist as ZIP file
  * playlist_uuid : UUID of the playlist
+ * folder_uuid   : UUID of the playlist folder or the name of a root (shared or private). Without it the shared
+ *                 playlists without a folder are shown. For mode=edit and mode=folder_edit it is the place
+ *                 where the new playlist or folder is created.
+ * with_path     : 1 = the folder tree also gets the path to the folder
  * item_uuid     : UUID of the playlist item
  * file_uuid     : UUID of the file that should be streamed
  ***********************************************************************************************
@@ -37,6 +45,7 @@ use Admidio\Infrastructure\Utils\SecurityUtils;
 use AdmidioPlugin\MediaPlayer\MediaPlayer;
 use AdmidioPlugin\MediaPlayer\Presenter\PlaylistsPresenter;
 use AdmidioPlugin\MediaPlayer\Service\DurationService;
+use AdmidioPlugin\MediaPlayer\Service\FolderService;
 use AdmidioPlugin\MediaPlayer\Service\PlaylistService;
 use AdmidioPlugin\MediaPlayer\Service\StreamService;
 use AdmidioPlugin\MediaPlayer\Service\ZipExportService;
@@ -47,10 +56,13 @@ try {
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
-        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip', 'debug_log')
+        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'folder_edit', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip', 'debug_log')
     ));
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
     $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
+    $getFolderUuid = admFuncVariableIsValid($_GET, 'folder_uuid', 'string');
+    $getParentUuid = admFuncVariableIsValid($_GET, 'parent_uuid', 'string');
+    $getWithPath = admFuncVariableIsValid($_GET, 'with_path', 'bool');
     $getFileUuid = admFuncVariableIsValid($_GET, 'file_uuid', 'uuid');
     $getSound = admFuncVariableIsValid($_GET, 'sound', 'bool');
 
@@ -59,7 +71,7 @@ try {
     switch ($getMode) {
         case 'list':
             $page = new PlaylistsPresenter();
-            $page->createList();
+            $page->createList($getFolderUuid);
             $gNavigation->addStartUrl(CURRENT_URL, $page->getHeadline(), MediaPlayer::getPlugin()->icon);
             $page->show();
             break;
@@ -113,7 +125,7 @@ try {
 
         case 'edit':
             $page = new PlaylistsPresenter($getPlaylistUuid);
-            $page->createEditForm($getPlaylistUuid);
+            $page->createEditForm($getPlaylistUuid, $getFolderUuid);
             $gNavigation->addUrl(CURRENT_URL, $page->getHeadline());
             $page->show();
             break;
@@ -127,6 +139,34 @@ try {
         case 'delete':
             (new PlaylistService($gDb))->delete($getPlaylistUuid);
             echo json_encode(array('status' => 'success'));
+            break;
+
+        case 'folder_edit':
+            $page = new PlaylistsPresenter();
+            $page->createFolderForm($getFolderUuid, $getParentUuid);
+            $gNavigation->addUrl(CURRENT_URL, $page->getHeadline());
+            $page->show();
+            break;
+
+        case 'folder_save':
+            (new FolderService($gDb))->save($getFolderUuid);
+            $gNavigation->deleteLastUrl();
+            echo json_encode(array('status' => 'success', 'url' => $gNavigation->getUrl()));
+            break;
+
+        case 'folder_delete':
+            (new FolderService($gDb))->delete($getFolderUuid);
+            echo json_encode(array('status' => 'success'));
+            break;
+
+        case 'folder_tree':
+            $folderService = new FolderService($gDb);
+            $response = array('status' => 'success', 'nodes' => $folderService->findTreeNodes($getFolderUuid));
+            if ($getWithPath) {
+                $response['path'] = $folderService->findPath($getFolderUuid);
+            }
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response);
             break;
 
         case 'remove_item':
@@ -161,5 +201,5 @@ try {
         http_response_code(404);
         exit();
     }
-    handleException($e, in_array($getMode, array('save', 'delete', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item'), true));
+    handleException($e, in_array($getMode, array('save', 'delete', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item'), true));
 }

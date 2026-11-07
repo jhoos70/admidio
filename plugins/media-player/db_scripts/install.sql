@@ -11,6 +11,31 @@
  */
 
 /*==============================================================*/
+/* Table: media_playlist_folders                                */
+/* Folders to organize the playlists. A folder is shared or     */
+/* private, like the playlists it contains.                     */
+/*==============================================================*/
+CREATE TABLE %PREFIX%_media_playlist_folders
+(
+    mpf_id                      integer unsigned    NOT NULL    AUTO_INCREMENT,
+    mpf_uuid                    varchar(36)         NOT NULL,
+    mpf_org_id                  integer unsigned    NOT NULL,
+    mpf_mpf_id_parent           integer unsigned,
+    mpf_usr_id_owner            integer unsigned,
+    mpf_name                    varchar(255)        NOT NULL,
+    mpf_usr_id_create           integer unsigned,
+    mpf_timestamp_create        timestamp           NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+    mpf_usr_id_change           integer unsigned,
+    mpf_timestamp_change        timestamp           NULL        DEFAULT NULL,
+    PRIMARY KEY (mpf_id)
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+CREATE UNIQUE INDEX %PREFIX%_idx_mpf_uuid ON %PREFIX%_media_playlist_folders (mpf_uuid);
+
+/*==============================================================*/
 /* Table: media_playlists                                       */
 /*==============================================================*/
 CREATE TABLE %PREFIX%_media_playlists
@@ -19,6 +44,7 @@ CREATE TABLE %PREFIX%_media_playlists
     mpl_uuid                    varchar(36)         NOT NULL,
     mpl_org_id                  integer unsigned    NOT NULL,
     mpl_usr_id_owner            integer unsigned,
+    mpl_mpf_id                  integer unsigned,
     mpl_name                    varchar(255)        NOT NULL,
     mpl_description             text,
     mpl_usr_id_create           integer unsigned,
@@ -82,8 +108,17 @@ CREATE UNIQUE INDEX %PREFIX%_idx_mdu_lnk_id ON %PREFIX%_media_durations (mdu_lnk
 /*==============================================================*/
 /* Constraints                                                  */
 /*==============================================================*/
+-- a folder is removed together with its organization or owner, but only if it is empty
+ALTER TABLE %PREFIX%_media_playlist_folders
+    ADD CONSTRAINT %PREFIX%_fk_mpf_org         FOREIGN KEY (mpf_org_id)         REFERENCES %PREFIX%_organizations (org_id)  ON DELETE RESTRICT ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mpf_parent      FOREIGN KEY (mpf_mpf_id_parent)  REFERENCES %PREFIX%_media_playlist_folders (mpf_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mpf_usr_owner   FOREIGN KEY (mpf_usr_id_owner)   REFERENCES %PREFIX%_users (usr_id)          ON DELETE CASCADE ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mpf_usr_create  FOREIGN KEY (mpf_usr_id_create)  REFERENCES %PREFIX%_users (usr_id)          ON DELETE SET NULL ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mpf_usr_change  FOREIGN KEY (mpf_usr_id_change)  REFERENCES %PREFIX%_users (usr_id)          ON DELETE SET NULL ON UPDATE RESTRICT;
+
 ALTER TABLE %PREFIX%_media_playlists
     ADD CONSTRAINT %PREFIX%_fk_mpl_org         FOREIGN KEY (mpl_org_id)         REFERENCES %PREFIX%_organizations (org_id)  ON DELETE RESTRICT ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mpl_mpf         FOREIGN KEY (mpl_mpf_id)         REFERENCES %PREFIX%_media_playlist_folders (mpf_id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mpl_usr_owner   FOREIGN KEY (mpl_usr_id_owner)   REFERENCES %PREFIX%_users (usr_id)          ON DELETE CASCADE ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mpl_usr_create  FOREIGN KEY (mpl_usr_id_create)  REFERENCES %PREFIX%_users (usr_id)          ON DELETE SET NULL ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mpl_usr_change  FOREIGN KEY (mpl_usr_id_change)  REFERENCES %PREFIX%_users (usr_id)          ON DELETE SET NULL ON UPDATE RESTRICT;

@@ -28,6 +28,7 @@ final class MediaPlayer
     public const PLUGIN_ID = 'media-player';
 
     public const TABLE_PLAYLISTS = TABLE_PREFIX . '_media_playlists';
+    public const TABLE_FOLDERS = TABLE_PREFIX . '_media_playlist_folders';
     public const TABLE_PLAYLIST_ITEMS = TABLE_PREFIX . '_media_playlist_items';
     public const TABLE_DURATIONS = TABLE_PREFIX . '_media_durations';
 

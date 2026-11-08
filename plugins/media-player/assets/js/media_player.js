@@ -66,6 +66,11 @@ $(function() {
     // play only the sound of video files, without loading the picture (saves data, no stuttering on weak phones)
     let soundOnlyMode = readSetting(storageKeys.soundOnly, ["0", "1"], "0") === "1";
     let seeking = false;
+    // seconds of audio that must be loaded in advance before the playback continues after the browser has run out
+    // of data, so a slow connection gives one longer pause instead of a series of short stops
+    const rebufferSeconds = 20;
+    // set while the playback waits for data: {element, media, text, timer}
+    let rebuffer = null;
     // cover image of the media controls of phones: the icons of the web app manifest or the Admidio logo
     let artwork = [];
     try {
@@ -263,7 +268,8 @@ $(function() {
      * Show if the player is playing at the play buttons and the current item.
      */
     function showPlayState() {
-        const playing = media !== null && !media.paused();
+        // while the player waits for data, it is about to continue, so the buttons show the playing state
+        const playing = media !== null && (!media.paused() || (rebuffer !== null && rebuffer.media === media));
         playButtons.forEach(function(button) {
             if (button !== null) {
                 button.querySelector("i").className = playing ? "bi bi-pause-fill" : "bi bi-play-fill";
@@ -345,6 +351,7 @@ $(function() {
         };
         return {
             play: function() {
+                cancelRebuffer(false);
                 const promise = player.play();
                 if (promise && typeof promise.catch === "function") {
                     // the browser could prevent the autoplay, then the user starts the playback
@@ -355,6 +362,7 @@ $(function() {
                 }
             },
             pause: function() {
+                cancelRebuffer(false);
                 player.pause();
             },
             paused: function() {
@@ -471,6 +479,78 @@ $(function() {
     /**
      * Connect the events of the current item with the player bar and start the playback.
      */
+    /**
+     * Get the seconds of an audio element that are loaded from the current position on.
+     * @param {HTMLAudioElement} element
+     * @returns {number}
+     */
+    function getBufferedAhead(element) {
+        const position = element.currentTime;
+        for (let i = 0; i < element.buffered.length; i++) {
+            if (element.buffered.start(i) <= position + 0.3 && element.buffered.end(i) >= position) {
+                return element.buffered.end(i) - position;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * End the pause for loading data.
+     * @param {boolean} resume **true** to continue the playback, **false** if the user or another action has taken over.
+     */
+    function cancelRebuffer(resume) {
+        if (rebuffer === null) {
+            return;
+        }
+        const waiting = rebuffer;
+        rebuffer = null;
+        window.clearInterval(waiting.timer);
+        bar.classList.remove("admidio-media-player-buffering");
+        if (originElement.textContent === labels.labelBuffering) {
+            originElement.textContent = waiting.text;
+        }
+        debug("rebuffer end", {resume: resume, ahead: Math.round(getBufferedAhead(waiting.element))});
+        if (resume && media === waiting.media) {
+            media.play();
+        }
+        showPlayState();
+    }
+
+    /**
+     * Pause the playback until enough of the file is loaded, if the browser has run out of data. Browsers continue
+     * as soon as a few seconds are there and stop again shortly afterwards when the connection is slow.
+     * Not used in the background: the browser may not allow to start the playback there again.
+     * @param {object} current The media object of the item.
+     * @param {HTMLAudioElement} element The audio element of the item.
+     */
+    function startRebuffer(current, element) {
+        if (rebuffer !== null || media !== current || element.paused || element.seeking || seeking
+            || document.visibilityState !== "visible") {
+            return;
+        }
+        const remaining = (isFinite(element.duration) ? element.duration : Infinity) - element.currentTime;
+        const needed = Math.min(rebufferSeconds, remaining - 0.5);
+        if (needed <= 0 || getBufferedAhead(element) >= needed) {
+            return;
+        }
+
+        const check = function() {
+            if (rebuffer === null || rebuffer.element !== element) {
+                return;
+            }
+            const stillNeeded = Math.min(rebufferSeconds, (isFinite(element.duration) ? element.duration : Infinity) - element.currentTime - 0.5);
+            if (media !== rebuffer.media || document.visibilityState !== "visible" || getBufferedAhead(element) >= stillNeeded) {
+                cancelRebuffer(media === rebuffer.media);
+            }
+        };
+        element.pause();
+        rebuffer = {element: element, media: current, text: originElement.textContent, timer: window.setInterval(check, 500)};
+        originElement.textContent = labels.labelBuffering;
+        bar.classList.add("admidio-media-player-buffering");
+        debug("rebuffer start", {ahead: Math.round(getBufferedAhead(element)), needed: Math.round(needed)});
+        showPlayState();
+    }
+
     function connectMedia() {
         media.on("timeupdate", showProgress);
         media.on("loadedmetadata", showProgress);
@@ -486,6 +566,13 @@ $(function() {
         });
         media.on("ended", playAfterEnd);
         if (media.isAudio) {
+            const currentAudio = media;
+            const currentElement = audio;
+            // a paused element with preload="metadata" stops loading the file, so a pause for loading would never end
+            currentElement.preload = "auto";
+            media.on("waiting", function() {
+                startRebuffer(currentAudio, currentElement);
+            });
             media.on("play", syncPicture);
             media.on("pause", syncPicture);
             media.on("seeked", syncPicture);

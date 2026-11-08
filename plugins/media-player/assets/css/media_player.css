@@ -706,3 +706,20 @@ label.admidio-media-player-tree-line {
     -webkit-user-select: none;
     user-select: none;
 }
+
+/* the playback waits until enough of the file is loaded */
+.admidio-media-player-buffering .admidio-media-player-bar-play {
+    animation: admidio-media-player-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes admidio-media-player-pulse {
+    50% {
+        opacity: .55;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admidio-media-player-buffering .admidio-media-player-bar-play {
+        animation: none;
+    }
+}

@@ -7,6 +7,7 @@
     data-label-shuffle-off="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_OFF')}" data-label-shuffle-on="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_ON')}"
     data-label-sound-only-off="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_OFF')}" data-label-sound-only-on="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_ON')}"
     data-label-minutes="{$l10n->get('PLG_MEDIA_PLAYER_MINUTES')}"
+    data-label-buffering="{$l10n->get('PLG_MEDIA_PLAYER_BUFFERING')}"
     data-artwork="{$artwork|escape:'html'}"
     data-durations-url="{$durationsUrl}" data-debug-log-url="{$debugLogUrl}" data-debug-user="{if $debugUser}1{else}0{/if}" data-link-duration-url="{$linkDurationUrl}" data-csrf-token="{$csrfToken}">
 

@@ -697,3 +697,12 @@ label.admidio-media-player-tree-line {
     outline-offset: -2px;
     background-color: var(--bs-primary-bg-subtle);
 }
+
+/* the button and the title of the folder tree and its nodes are controls, their text can't be selected by a
+   double click or while dragging a playlist */
+#adm_media_player_tree_pane .admidio-folder-sidebar-header,
+#adm_media_player_tree_pane .admidio-folder-sidebar-collapse,
+#adm_media_player_tree_pane .admidio-tree {
+    -webkit-user-select: none;
+    user-select: none;
+}

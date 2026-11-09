@@ -69,8 +69,15 @@ $(function() {
     // seconds of audio that must be loaded in advance before the playback continues after the browser has run out
     // of data, so a slow connection gives one longer pause instead of a series of short stops
     const rebufferSeconds = 20;
+    // give up the pause after this long without more loaded data, or after this long at all
+    const rebufferNoProgressMs = 4000;
+    const rebufferMaxWaitMs = 30000;
+    // no new pause for loading for this long after one that gave up
+    const rebufferBlockMs = 30000;
     // set while the playback waits for data: {element, media, text, timer}
     let rebuffer = null;
+    // after a pause for loading that gave up, the next one waits until then (milliseconds since 1970)
+    let rebufferBlockedUntil = 0;
     // cover image of the media controls of phones: the icons of the web app manifest or the Admidio logo
     let artwork = [];
     try {
@@ -268,8 +275,7 @@ $(function() {
      * Show if the player is playing at the play buttons and the current item.
      */
     function showPlayState() {
-        // while the player waits for data, it is about to continue, so the buttons show the playing state
-        const playing = media !== null && (!media.paused() || (rebuffer !== null && rebuffer.media === media));
+        const playing = isPlaying();
         playButtons.forEach(function(button) {
             if (button !== null) {
                 button.querySelector("i").className = playing ? "bi bi-pause-fill" : "bi bi-play-fill";
@@ -480,6 +486,15 @@ $(function() {
      * Connect the events of the current item with the player bar and start the playback.
      */
     /**
+     * Check if the item plays or is about to continue: while the player waits for data it is paused, but it
+     * continues without the user, so it counts as playing.
+     * @returns {boolean}
+     */
+    function isPlaying() {
+        return media !== null && (!media.paused() || (rebuffer !== null && rebuffer.media === media));
+    }
+
+    /**
      * Get the seconds of an audio element that are loaded from the current position on.
      * @param {HTMLAudioElement} element
      * @returns {number}
@@ -524,8 +539,10 @@ $(function() {
      * @param {HTMLAudioElement} element The audio element of the item.
      */
     function startRebuffer(current, element) {
+        // Only if the playback has really started: the first seconds of a file are the normal start, the browser
+        // continues by itself as soon as it has data. Not shortly after a pause that gave up.
         if (rebuffer !== null || media !== current || element.paused || element.seeking || seeking
-            || document.visibilityState !== "visible") {
+            || document.visibilityState !== "visible" || element.currentTime < 1 || Date.now() < rebufferBlockedUntil) {
             return;
         }
         const remaining = (isFinite(element.duration) ? element.duration : Infinity) - element.currentTime;
@@ -534,20 +551,36 @@ $(function() {
             return;
         }
 
+        const startedAt = Date.now();
+        let bestAhead = getBufferedAhead(element);
+        let lastProgress = startedAt;
         const check = function() {
             if (rebuffer === null || rebuffer.element !== element) {
                 return;
             }
+            const ahead = getBufferedAhead(element);
             const stillNeeded = Math.min(rebufferSeconds, (isFinite(element.duration) ? element.duration : Infinity) - element.currentTime - 0.5);
-            if (media !== rebuffer.media || document.visibilityState !== "visible" || getBufferedAhead(element) >= stillNeeded) {
+            if (media !== rebuffer.media || document.visibilityState !== "visible" || ahead >= stillNeeded) {
                 cancelRebuffer(media === rebuffer.media);
+                return;
+            }
+            if (ahead > bestAhead + 0.2) {
+                bestAhead = ahead;
+                lastProgress = Date.now();
+            }
+            // Some browsers stop loading a paused file after a few seconds, or the connection is gone. Then the
+            // playback must not wait forever: it continues, and a new pause for loading must wait a while.
+            if (Date.now() - lastProgress > rebufferNoProgressMs || Date.now() - startedAt > rebufferMaxWaitMs) {
+                debug("rebuffer gave up", {ahead: Math.round(ahead)});
+                rebufferBlockedUntil = Date.now() + rebufferBlockMs;
+                cancelRebuffer(true);
             }
         };
         element.pause();
         rebuffer = {element: element, media: current, text: originElement.textContent, timer: window.setInterval(check, 500)};
         originElement.textContent = labels.labelBuffering;
         bar.classList.add("admidio-media-player-buffering");
-        debug("rebuffer start", {ahead: Math.round(getBufferedAhead(element)), needed: Math.round(needed)});
+        debug("rebuffer start", {ahead: Math.round(bestAhead), needed: Math.round(needed)});
         showPlayState();
     }
 
@@ -1045,10 +1078,10 @@ $(function() {
      */
     function togglePlay() {
         if (media !== null) {
-            if (media.paused()) {
-                media.play();
-            } else {
+            if (isPlaying()) {
                 media.pause();
+            } else {
+                media.play();
             }
         } else if (currentRow !== null && currentRow.dataset.type !== "audio" && currentRow.dataset.type !== "video"
             && currentRow.dataset.type !== "youtube" && currentRow.dataset.type !== "vimeo") {
@@ -1271,6 +1304,10 @@ $(function() {
     // a playing video continues in the background, a video that was played as sound there is shown again at the
     // same position when the page is visible
     document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "hidden") {
+            // in the background the browser may not allow to start the playback again, so it continues now
+            cancelRebuffer(true);
+        }
         if (document.visibilityState === "hidden" && media !== null && !media.paused()) {
             continueInBackground();
             preloadNextAudio();

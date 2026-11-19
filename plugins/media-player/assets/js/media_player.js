@@ -1356,7 +1356,7 @@ $(function() {
     applyMarkersMode();
     });
     // ---- markers: named positions of the current item, only active when the user has switched them on
-    const markerKeys = {mode: "admidio-media-player-markers", panel: "admidio-media-player-markers-panel"};
+    const markerKeys = {mode: "admidio-media-player-markers"};
     const markersElement = document.getElementById("adm_media_player_markers");
     const markersListElement = document.getElementById("adm_media_player_markers_list");
     const markersMessageElement = document.getElementById("adm_media_player_markers_message");
@@ -1364,7 +1364,6 @@ $(function() {
     const markerBarButtons = document.querySelectorAll(".admidio-media-player-marker-only");
     const validLogin = labels.validLogin === "1";
     let markersMode = readSetting(markerKeys.mode, ["0", "1"], "0") === "1";
-    let markersPanel = readSetting(markerKeys.panel, ["0", "1"], "1") === "1";
     let markers = [];
     let markersCanShare = false;
     // true after the markers of the current item have been loaded
@@ -1427,7 +1426,7 @@ $(function() {
      * Show or hide everything of the markers: panel, buttons of the bar and ticks at the seek bar.
      */
     function applyMarkersMode() {
-        const open = markersMode && markersPanel;
+        const open = markersMode;
         root.classList.toggle("admidio-media-player-markers-open", open);
         // with the panel the page uses the full width of the window like the edit mode, not the default 1000 px
         const content = document.getElementById("adm_content");
@@ -1441,6 +1440,9 @@ $(function() {
         });
         const panelButton = document.getElementById("adm_media_player_marker_panel");
         panelButton.setAttribute("aria-pressed", open.toString());
+        panelButton.title = labels.labelMarkersHide;
+        panelButton.setAttribute("aria-label", labels.labelMarkersHide);
+        panelButton.querySelector("i").className = "bi bi-flag-fill";
         document.querySelectorAll(".admidio-media-player-markers-toggle").forEach(function(button) {
             const label = markersMode ? labels.labelMarkersHide : labels.labelMarkersShow;
             button.setAttribute("aria-pressed", markersMode.toString());
@@ -1836,8 +1838,6 @@ $(function() {
             return;
         }
         const position = Math.round(media.currentTime() * 10) / 10;
-        markersPanel = true;
-        writeSetting(markerKeys.panel, "1");
         sendMarkerRequest(labels.markerSaveUrl, Object.assign({position: position, name: "", shared: 0}, target)).done(function(response) {
             markers.push(response.marker);
             sortMarkers();
@@ -1871,12 +1871,13 @@ $(function() {
         }
     }
 
-    $(document).on("click", ".admidio-media-player-markers-toggle", function() {
-        markersMode = !markersMode;
+    /**
+     * Switch the markers on or off. All flags (header of the playlist, player bar, close button of the panel) do the same.
+     */
+    function setMarkersMode(on) {
+        markersMode = on;
         writeSetting(markerKeys.mode, markersMode ? "1" : "0");
         if (markersMode) {
-            markersPanel = true;
-            writeSetting(markerKeys.panel, "1");
             loadMarkers();
         } else {
             markers = [];
@@ -1884,16 +1885,16 @@ $(function() {
             renderTicks();
             applyMarkersMode();
         }
+    }
+
+    $(document).on("click", ".admidio-media-player-markers-toggle", function() {
+        setMarkersMode(!markersMode);
     });
     document.getElementById("adm_media_player_marker_panel").addEventListener("click", function() {
-        markersPanel = !markersPanel;
-        writeSetting(markerKeys.panel, markersPanel ? "1" : "0");
-        applyMarkersMode();
+        setMarkersMode(false);
     });
     document.getElementById("adm_media_player_markers_close").addEventListener("click", function() {
-        markersPanel = false;
-        writeSetting(markerKeys.panel, "0");
-        applyMarkersMode();
+        setMarkersMode(false);
     });
     document.getElementById("adm_media_player_marker_previous").addEventListener("click", function() {
         previousNextMarker(-1);

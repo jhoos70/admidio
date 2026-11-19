@@ -1078,3 +1078,23 @@ label.admidio-media-player-tree-line {
 #adm_content.admidio-content.admidio-max-content {
     max-width: none;
 }
+
+/* columns behind the name of a marker: bar (right aligned) and shared icon, so the names of all markers are aligned */
+.admidio-media-player-marker-bar-slot {
+    flex: 0 0 3.75rem;
+    text-align: right;
+}
+
+.admidio-media-player-marker-bar-slot .admidio-media-player-marker-bar {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.admidio-media-player-marker-shared-slot {
+    flex: 0 0 1.1rem;
+    text-align: center;
+}

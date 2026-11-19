@@ -1674,22 +1674,27 @@ $(function() {
         const name = document.createElement("span");
         name.className = "admidio-media-player-marker-name";
         name.textContent = marker.name;
-        jump.append(time);
+        jump.append(time, name);
+        // the bar and the shared icon stand behind the name in fixed columns, so the names are aligned
+        const bar = document.createElement("span");
+        bar.className = "admidio-media-player-marker-bar-slot";
         if (marker.bar !== "") {
-            const bar = document.createElement("span");
-            bar.className = "admidio-media-player-marker-bar";
-            bar.textContent = marker.bar;
-            bar.title = labels.labelMarkerBar + ": " + marker.bar;
-            jump.appendChild(bar);
+            const badge = document.createElement("span");
+            badge.className = "admidio-media-player-marker-bar";
+            badge.textContent = marker.bar;
+            badge.title = labels.labelMarkerBar + ": " + marker.bar;
+            bar.appendChild(badge);
         }
-        jump.appendChild(name);
+        const sharedSlot = document.createElement("span");
+        sharedSlot.className = "admidio-media-player-marker-shared-slot";
         if (marker.shared) {
             const icon = document.createElement("i");
             icon.className = "bi bi-people-fill admidio-media-player-marker-shared";
             icon.title = labels.labelMarkerSharedInfo;
             icon.setAttribute("aria-label", labels.labelMarkerSharedInfo);
-            jump.appendChild(icon);
+            sharedSlot.appendChild(icon);
         }
+        jump.append(bar, sharedSlot);
         jump.addEventListener("click", function() {
             jumpToMarker(marker);
         });

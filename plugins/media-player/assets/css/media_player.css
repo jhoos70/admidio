@@ -1003,7 +1003,7 @@ label.admidio-media-player-tree-line {
 @media (min-width: 992px) {
     .admidio-media-player.admidio-media-player-markers-open {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 24rem;
+        grid-template-columns: minmax(0, 1fr) clamp(26rem, 35%, 40rem);
         gap: 1.5rem;
         align-items: start;
     }

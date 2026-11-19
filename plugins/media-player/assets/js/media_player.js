@@ -66,6 +66,10 @@ $(function() {
     // play only the sound of video files, without loading the picture (saves data, no stuttering on weak phones)
     let soundOnlyMode = readSetting(storageKeys.soundOnly, ["0", "1"], "0") === "1";
     let seeking = false;
+    // A-B repeat of the current item: start (A) and end (B) in seconds, null while not set
+    let loopStart = null;
+    let loopEnd = null;
+    let loopTimer = null;
     // seconds of audio that must be loaded in advance before the playback continues after the browser has run out
     // of data, so a slow connection gives one longer pause instead of a series of short stops
     const rebufferSeconds = 20;
@@ -245,6 +249,89 @@ $(function() {
             button.title = label;
             button.setAttribute("aria-label", label);
         });
+    }
+
+    /**
+     * Show the state of the A-B repeat at the button and mark the range at the seek bar.
+     */
+    function showLoopState() {
+        const button = document.getElementById("adm_media_player_ab");
+        const region = document.getElementById("adm_media_player_ab_region");
+        const text = button.querySelector("span");
+        let label = labels.labelAbSetStart;
+        text.textContent = "A\u2013B";
+        if (loopEnd !== null) {
+            label = labels.labelAbClear + " (" + formatTime(loopStart) + " \u2013 " + formatTime(loopEnd) + ")";
+        } else if (loopStart !== null) {
+            label = labels.labelAbSetEnd + " (A " + formatTime(loopStart) + ")";
+            text.textContent = "A\u2013";
+        }
+        button.setAttribute("aria-pressed", (loopStart !== null).toString());
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        const duration = (media !== null) ? media.duration() : 0;
+        if (loopStart !== null && duration > 0 && isFinite(duration)) {
+            const end = (loopEnd !== null) ? loopEnd : loopStart;
+            region.style.left = (100 * loopStart / duration) + "%";
+            region.style.width = Math.max(0.5, 100 * (end - loopStart) / duration) + "%";
+            region.hidden = false;
+        } else {
+            region.hidden = true;
+        }
+    }
+
+    /**
+     * Remove the A-B repeat, e.g. when another item starts.
+     */
+    function clearLoop() {
+        loopStart = null;
+        loopEnd = null;
+        if (loopTimer !== null) {
+            window.clearInterval(loopTimer);
+            loopTimer = null;
+        }
+        showLoopState();
+    }
+
+    /**
+     * Jump back to the start of the A-B range when its end has been reached.
+     */
+    function checkLoop() {
+        if (loopEnd === null || media === null) {
+            return;
+        }
+        const position = media.currentTime();
+        // a position far behind the end was chosen by the user with the seek bar, then the item plays on
+        if (position >= loopEnd && position < loopEnd + 1.5) {
+            media.currentTime(loopStart);
+        }
+    }
+
+    /**
+     * Switch the A-B repeat: first click sets A, second click sets B and starts the repeat, third click removes it.
+     */
+    function toggleLoop() {
+        if (media === null) {
+            return;
+        }
+        if (loopEnd !== null) {
+            clearLoop();
+            return;
+        }
+        const position = media.currentTime();
+        if (loopStart === null) {
+            loopStart = position;
+        } else if (position - loopStart < 0.5) {
+            // the range would be empty: start again at this position
+            loopStart = position;
+        } else {
+            loopEnd = position;
+            media.currentTime(loopStart);
+            if (loopTimer === null) {
+                loopTimer = window.setInterval(checkLoop, 50);
+            }
+        }
+        showLoopState();
     }
 
     /**
@@ -586,8 +673,10 @@ $(function() {
 
     function connectMedia() {
         media.on("timeupdate", showProgress);
+        media.on("timeupdate", checkLoop);
         media.on("loadedmetadata", showProgress);
         media.on("durationchange", showProgress);
+        media.on("durationchange", showLoopState);
         media.on("play", showPlayState);
         media.on("playing", showPlayState);
         media.on("pause", showPlayState);
@@ -642,7 +731,7 @@ $(function() {
             let handedOver = false;
             media.on("timeupdate", function() {
                 const remaining = audio.duration - audio.currentTime;
-                if (handedOver || media !== current || audio.paused || repeatMode === "one" || nextAudioRow === null
+                if (handedOver || media !== current || audio.paused || repeatMode === "one" || loopEnd !== null || nextAudioRow === null
                     || !(remaining > 0 && remaining <= handoffTime)) {
                     return;
                 }
@@ -948,6 +1037,7 @@ $(function() {
         });
         row.classList.add("admidio-media-player-active");
         currentRow = row;
+        clearLoop();
 
         bar.hidden = false;
         document.body.classList.add("admidio-media-player-bar-visible");
@@ -1034,7 +1124,11 @@ $(function() {
      * Continue after the end of an item depending on the repeat mode.
      */
     function playAfterEnd() {
-        if (repeatMode === "one") {
+        if (loopEnd !== null) {
+            // the end of the A-B range is the end of the item
+            media.currentTime(loopStart);
+            media.play();
+        } else if (repeatMode === "one") {
             // the embedded players don't always support the loop, so start the item again
             media.currentTime(0);
             media.play();
@@ -1217,6 +1311,7 @@ $(function() {
         }
         showRepeatMode();
     });
+    document.getElementById("adm_media_player_ab").addEventListener("click", toggleLoop);
     $(document).on("click", ".admidio-media-player-shuffle", function() {
         shuffle = !shuffle;
         writeSetting(storageKeys.shuffle, shuffle ? "1" : "0");

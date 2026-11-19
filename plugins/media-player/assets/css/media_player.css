@@ -261,6 +261,37 @@ body.admidio-media-player-bar-visible {
     flex-grow: 1;
 }
 
+/* A-B repeat: the button shows text instead of an icon, the range is marked behind the seek bar */
+.admidio-media-player-seek {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.admidio-media-player-seek .form-range {
+    position: relative;
+    width: 100%;
+}
+
+.admidio-media-player-ab-region {
+    position: absolute;
+    top: 50%;
+    height: 0.5rem;
+    transform: translateY(-50%);
+    border-radius: 0.25rem;
+    background: var(--bs-primary);
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.btn.admidio-media-player-ab {
+    padding-inline: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 .admidio-media-player-time {
     min-width: 2.75rem;
     font-size: 0.8rem;

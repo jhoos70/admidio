@@ -1,5 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
+  <string name="PLG_MEDIA_PLAYER_AB_CLEAR">A-B-Wiederholung entfernen</string>
+  <string name="PLG_MEDIA_PLAYER_AB_SET_END">Schleifenende (B) setzen und wiederholen</string>
+  <string name="PLG_MEDIA_PLAYER_AB_SET_START">Schleifenanfang (A) setzen</string>
   <string name="PLG_MEDIA_PLAYER_ADD_HINT_PHONE">Fügen Sie Audio- und Videodateien sowie Weblinks über „Medien hinzufügen“ hinzu.</string>
   <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Medien hinzufügen</string>
   <string name="PLG_MEDIA_PLAYER_ADD_SELECTED">Hinzufügen (#VAR1#)</string>

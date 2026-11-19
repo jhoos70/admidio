@@ -1073,3 +1073,8 @@ label.admidio-media-player-tree-line {
 .admidio-media-player-marker-bar-input {
     flex: 0 1 12rem;
 }
+
+/* themes that set the width of the content later than the default style (e.g. the Querbeat theme) keep their limit otherwise */
+#adm_content.admidio-content.admidio-max-content {
+    max-width: none;
+}

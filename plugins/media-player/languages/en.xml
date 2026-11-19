@@ -5,7 +5,7 @@
   <string name="PLG_MEDIA_PLAYER_AB_HINT_B">Repeating #VAR1# – #VAR2# – tap again to remove</string>
   <string name="PLG_MEDIA_PLAYER_AB_HINT_CLEAR">A-B repeat removed</string>
   <string name="PLG_MEDIA_PLAYER_AB_SET_END">Set loop end (B) and repeat</string>
-  <string name="PLG_MEDIA_PLAYER_AB_SET_START">Set loop start (A)</string>
+  <string name="PLG_MEDIA_PLAYER_AB_SET_START">Repeat a section of this track: set start (A)</string>
   <string name="PLG_MEDIA_PLAYER_ADD_HINT_PHONE">Add audio and video files and weblinks with "Add media".</string>
   <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Add media</string>
   <string name="PLG_MEDIA_PLAYER_ADD_SELECTED">Add (#VAR1#)</string>

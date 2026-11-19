@@ -5,7 +5,7 @@
   <string name="PLG_MEDIA_PLAYER_AB_HINT_B">Wiederholung #VAR1# – #VAR2# – erneut tippen zum Entfernen</string>
   <string name="PLG_MEDIA_PLAYER_AB_HINT_CLEAR">A-B-Wiederholung entfernt</string>
   <string name="PLG_MEDIA_PLAYER_AB_SET_END">Schleifenende (B) setzen und wiederholen</string>
-  <string name="PLG_MEDIA_PLAYER_AB_SET_START">Schleifenanfang (A) setzen</string>
+  <string name="PLG_MEDIA_PLAYER_AB_SET_START">Abschnitt dieses Titels wiederholen: Anfang (A) setzen</string>
   <string name="PLG_MEDIA_PLAYER_ADD_HINT_PHONE">Füge Audio- und Videodateien sowie Weblinks über „Medien hinzufügen“ hinzu.</string>
   <string name="PLG_MEDIA_PLAYER_ADD_MEDIA">Medien hinzufügen</string>
   <string name="PLG_MEDIA_PLAYER_ADD_SELECTED">Hinzufügen (#VAR1#)</string>

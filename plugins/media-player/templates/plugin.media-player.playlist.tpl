@@ -12,9 +12,32 @@
     data-label-sound-only-off="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_OFF')}" data-label-sound-only-on="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_ON')}"
     data-label-minutes="{$l10n->get('PLG_MEDIA_PLAYER_MINUTES')}"
     data-label-buffering="{$l10n->get('PLG_MEDIA_PLAYER_BUFFERING')}"
+    data-label-markers="{$l10n->get('PLG_MEDIA_PLAYER_MARKERS')}"
+    data-label-markers-show="{$l10n->get('PLG_MEDIA_PLAYER_MARKERS_SHOW')}"
+    data-label-markers-hide="{$l10n->get('PLG_MEDIA_PLAYER_MARKERS_HIDE')}"
+    data-label-marker-add="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD')}"
+    data-label-marker-add-form="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD_FORM')}"
+    data-label-marker-name="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NAME')}"
+    data-label-marker-time="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_TIME')}"
+    data-label-marker-now="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NOW')}"
+    data-label-marker-shared="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_SHARED')}"
+    data-label-marker-shared-info="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_SHARED_INFO')}"
+    data-label-marker-previous="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_PREVIOUS')}"
+    data-label-marker-next="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NEXT')}"
+    data-label-marker-loop="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_LOOP')}"
+    data-label-marker-empty="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_EMPTY')}"
+    data-label-marker-no-item="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NO_ITEM')}"
+    data-label-marker-unavailable="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_UNAVAILABLE')}"
+    data-label-marker-time-invalid="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_TIME_INVALID')}"
+    data-label-marker-error="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ERROR')}"
+    data-label-marker-delete-confirm="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_DELETE_CONFIRM')}"
+    data-label-marker-jump="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_JUMP')}"
+    data-label-save="{$l10n->get('SYS_SAVE')}" data-label-cancel="{$l10n->get('SYS_CANCEL')}" data-label-edit="{$l10n->get('SYS_EDIT')}" data-label-delete="{$l10n->get('SYS_DELETE')}"
+    data-valid-login="{if $validLogin}1{else}0{/if}" data-markers-url="{$markersUrl}" data-marker-save-url="{$markerSaveUrl}" data-marker-delete-url="{$markerDeleteUrl}" data-can-share-markers="{if $canShareMarkers}1{else}0{/if}"
     data-artwork="{$artwork|escape:'html'}"
     data-durations-url="{$durationsUrl}" data-debug-log-url="{$debugLogUrl}" data-debug-user="{if $debugUser}1{else}0{/if}" data-link-duration-url="{$linkDurationUrl}" data-csrf-token="{$csrfToken}">
 
+    <div class="admidio-media-player-main">
     <div class="admidio-media-player-hero">
         {if $playlistDescription !== ''}
             <p class="admidio-media-player-description">{$playlistDescription|escape:'html'|nl2br}</p>
@@ -33,6 +56,8 @@
                     <i class="bi bi-repeat"></i></button>
                 <button type="button" class="btn btn-link admidio-media-player-toggle admidio-media-player-sound-only" aria-pressed="false">
                     <i class="bi bi-soundwave"></i></button>
+                <button type="button" class="btn btn-link admidio-media-player-toggle admidio-media-player-markers-toggle" aria-pressed="false">
+                    <i class="bi bi-flag"></i></button>
             {/if}
             {if $isEditor}
                 <a id="adm_media_player_edit_items" class="btn admidio-media-player-edit-button ms-auto" href="{$itemsUrl}">
@@ -113,6 +138,34 @@
         </table>
     {/if}
 
+    </div>
+
+    {* markers of the current item: panel at the right on desktop, sheet above the player bar on phones; only used when the user has switched markers on *}
+    <aside id="adm_media_player_markers" class="admidio-media-player-markers" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_MARKERS')}" hidden>
+        <div class="admidio-media-player-markers-header">
+            <div class="admidio-media-player-markers-title">
+                <strong>{$l10n->get('PLG_MEDIA_PLAYER_MARKERS')}</strong>
+                <span id="adm_media_player_markers_track" class="small text-body-secondary text-truncate"></span>
+            </div>
+            <button type="button" id="adm_media_player_marker_previous" class="btn btn-link admidio-media-player-toggle admidio-media-player-marker-small"
+                title="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_PREVIOUS')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_PREVIOUS')}">
+                <i class="bi bi-chevron-bar-left"></i></button>
+            <button type="button" id="adm_media_player_marker_next" class="btn btn-link admidio-media-player-toggle admidio-media-player-marker-small"
+                title="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NEXT')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NEXT')}">
+                <i class="bi bi-chevron-bar-right"></i></button>
+            {if $validLogin}
+                <button type="button" id="adm_media_player_marker_add_form" class="btn btn-link admidio-media-player-toggle admidio-media-player-marker-small"
+                    title="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD_FORM')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD_FORM')}">
+                    <i class="bi bi-plus-lg"></i></button>
+            {/if}
+            <button type="button" id="adm_media_player_markers_close" class="btn btn-link admidio-media-player-toggle admidio-media-player-marker-small"
+                title="{$l10n->get('SYS_CLOSE')}" aria-label="{$l10n->get('SYS_CLOSE')}">
+                <i class="bi bi-x-lg"></i></button>
+        </div>
+        <p id="adm_media_player_markers_message" class="admidio-media-player-markers-message text-body-secondary small"></p>
+        <ul id="adm_media_player_markers_list" class="admidio-media-player-markers-list list-unstyled"></ul>
+    </aside>
+
     {* the player bar is fixed at the bottom of the window and is shown after the first item was started *}
     <div id="adm_media_player_bar" class="admidio-media-player-bar" hidden>
         <div class="admidio-media-player-bar-track">
@@ -140,6 +193,7 @@
                 <span id="adm_media_player_time" class="admidio-media-player-time">0:00</span>
                 <div class="admidio-media-player-seek">
                     <div id="adm_media_player_ab_region" class="admidio-media-player-ab-region" hidden></div>
+                    <div id="adm_media_player_ticks" class="admidio-media-player-ticks" aria-hidden="true"></div>
                     <span id="adm_media_player_ab_flag_a" class="admidio-media-player-ab-flag" hidden>A</span>
                     <span id="adm_media_player_ab_flag_b" class="admidio-media-player-ab-flag" hidden>B</span>
                     <input type="range" id="adm_media_player_seek" class="form-range" min="0" max="0" step="0.1" value="0"
@@ -149,6 +203,14 @@
                 <button type="button" id="adm_media_player_ab" class="btn btn-link admidio-media-player-toggle admidio-media-player-ab" aria-pressed="false"
                     title="{$l10n->get('PLG_MEDIA_PLAYER_AB_SET_START')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_AB_SET_START')}">
                     <i class="bi bi-repeat"></i><span class="admidio-media-player-ab-letters">AB</span></button>
+                <button type="button" id="adm_media_player_marker_panel" class="btn btn-link admidio-media-player-toggle admidio-media-player-marker-only admidio-media-player-marker-small" aria-pressed="false" hidden
+                    title="{$l10n->get('PLG_MEDIA_PLAYER_MARKERS')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_MARKERS')}">
+                    <i class="bi bi-flag"></i></button>
+                {if $validLogin}
+                    <button type="button" id="adm_media_player_marker_add" class="btn btn-link admidio-media-player-toggle admidio-media-player-marker-only admidio-media-player-marker-small" hidden
+                        title="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD')}">
+                        <i class="bi bi-bookmark-plus"></i></button>
+                {/if}
             </div>
         </div>
         <div class="admidio-media-player-bar-extra">

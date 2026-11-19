@@ -26,6 +26,9 @@
  *                 media_tree   - files and weblinks that could be added to a playlist (JSON)
  *                 durations    - store the length of files that the browser has measured (JSON)
  *                 link_duration - length of a YouTube or Vimeo weblink (JSON)
+ *                 markers      - markers of a file or weblink (JSON, GET file_uuid or weblink_uuid)
+ *                 marker_save  - create or change a marker (JSON)
+ *                 marker_delete - delete a marker (JSON)
  *                 add          - add files and weblinks to a playlist (JSON)
  *                 reorder      - save the new order of the items of a playlist
  *                 remove_item  - remove an item from a playlist
@@ -38,6 +41,8 @@
  * with_path     : 1 = the folder tree also gets the path to the folder
  * item_uuid     : UUID of the playlist item
  * file_uuid     : UUID of the file that should be streamed
+ * weblink_uuid  : UUID of the weblink whose markers are requested
+ * marker_uuid   : UUID of the marker that is changed or deleted
  ***********************************************************************************************
  */
 
@@ -47,6 +52,7 @@ use AdmidioPlugin\MediaPlayer\MediaPlayer;
 use AdmidioPlugin\MediaPlayer\Presenter\PlaylistsPresenter;
 use AdmidioPlugin\MediaPlayer\Service\DurationService;
 use AdmidioPlugin\MediaPlayer\Service\FolderService;
+use AdmidioPlugin\MediaPlayer\Service\MarkerService;
 use AdmidioPlugin\MediaPlayer\Service\PlaylistService;
 use AdmidioPlugin\MediaPlayer\Service\StreamService;
 use AdmidioPlugin\MediaPlayer\Service\ZipExportService;
@@ -57,7 +63,7 @@ try {
 
     $getMode = admFuncVariableIsValid($_GET, 'mode', 'string', array(
         'defaultValue' => 'list',
-        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'move', 'folder_edit', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item', 'stream', 'zip', 'debug_log')
+        'validValues' => array('list', 'playlist', 'items', 'edit', 'save', 'delete', 'move', 'folder_edit', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'markers', 'marker_save', 'marker_delete', 'add', 'reorder', 'remove_item', 'stream', 'zip', 'debug_log')
     ));
     $getPlaylistUuid = admFuncVariableIsValid($_GET, 'playlist_uuid', 'uuid');
     $getItemUuid = admFuncVariableIsValid($_GET, 'item_uuid', 'uuid');
@@ -66,6 +72,7 @@ try {
     $getWithPath = admFuncVariableIsValid($_GET, 'with_path', 'bool');
     $getFileUuid = admFuncVariableIsValid($_GET, 'file_uuid', 'uuid');
     $getSound = admFuncVariableIsValid($_GET, 'sound', 'bool');
+    $getMarkerUuid = admFuncVariableIsValid($_GET, 'marker_uuid', 'uuid');
 
     MediaPlayer::checkAccess();
 
@@ -113,6 +120,20 @@ try {
 
         case 'link_duration':
             echo json_encode(array('status' => 'success', 'duration' => (new DurationService($gDb))->getWeblinkDuration()));
+            break;
+
+        case 'markers':
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(array_merge(array('status' => 'success'), (new MarkerService($gDb))->getMarkers()));
+            break;
+
+        case 'marker_save':
+            echo json_encode(array('status' => 'success', 'marker' => (new MarkerService($gDb))->save($getMarkerUuid)));
+            break;
+
+        case 'marker_delete':
+            (new MarkerService($gDb))->delete($getMarkerUuid);
+            echo json_encode(array('status' => 'success'));
             break;
 
         case 'media_tree':
@@ -217,5 +238,5 @@ try {
         http_response_code(404);
         exit();
     }
-    handleException($e, in_array($getMode, array('save', 'delete', 'move', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'add', 'reorder', 'remove_item'), true));
+    handleException($e, in_array($getMode, array('save', 'delete', 'move', 'folder_save', 'folder_delete', 'folder_tree', 'copy', 'media_tree', 'durations', 'link_duration', 'markers', 'marker_save', 'marker_delete', 'add', 'reorder', 'remove_item'), true));
 }

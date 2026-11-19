@@ -31,6 +31,7 @@ final class MediaPlayer
     public const TABLE_FOLDERS = TABLE_PREFIX . '_media_playlist_folders';
     public const TABLE_PLAYLIST_ITEMS = TABLE_PREFIX . '_media_playlist_items';
     public const TABLE_USER_STATES = TABLE_PREFIX . '_media_user_states';
+    public const TABLE_MARKERS = TABLE_PREFIX . '_media_markers';
     public const TABLE_DURATIONS = TABLE_PREFIX . '_media_durations';
 
     /**

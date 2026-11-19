@@ -192,6 +192,10 @@ class PlaylistsPresenter extends PagePresenter
             array('src' => ADMIDIO_URL . '/system/logo/admidio_logo_512.png', 'sizes' => '512x512', 'type' => 'image/png')
         )));
         $this->smarty->assign('linkDurationUrl', $url('link_duration'));
+        $this->smarty->assign('markersUrl', $url('markers'));
+        $this->smarty->assign('markerSaveUrl', $url('marker_save'));
+        $this->smarty->assign('markerDeleteUrl', $url('marker_delete'));
+        $this->smarty->assign('canShareMarkers', MediaPlayer::isPlaylistEditor());
         $this->smarty->assign('validLogin', $GLOBALS['gValidLogin']);
         $this->smarty->assign('csrfToken', $gCurrentSession->getCsrfToken());
         $this->smarty->assign('l10n', $gL10n);

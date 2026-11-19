@@ -126,6 +126,34 @@ CREATE UNIQUE INDEX %PREFIX%_idx_mdu_fil_id ON %PREFIX%_media_durations (mdu_fil
 CREATE UNIQUE INDEX %PREFIX%_idx_mdu_lnk_id ON %PREFIX%_media_durations (mdu_lnk_id);
 
 /*==============================================================*/
+/* Table: media_markers                                         */
+/* Named positions in a file or weblink, shared or private      */
+/*==============================================================*/
+CREATE TABLE %PREFIX%_media_markers
+(
+    mmk_id                      integer unsigned    NOT NULL    AUTO_INCREMENT,
+    mmk_uuid                    varchar(36)         NOT NULL,
+    mmk_fil_id                  integer unsigned,
+    mmk_lnk_id                  integer unsigned,
+    mmk_position                decimal(9,1) unsigned NOT NULL,
+    mmk_name                    varchar(100)        NOT NULL,
+    mmk_is_shared               boolean             NOT NULL    DEFAULT false,
+    mmk_usr_id_create           integer unsigned,
+    mmk_timestamp_create        timestamp           NOT NULL    DEFAULT CURRENT_TIMESTAMP,
+    mmk_usr_id_change           integer unsigned,
+    mmk_timestamp_change        timestamp           NULL        DEFAULT NULL,
+    PRIMARY KEY (mmk_id),
+    CONSTRAINT %PREFIX%_chk_mmk_source CHECK ((mmk_fil_id IS NOT NULL AND mmk_lnk_id IS NULL) OR (mmk_fil_id IS NULL AND mmk_lnk_id IS NOT NULL))
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+CREATE UNIQUE INDEX %PREFIX%_idx_mmk_uuid ON %PREFIX%_media_markers (mmk_uuid);
+CREATE INDEX %PREFIX%_idx_mmk_fil_id ON %PREFIX%_media_markers (mmk_fil_id);
+CREATE INDEX %PREFIX%_idx_mmk_lnk_id ON %PREFIX%_media_markers (mmk_lnk_id);
+
+/*==============================================================*/
 /* Constraints                                                  */
 /*==============================================================*/
 -- a folder is removed together with its organization or owner, but only if it is empty
@@ -160,3 +188,10 @@ ALTER TABLE %PREFIX%_media_user_states
 ALTER TABLE %PREFIX%_media_durations
     ADD CONSTRAINT %PREFIX%_fk_mdu_fil         FOREIGN KEY (mdu_fil_id)         REFERENCES %PREFIX%_files (fil_id)           ON DELETE CASCADE ON UPDATE RESTRICT,
     ADD CONSTRAINT %PREFIX%_fk_mdu_lnk         FOREIGN KEY (mdu_lnk_id)         REFERENCES %PREFIX%_links (lnk_id)           ON DELETE CASCADE ON UPDATE RESTRICT;
+
+-- markers are removed together with their file or weblink
+ALTER TABLE %PREFIX%_media_markers
+    ADD CONSTRAINT %PREFIX%_fk_mmk_fil         FOREIGN KEY (mmk_fil_id)         REFERENCES %PREFIX%_files (fil_id)           ON DELETE CASCADE ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mmk_lnk         FOREIGN KEY (mmk_lnk_id)         REFERENCES %PREFIX%_links (lnk_id)           ON DELETE CASCADE ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mmk_usr_create  FOREIGN KEY (mmk_usr_id_create)  REFERENCES %PREFIX%_users (usr_id)           ON DELETE SET NULL ON UPDATE RESTRICT,
+    ADD CONSTRAINT %PREFIX%_fk_mmk_usr_change  FOREIGN KEY (mmk_usr_id_change)  REFERENCES %PREFIX%_users (usr_id)           ON DELETE SET NULL ON UPDATE RESTRICT;

@@ -831,3 +831,223 @@ label.admidio-media-player-tree-line {
         animation: none;
     }
 }
+
+/* ---- markers: only shown when the user has switched them on ---- */
+.admidio-media-player-ab-region,
+.admidio-media-player-ab-flag,
+.admidio-media-player-ticks {
+    z-index: 1;
+}
+
+.admidio-media-player-ticks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.admidio-media-player-ticks[hidden] {
+    display: none;
+}
+
+.admidio-media-player-tick {
+    position: absolute;
+    top: 50%;
+    width: 0.2rem;
+    height: 0.9rem;
+    transform: translate(-50%, -50%);
+    border-radius: 0.1rem;
+    background: var(--bs-secondary-color);
+    box-shadow: 0 0 0 1px var(--bs-body-bg);
+}
+
+.admidio-media-player-tick-shared {
+    background: var(--bs-primary);
+}
+
+.btn.admidio-media-player-marker-small {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.15rem;
+}
+
+.admidio-media-player-marker-only[hidden] {
+    display: none;
+}
+
+.admidio-media-player-markers {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    background: var(--bs-body-bg);
+    min-width: 0;
+}
+
+.admidio-media-player-markers[hidden] {
+    display: none;
+}
+
+.admidio-media-player-markers-header {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.admidio-media-player-markers-title {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.admidio-media-player-markers-message {
+    margin: 0;
+    padding: 0.75rem;
+}
+
+.admidio-media-player-markers-message[hidden] {
+    display: none;
+}
+
+.admidio-media-player-markers-list {
+    margin: 0;
+    padding: 0.25rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.admidio-media-player-marker {
+    display: flex;
+    align-items: center;
+    border-radius: 0.375rem;
+}
+
+.admidio-media-player-marker-active {
+    background: var(--bs-primary-bg-subtle);
+}
+
+.admidio-media-player-marker-jump {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 0.6rem;
+    min-width: 0;
+    padding: 0.4rem 0.5rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+}
+
+.admidio-media-player-marker-time {
+    min-width: 2.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+}
+
+.admidio-media-player-marker-name {
+    flex-grow: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.admidio-media-player-marker-shared {
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+}
+
+.admidio-media-player-marker-actions {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.btn.admidio-media-player-marker-action {
+    padding: 0.25rem 0.4rem;
+    color: var(--bs-secondary-color);
+    line-height: 1;
+}
+
+.btn.admidio-media-player-marker-action:hover,
+.btn.admidio-media-player-marker-action:focus-visible {
+    color: var(--bs-body-color);
+}
+
+.admidio-media-player-marker-form {
+    display: block;
+    padding: 0.5rem;
+    background: var(--bs-tertiary-bg);
+}
+
+.admidio-media-player-marker-form-row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.admidio-media-player-marker-time-input {
+    flex: 0 0 4.5rem;
+}
+
+.admidio-media-player-marker-shared-check {
+    margin-top: 0.5rem;
+}
+
+.admidio-media-player-marker-form-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* desktop: the panel stands at the right of the playlist */
+@media (min-width: 992px) {
+    .admidio-media-player.admidio-media-player-markers-open {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 22rem;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .admidio-media-player-markers {
+        position: sticky;
+        top: 1rem;
+    }
+}
+
+/* phones and tablets: the panel is a sheet above the player bar */
+@media (max-width: 991.98px) {
+    .admidio-media-player-markers {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: var(--admidio-media-player-bar-height, 0px);
+        z-index: 1029;
+        max-height: 50vh;
+        overflow-y: auto;
+        border-width: 1px 0 0;
+        border-radius: 0.75rem 0.75rem 0 0;
+        box-shadow: 0 -0.25rem 1rem rgba(0, 0, 0, 0.12);
+    }
+
+    .admidio-media-player-markers-list {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .admidio-media-player-markers-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--bs-body-bg);
+    }
+
+    body.admidio-media-player-markers-sheet {
+        padding-bottom: calc(7rem + 50vh);
+    }
+
+    .btn.admidio-media-player-marker-small {
+        width: 2rem;
+        height: 2rem;
+        font-size: 1.05rem;
+    }
+}

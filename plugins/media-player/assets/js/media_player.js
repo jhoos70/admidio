@@ -431,6 +431,7 @@ $(function() {
             seekElement.max = isFinite(duration) ? duration : 0;
             seekElement.value = position;
         }
+        showActiveMarker();
         // the lock screen needs the position only now and then, it moves the progress bar itself
         if (Date.now() - lastPositionUpdate > 1000) {
             updatePositionState();
@@ -712,6 +713,8 @@ $(function() {
         media.on("loadedmetadata", showProgress);
         media.on("durationchange", showProgress);
         media.on("durationchange", showLoopState);
+        media.on("durationchange", renderTicks);
+        media.on("loadedmetadata", renderTicks);
         media.on("play", showPlayState);
         media.on("playing", showPlayState);
         media.on("pause", showPlayState);
@@ -1074,6 +1077,9 @@ $(function() {
         row.classList.add("admidio-media-player-active");
         currentRow = row;
         clearLoop();
+        markers = [];
+        markersLoaded = false;
+        markerEditing = null;
 
         bar.hidden = false;
         document.body.classList.add("admidio-media-player-bar-visible");
@@ -1141,6 +1147,7 @@ $(function() {
             stage.append(notice, link);
         }
         showPlayState();
+        markersItemChanged();
         if (previousAudio === null) {
             preloadNextAudio();
         } else {
@@ -1346,7 +1353,543 @@ $(function() {
             media.setLoop(repeatMode === "one");
         }
         showRepeatMode();
+    applyMarkersMode();
     });
+    // ---- markers: named positions of the current item, only active when the user has switched them on
+    const markerKeys = {mode: "admidio-media-player-markers", panel: "admidio-media-player-markers-panel"};
+    const markersElement = document.getElementById("adm_media_player_markers");
+    const markersListElement = document.getElementById("adm_media_player_markers_list");
+    const markersMessageElement = document.getElementById("adm_media_player_markers_message");
+    const ticksElement = document.getElementById("adm_media_player_ticks");
+    const markerBarButtons = document.querySelectorAll(".admidio-media-player-marker-only");
+    const validLogin = labels.validLogin === "1";
+    let markersMode = readSetting(markerKeys.mode, ["0", "1"], "0") === "1";
+    let markersPanel = readSetting(markerKeys.panel, ["0", "1"], "1") === "1";
+    let markers = [];
+    let markersCanShare = false;
+    // true after the markers of the current item have been loaded
+    let markersLoaded = false;
+    // UUID of the marker that is edited, "new" for the form of a new marker
+    let markerEditing = null;
+    let activeMarkerUuid = null;
+
+    /**
+     * The identifier of the current item for the requests of the markers, or null if the item has no markers.
+     * @returns {object|null}
+     */
+    function getMarkerTarget() {
+        if (currentRow === null || media === null) {
+            return null;
+        }
+        if (currentRow.dataset.fileUuid) {
+            return {file_uuid: currentRow.dataset.fileUuid};
+        }
+        if (currentRow.dataset.weblinkUuid) {
+            return {weblink_uuid: currentRow.dataset.weblinkUuid};
+        }
+        return null;
+    }
+
+    /**
+     * Read a time like 83, 1:23, 1:23.5 or 1:02:03 as seconds.
+     * @param {string} text
+     * @returns {number|null} The seconds or null if the text is no time.
+     */
+    function parseMarkerTime(text) {
+        text = text.trim().replace(",", ".");
+        if (!/^\d+(:\d{1,2}){0,2}(\.\d+)?$/.test(text)) {
+            return null;
+        }
+        const parts = text.split(":").map(parseFloat);
+        let seconds = 0;
+        parts.forEach(function(part) {
+            seconds = seconds * 60 + part;
+        });
+        return (parts.length > 1 && parts.slice(1).some(function(part) { return part >= 60; })) ? null : Math.round(seconds * 10) / 10;
+    }
+
+    function sendMarkerRequest(url, data) {
+        return $.post(url, $.param(Object.assign({adm_csrf_token: labels.csrfToken}, data)), null, "json").then(function(response) {
+            if (response.status !== "success") {
+                return $.Deferred().reject(response.message).promise();
+            }
+            return response;
+        }, function(xhr) {
+            return $.Deferred().reject(xhr.responseText || xhr.statusText).promise();
+        });
+    }
+
+    function showMarkerError(message) {
+        messageBox(message || labels.labelMarkerError, "", "error");
+    }
+
+    /**
+     * Show or hide everything of the markers: panel, buttons of the bar and ticks at the seek bar.
+     */
+    function applyMarkersMode() {
+        const open = markersMode && markersPanel;
+        root.classList.toggle("admidio-media-player-markers-open", open);
+        markersElement.hidden = !open;
+        const target = getMarkerTarget() !== null;
+        markerBarButtons.forEach(function(button) {
+            button.hidden = !markersMode || (button.id === "adm_media_player_marker_add" && !target);
+        });
+        const panelButton = document.getElementById("adm_media_player_marker_panel");
+        panelButton.setAttribute("aria-pressed", open.toString());
+        document.querySelectorAll(".admidio-media-player-markers-toggle").forEach(function(button) {
+            const label = markersMode ? labels.labelMarkersHide : labels.labelMarkersShow;
+            button.setAttribute("aria-pressed", markersMode.toString());
+            button.title = label;
+            button.setAttribute("aria-label", label);
+            button.querySelector("i").className = markersMode ? "bi bi-flag-fill" : "bi bi-flag";
+        });
+        document.getElementById("adm_media_player_markers_track").textContent = (currentRow !== null) ? currentRow.dataset.title : "";
+        ticksElement.hidden = !markersMode;
+        // the sheet of phones stands above the player bar
+        root.style.setProperty("--admidio-media-player-bar-height", bar.hidden ? "0px" : bar.offsetHeight + "px");
+        document.body.classList.toggle("admidio-media-player-markers-sheet", open && !bar.hidden);
+        const addForm = document.getElementById("adm_media_player_marker_add_form");
+        if (addForm) {
+            addForm.hidden = !target;
+        }
+        let message = "";
+        if (currentRow === null) {
+            message = labels.labelMarkerNoItem;
+        } else if (!target) {
+            message = labels.labelMarkerUnavailable;
+        } else if (markersLoaded && markers.length === 0 && markerEditing === null) {
+            message = labels.labelMarkerEmpty;
+        }
+        markersMessageElement.textContent = message;
+        markersMessageElement.hidden = message === "";
+    }
+
+    function createIconButton(icon, label, handler, extraClass) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-link admidio-media-player-marker-action" + (extraClass ? " " + extraClass : "");
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        const i = document.createElement("i");
+        i.className = "bi " + icon;
+        button.appendChild(i);
+        button.addEventListener("click", handler);
+        return button;
+    }
+
+    /**
+     * Create the row with the form for a new or an existing marker.
+     * @param {object|null} marker The marker that is edited or null for a new marker.
+     * @returns {HTMLLIElement}
+     */
+    function createMarkerForm(marker) {
+        const item = document.createElement("li");
+        item.className = "admidio-media-player-marker admidio-media-player-marker-form";
+        const form = document.createElement("form");
+        form.noValidate = true;
+
+        const time = document.createElement("input");
+        time.type = "text";
+        time.className = "form-control form-control-sm admidio-media-player-marker-time-input";
+        time.inputMode = "decimal";
+        time.autocomplete = "off";
+        time.setAttribute("aria-label", labels.labelMarkerTime);
+        time.value = formatTime(marker !== null ? marker.position : (media !== null ? media.currentTime() : 0));
+        const now = createIconButton("bi-clock", labels.labelMarkerNow, function() {
+            if (media !== null) {
+                time.value = formatTime(media.currentTime());
+            }
+        });
+        const name = document.createElement("input");
+        name.type = "text";
+        name.className = "form-control form-control-sm";
+        name.maxLength = 100;
+        name.autocomplete = "off";
+        name.placeholder = labels.labelMarkerName;
+        name.setAttribute("aria-label", labels.labelMarkerName);
+        name.value = marker !== null ? marker.name : "";
+
+        const first = document.createElement("div");
+        first.className = "admidio-media-player-marker-form-row";
+        first.append(time, now, name);
+        form.appendChild(first);
+
+        let shared = null;
+        if (labels.canShareMarkers === "1" || (marker !== null && marker.shared)) {
+            const check = document.createElement("div");
+            check.className = "form-check admidio-media-player-marker-shared-check";
+            shared = document.createElement("input");
+            shared.type = "checkbox";
+            shared.className = "form-check-input";
+            shared.checked = marker !== null && marker.shared;
+            shared.id = "adm_media_player_marker_shared";
+            shared.disabled = labels.canShareMarkers !== "1" && !(marker !== null && marker.shared);
+            const sharedLabel = document.createElement("label");
+            sharedLabel.className = "form-check-label small";
+            sharedLabel.htmlFor = shared.id;
+            sharedLabel.textContent = labels.labelMarkerShared;
+            check.append(shared, sharedLabel);
+            form.appendChild(check);
+        }
+
+        const buttons = document.createElement("div");
+        buttons.className = "admidio-media-player-marker-form-buttons";
+        const save = document.createElement("button");
+        save.type = "submit";
+        save.className = "btn btn-primary btn-sm";
+        save.textContent = labels.labelSave;
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "btn btn-secondary btn-sm";
+        cancel.textContent = labels.labelCancel;
+        cancel.addEventListener("click", function() {
+            markerEditing = null;
+            renderMarkers();
+        });
+        buttons.append(save, cancel);
+        form.appendChild(buttons);
+
+        form.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                cancel.click();
+            }
+        });
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+            const position = parseMarkerTime(time.value);
+            if (position === null) {
+                showMarkerError(labels.labelMarkerTimeInvalid);
+                time.focus();
+                return;
+            }
+            const data = {position: position, name: name.value, shared: (shared !== null && shared.checked) ? 1 : 0};
+            let url = labels.markerSaveUrl;
+            if (marker !== null) {
+                url += "&marker_uuid=" + encodeURIComponent(marker.uuid);
+            } else {
+                Object.assign(data, getMarkerTarget());
+            }
+            save.disabled = true;
+            sendMarkerRequest(url, data).done(function(response) {
+                markerEditing = null;
+                markers = markers.filter(function(entry) { return entry.uuid !== response.marker.uuid; });
+                markers.push(response.marker);
+                sortMarkers();
+                renderMarkers();
+                renderTicks();
+            }).fail(function(message) {
+                save.disabled = false;
+                showMarkerError(message);
+            });
+        });
+        item.appendChild(form);
+        // the form is filled in after it is in the page, so the name could get the focus
+        item.focusName = function() {
+            name.focus();
+            name.select();
+        };
+        return item;
+    }
+
+    function sortMarkers() {
+        markers.sort(function(a, b) {
+            return (a.position - b.position) || a.name.localeCompare(b.name);
+        });
+    }
+
+    /**
+     * Jump to a marker. A stopped playback starts there.
+     */
+    function jumpToMarker(marker) {
+        if (media === null) {
+            return;
+        }
+        if (picture !== null) {
+            picture.lastSeek = 0;
+        }
+        media.currentTime(marker.position);
+        if (media.paused()) {
+            media.play();
+        }
+        showProgress();
+    }
+
+    /**
+     * Repeat the part from a marker to the next marker or to the end of the item.
+     */
+    function loopFromMarker(marker) {
+        if (media === null) {
+            return;
+        }
+        const next = markers.find(function(entry) { return entry.position > marker.position + 0.4; });
+        const end = next ? next.position : media.duration();
+        if (!isFinite(end) || end - marker.position < 0.5) {
+            return;
+        }
+        loopStart = marker.position;
+        loopEnd = end;
+        if (loopTimer === null) {
+            loopTimer = window.setInterval(checkLoop, 50);
+        }
+        showLoopState();
+        showLoopHint(labels.labelAbHintB.replace("#VAR1#", formatTime(loopStart)).replace("#VAR2#", formatTime(loopEnd)));
+        jumpToMarker({position: loopStart});
+    }
+
+    function createMarkerRow(marker) {
+        if (markerEditing === marker.uuid) {
+            return createMarkerForm(marker);
+        }
+        const item = document.createElement("li");
+        item.className = "admidio-media-player-marker";
+        item.dataset.uuid = marker.uuid;
+        const jump = document.createElement("button");
+        jump.type = "button";
+        jump.className = "admidio-media-player-marker-jump";
+        jump.title = labels.labelMarkerJump;
+        const time = document.createElement("span");
+        time.className = "admidio-media-player-marker-time";
+        time.textContent = formatTime(marker.position);
+        const name = document.createElement("span");
+        name.className = "admidio-media-player-marker-name";
+        name.textContent = marker.name;
+        jump.append(time, name);
+        if (marker.shared) {
+            const icon = document.createElement("i");
+            icon.className = "bi bi-people-fill admidio-media-player-marker-shared";
+            icon.title = labels.labelMarkerSharedInfo;
+            icon.setAttribute("aria-label", labels.labelMarkerSharedInfo);
+            jump.appendChild(icon);
+        }
+        jump.addEventListener("click", function() {
+            jumpToMarker(marker);
+        });
+        item.appendChild(jump);
+        const actions = document.createElement("span");
+        actions.className = "admidio-media-player-marker-actions";
+        actions.appendChild(createIconButton("bi-repeat", labels.labelMarkerLoop, function() {
+            loopFromMarker(marker);
+        }, "admidio-media-player-marker-loop"));
+        if (marker.canEdit) {
+            actions.appendChild(createIconButton("bi-pencil", labels.labelEdit, function() {
+                markerEditing = marker.uuid;
+                renderMarkers();
+            }, "admidio-media-player-marker-edit"));
+            actions.appendChild(createIconButton("bi-trash", labels.labelDelete, function() {
+                if (!window.confirm(labels.labelMarkerDeleteConfirm.replace("#VAR1#", marker.name))) {
+                    return;
+                }
+                sendMarkerRequest(labels.markerDeleteUrl + "&marker_uuid=" + encodeURIComponent(marker.uuid), {}).done(function() {
+                    markers = markers.filter(function(entry) { return entry.uuid !== marker.uuid; });
+                    renderMarkers();
+                    renderTicks();
+                }).fail(showMarkerError);
+            }, "admidio-media-player-marker-delete"));
+        }
+        item.appendChild(actions);
+        return item;
+    }
+
+    /**
+     * Fill the list of the panel.
+     */
+    function renderMarkers() {
+        activeMarkerUuid = null;
+        markersListElement.replaceChildren();
+        let form = null;
+        if (markerEditing === "new") {
+            form = createMarkerForm(null);
+            markersListElement.appendChild(form);
+        }
+        markers.forEach(function(marker) {
+            const row = createMarkerRow(marker);
+            markersListElement.appendChild(row);
+            if (markerEditing === marker.uuid) {
+                form = row;
+            }
+        });
+        applyMarkersMode();
+        showActiveMarker();
+        if (form !== null && form.focusName) {
+            form.focusName();
+        }
+    }
+
+    /**
+     * Mark the ticks of the markers at the seek bar.
+     */
+    function renderTicks() {
+        ticksElement.replaceChildren();
+        const duration = (media !== null) ? media.duration() : 0;
+        if (!isFinite(duration) || duration <= 0) {
+            return;
+        }
+        markers.forEach(function(marker) {
+            if (marker.position > duration) {
+                return;
+            }
+            const tick = document.createElement("span");
+            tick.className = "admidio-media-player-tick" + (marker.shared ? " admidio-media-player-tick-shared" : "");
+            tick.style.left = (100 * marker.position / duration) + "%";
+            tick.title = formatTime(marker.position) + " " + marker.name;
+            ticksElement.appendChild(tick);
+        });
+    }
+
+    /**
+     * Highlight the marker the playback has passed last.
+     */
+    function showActiveMarker() {
+        if (!markersMode || markers.length === 0 || media === null) {
+            return;
+        }
+        const position = media.currentTime() + 0.05;
+        let active = null;
+        markers.forEach(function(marker) {
+            if (marker.position <= position) {
+                active = marker;
+            }
+        });
+        const uuid = active !== null ? active.uuid : null;
+        if (uuid === activeMarkerUuid) {
+            return;
+        }
+        activeMarkerUuid = uuid;
+        markersListElement.querySelectorAll(".admidio-media-player-marker").forEach(function(row) {
+            row.classList.toggle("admidio-media-player-marker-active", row.dataset.uuid === uuid);
+        });
+    }
+
+    /**
+     * Load the markers of the current item. Without markers mode nothing is requested.
+     */
+    function loadMarkers() {
+        markers = [];
+        markersLoaded = false;
+        markerEditing = null;
+        renderTicks();
+        const target = getMarkerTarget();
+        if (!markersMode || target === null) {
+            renderMarkers();
+            return;
+        }
+        renderMarkers();
+        const row = currentRow;
+        $.getJSON(labels.markersUrl + "&" + $.param(target)).done(function(response) {
+            if (row !== currentRow || response.status !== "success") {
+                return;
+            }
+            markers = response.markers;
+            markersCanShare = response.canShare;
+            markersLoaded = true;
+            sortMarkers();
+            renderMarkers();
+            renderTicks();
+        }).fail(function() {
+            if (row === currentRow) {
+                markersLoaded = true;
+                renderMarkers();
+            }
+        });
+    }
+
+    /**
+     * A new item was started or has loaded its metadata, the markers of the item are loaded.
+     */
+    function markersItemChanged() {
+        loadMarkers();
+    }
+
+    /**
+     * Create a marker at the current position and open it for naming.
+     */
+    function addMarkerNow() {
+        const target = getMarkerTarget();
+        if (target === null || media === null) {
+            return;
+        }
+        const position = Math.round(media.currentTime() * 10) / 10;
+        markersPanel = true;
+        writeSetting(markerKeys.panel, "1");
+        sendMarkerRequest(labels.markerSaveUrl, Object.assign({position: position, name: "", shared: 0}, target)).done(function(response) {
+            markers.push(response.marker);
+            sortMarkers();
+            markersLoaded = true;
+            markerEditing = response.marker.uuid;
+            renderMarkers();
+            renderTicks();
+        }).fail(showMarkerError);
+    }
+
+    function previousNextMarker(direction) {
+        if (media === null || markers.length === 0) {
+            return;
+        }
+        const position = media.currentTime();
+        let target = null;
+        if (direction > 0) {
+            target = markers.find(function(marker) { return marker.position > position + 0.5; });
+        } else {
+            markers.forEach(function(marker) {
+                if (marker.position < position - 1.5) {
+                    target = marker;
+                }
+            });
+            if (target === null) {
+                target = {position: 0};
+            }
+        }
+        if (target !== null) {
+            jumpToMarker(target);
+        }
+    }
+
+    $(document).on("click", ".admidio-media-player-markers-toggle", function() {
+        markersMode = !markersMode;
+        writeSetting(markerKeys.mode, markersMode ? "1" : "0");
+        if (markersMode) {
+            markersPanel = true;
+            writeSetting(markerKeys.panel, "1");
+            loadMarkers();
+        } else {
+            markers = [];
+            markerEditing = null;
+            renderTicks();
+            applyMarkersMode();
+        }
+    });
+    document.getElementById("adm_media_player_marker_panel").addEventListener("click", function() {
+        markersPanel = !markersPanel;
+        writeSetting(markerKeys.panel, markersPanel ? "1" : "0");
+        applyMarkersMode();
+    });
+    document.getElementById("adm_media_player_markers_close").addEventListener("click", function() {
+        markersPanel = false;
+        writeSetting(markerKeys.panel, "0");
+        applyMarkersMode();
+    });
+    document.getElementById("adm_media_player_marker_previous").addEventListener("click", function() {
+        previousNextMarker(-1);
+    });
+    document.getElementById("adm_media_player_marker_next").addEventListener("click", function() {
+        previousNextMarker(1);
+    });
+    const markerAddButton = document.getElementById("adm_media_player_marker_add");
+    if (markerAddButton) {
+        markerAddButton.addEventListener("click", addMarkerNow);
+    }
+    const markerAddFormButton = document.getElementById("adm_media_player_marker_add_form");
+    if (markerAddFormButton) {
+        markerAddFormButton.addEventListener("click", function() {
+            if (getMarkerTarget() === null) {
+                return;
+            }
+            markerEditing = "new";
+            renderMarkers();
+        });
+    }
+    window.addEventListener("resize", applyMarkersMode);
+
     document.getElementById("adm_media_player_ab").addEventListener("click", toggleLoop);
     $(document).on("click", ".admidio-media-player-shuffle", function() {
         shuffle = !shuffle;
@@ -1553,6 +2096,7 @@ $(function() {
     showRepeatMode();
     showShuffleMode();
     showSoundOnlyMode();
+    applyMarkersMode();
     showPlayState();
     loadDurations();
 });

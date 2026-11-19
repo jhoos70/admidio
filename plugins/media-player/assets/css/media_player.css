@@ -307,6 +307,10 @@ body.admidio-media-player-bar-visible {
     pointer-events: none;
 }
 
+.btn.admidio-media-player-ab[hidden] {
+    display: none;
+}
+
 /* A is set: the letter blinks until B is set */
 .admidio-media-player-ab[data-state="a"] {
     color: var(--bs-primary);

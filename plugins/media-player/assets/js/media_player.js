@@ -275,6 +275,8 @@ $(function() {
         button.setAttribute("aria-pressed", (state === "on").toString());
         button.title = label;
         button.setAttribute("aria-label", label);
+        // items that can't be played within the page (external weblinks) have no position to repeat
+        button.hidden = media === null;
         const duration = (media !== null) ? media.duration() : 0;
         const visible = loopStart !== null && duration > 0 && isFinite(duration);
         flagA.hidden = !visible;
@@ -329,6 +331,10 @@ $(function() {
         const position = media.currentTime();
         // a position far behind the end was chosen by the user with the seek bar, then the item plays on
         if (position >= loopEnd && position < loopEnd + 1.5) {
+            if (picture !== null) {
+                // the picture of a video follows the sound at once, not only after its pause between two corrections
+                picture.lastSeek = 0;
+            }
             media.currentTime(loopStart);
         }
     }
@@ -778,6 +784,7 @@ $(function() {
         }
         media.setSpeed(parseFloat(speedElement.value));
         media.setLoop(repeatMode === "one");
+        showLoopState();
     }
 
     /**

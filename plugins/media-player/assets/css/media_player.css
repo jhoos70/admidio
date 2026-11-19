@@ -1050,7 +1050,7 @@ label.admidio-media-player-tree-line {
 
     /* more room while a marker is edited, so the whole form is visible */
     .admidio-media-player-markers.admidio-media-player-markers-editing {
-        max-height: 75vh;
+        max-height: min(75vh, calc(100vh - var(--admidio-media-player-bar-height, 0px) - 7rem));
     }
 
     .admidio-media-player-markers-header {

@@ -1777,8 +1777,11 @@ $(function() {
         });
         applyMarkersMode();
         showActiveMarker();
+        markersElement.classList.toggle("admidio-media-player-markers-editing", markerEditing !== null);
         if (form !== null && form.focusName) {
             form.focusName();
+            // the whole form must be visible, the focus alone scrolls only to the name field
+            form.scrollIntoView({block: "nearest"});
         }
     }
 

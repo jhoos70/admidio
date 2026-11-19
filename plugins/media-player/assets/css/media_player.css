@@ -1048,6 +1048,11 @@ label.admidio-media-player-tree-line {
         overflow: visible;
     }
 
+    /* more room while a marker is edited, so the whole form is visible */
+    .admidio-media-player-markers.admidio-media-player-markers-editing {
+        max-height: 75vh;
+    }
+
     .admidio-media-player-markers-header {
         position: sticky;
         top: 0;

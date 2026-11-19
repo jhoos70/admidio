@@ -38,6 +38,7 @@
   <string name="PLG_MEDIA_PLAYER_MARKER_ADD">Marker an der aktuellen Position setzen</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_ADD_FORM">Neuer Marker</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_DELETE_CONFIRM">Marker „#VAR1#“ löschen?</string>
+  <string name="PLG_MEDIA_PLAYER_MARKER_CANCEL">Abbrechen</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_EMPTY">Noch keine Marker.</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_ERROR">Der Marker konnte nicht gespeichert werden.</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_JUMP">Zum Marker springen</string>

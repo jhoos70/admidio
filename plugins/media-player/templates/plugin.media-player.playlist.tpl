@@ -32,7 +32,7 @@
     data-label-marker-error="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ERROR')}"
     data-label-marker-delete-confirm="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_DELETE_CONFIRM')}"
     data-label-marker-jump="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_JUMP')}"
-    data-label-save="{$l10n->get('SYS_SAVE')}" data-label-cancel="{$l10n->get('SYS_CANCEL')}" data-label-edit="{$l10n->get('SYS_EDIT')}" data-label-delete="{$l10n->get('SYS_DELETE')}"
+    data-label-save="{$l10n->get('SYS_SAVE')}" data-label-cancel="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_CANCEL')}" data-label-edit="{$l10n->get('SYS_EDIT')}" data-label-delete="{$l10n->get('SYS_DELETE')}"
     data-valid-login="{if $validLogin}1{else}0{/if}" data-markers-url="{$markersUrl}" data-marker-save-url="{$markerSaveUrl}" data-marker-delete-url="{$markerDeleteUrl}" data-can-share-markers="{if $canShareMarkers}1{else}0{/if}"
     data-artwork="{$artwork|escape:'html'}"
     data-durations-url="{$durationsUrl}" data-debug-log-url="{$debugLogUrl}" data-debug-user="{if $debugUser}1{else}0{/if}" data-link-duration-url="{$linkDurationUrl}" data-csrf-token="{$csrfToken}">

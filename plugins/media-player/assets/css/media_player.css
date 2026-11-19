@@ -1008,9 +1008,23 @@ label.admidio-media-player-tree-line {
         align-items: start;
     }
 
+    /* the panel stands below a fixed header of the theme and above the player bar, its list scrolls inside */
     .admidio-media-player-markers {
         position: sticky;
-        top: 1rem;
+        top: calc(var(--admidio-media-player-sticky-top, 0px) + 1rem);
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - var(--admidio-media-player-sticky-top, 0px) - var(--admidio-media-player-bar-height, 0px) - 2rem);
+    }
+
+    .admidio-media-player-markers-list {
+        flex: 1 1 auto;
+        max-height: none;
+        min-height: 0;
+    }
+
+    .admidio-media-player-markers-header {
+        flex: 0 0 auto;
     }
 }
 

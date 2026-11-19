@@ -1422,6 +1422,38 @@ $(function() {
         messageBox(message || labels.labelMarkerError, "", "error");
     }
 
+    let stickyFrame = null;
+
+    /**
+     * Some themes have a header that stays at the top of the window. The sticky panel must stand below it, otherwise
+     * its upper part is covered. The height of such a header is read from the elements at the top of the window.
+     */
+    function updateStickyOffset() {
+        stickyFrame = null;
+        if (!markersMode) {
+            return;
+        }
+        let offset = 0;
+        [0.25, 0.5, 0.75].forEach(function(fraction) {
+            document.elementsFromPoint(Math.round(window.innerWidth * fraction), 3).forEach(function(element) {
+                if (markersElement.contains(element) || bar.contains(element)) {
+                    return;
+                }
+                const position = window.getComputedStyle(element).position;
+                if (position === "fixed" || position === "sticky") {
+                    offset = Math.max(offset, element.getBoundingClientRect().bottom);
+                }
+            });
+        });
+        root.style.setProperty("--admidio-media-player-sticky-top", Math.max(0, Math.round(offset)) + "px");
+    }
+
+    function requestStickyOffset() {
+        if (stickyFrame === null && markersMode) {
+            stickyFrame = window.requestAnimationFrame(updateStickyOffset);
+        }
+    }
+
     /**
      * Show or hide everything of the markers: panel, buttons of the bar and ticks at the seek bar.
      */
@@ -1454,6 +1486,7 @@ $(function() {
         ticksElement.hidden = !markersMode;
         // the sheet of phones stands above the player bar
         root.style.setProperty("--admidio-media-player-bar-height", bar.hidden ? "0px" : bar.offsetHeight + "px");
+        requestStickyOffset();
         document.body.classList.toggle("admidio-media-player-markers-sheet", open && !bar.hidden);
         const addForm = document.getElementById("adm_media_player_marker_add_form");
         if (addForm) {
@@ -1922,6 +1955,7 @@ $(function() {
         });
     }
     window.addEventListener("resize", applyMarkersMode);
+    window.addEventListener("scroll", requestStickyOffset, {passive: true});
 
     document.getElementById("adm_media_player_ab").addEventListener("click", toggleLoop);
     $(document).on("click", ".admidio-media-player-shuffle", function() {

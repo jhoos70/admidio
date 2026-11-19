@@ -1514,6 +1514,20 @@ $(function() {
         first.append(time, now, name);
         form.appendChild(first);
 
+        // bar number or rehearsal letter in the sheet music
+        const bar = document.createElement("input");
+        bar.type = "text";
+        bar.className = "form-control form-control-sm admidio-media-player-marker-bar-input";
+        bar.maxLength = 20;
+        bar.autocomplete = "off";
+        bar.placeholder = labels.labelMarkerBar;
+        bar.setAttribute("aria-label", labels.labelMarkerBar);
+        bar.value = marker !== null ? marker.bar : "";
+        const second = document.createElement("div");
+        second.className = "admidio-media-player-marker-form-row admidio-media-player-marker-form-second";
+        second.appendChild(bar);
+        form.appendChild(second);
+
         let shared = null;
         if (labels.canShareMarkers === "1" || (marker !== null && marker.shared)) {
             const check = document.createElement("div");
@@ -1562,7 +1576,7 @@ $(function() {
                 time.focus();
                 return;
             }
-            const data = {position: position, name: name.value, shared: (shared !== null && shared.checked) ? 1 : 0};
+            const data = {position: position, name: name.value, bar: bar.value, shared: (shared !== null && shared.checked) ? 1 : 0};
             let url = labels.markerSaveUrl;
             if (marker !== null) {
                 url += "&marker_uuid=" + encodeURIComponent(marker.uuid);
@@ -1653,7 +1667,15 @@ $(function() {
         const name = document.createElement("span");
         name.className = "admidio-media-player-marker-name";
         name.textContent = marker.name;
-        jump.append(time, name);
+        jump.append(time);
+        if (marker.bar !== "") {
+            const bar = document.createElement("span");
+            bar.className = "admidio-media-player-marker-bar";
+            bar.textContent = marker.bar;
+            bar.title = labels.labelMarkerBar + ": " + marker.bar;
+            jump.appendChild(bar);
+        }
+        jump.appendChild(name);
         if (marker.shared) {
             const icon = document.createElement("i");
             icon.className = "bi bi-people-fill admidio-media-player-marker-shared";
@@ -1731,7 +1753,7 @@ $(function() {
             const tick = document.createElement("span");
             tick.className = "admidio-media-player-tick" + (marker.shared ? " admidio-media-player-tick-shared" : "");
             tick.style.left = (100 * marker.position / duration) + "%";
-            tick.title = formatTime(marker.position) + " " + marker.name;
+            tick.title = formatTime(marker.position) + (marker.bar !== "" ? " [" + marker.bar + "]" : "") + " " + marker.name;
             ticksElement.appendChild(tick);
         });
     }

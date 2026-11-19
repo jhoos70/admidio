@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<update>
+    <step id="10">ALTER TABLE %PREFIX%_media_markers ADD COLUMN mmk_bar varchar(20) AFTER mmk_name</step>
+    <step>stop</step>
+</update>

@@ -137,6 +137,7 @@ CREATE TABLE %PREFIX%_media_markers
     mmk_lnk_id                  integer unsigned,
     mmk_position                decimal(9,1) unsigned NOT NULL,
     mmk_name                    varchar(100)        NOT NULL,
+    mmk_bar                     varchar(20),
     mmk_is_shared               boolean             NOT NULL    DEFAULT false,
     mmk_usr_id_create           integer unsigned,
     mmk_timestamp_create        timestamp           NOT NULL    DEFAULT CURRENT_TIMESTAMP,

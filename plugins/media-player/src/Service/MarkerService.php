@@ -29,6 +29,7 @@ class MarkerService
      */
     private const MAX_POSITION = 86400;
     private const MAX_NAME_LENGTH = 100;
+    private const MAX_BAR_LENGTH = 20;
 
     private MediaAccessService $access;
 
@@ -45,7 +46,7 @@ class MarkerService
      * private markers of the user. The file or weblink is selected by the GET parameters **file_uuid** or
      * **weblink_uuid**.
      * @return array<int,array<string,mixed>> Returns the markers sorted by position with the keys uuid, position,
-     *         name, shared, mine and canEdit, and the key canShare for the whole list in the first level.
+     *         name, bar, shared, mine and canEdit, and the key canShare for the whole list in the first level.
      * @throws Exception
      */
     public function getMarkers(): array
@@ -53,7 +54,7 @@ class MarkerService
         $target = $this->getTarget((string)($_GET['file_uuid'] ?? ''), (string)($_GET['weblink_uuid'] ?? ''));
         $column = $target['kind'] === 'file' ? 'mmk_fil_id' : 'mmk_lnk_id';
 
-        $sql = 'SELECT mmk_uuid, mmk_position, mmk_name, mmk_is_shared, mmk_usr_id_create
+        $sql = 'SELECT mmk_uuid, mmk_position, mmk_name, mmk_bar, mmk_is_shared, mmk_usr_id_create
                   FROM ' . MediaPlayer::TABLE_MARKERS . '
                  WHERE ' . $column . ' = ?
                    AND (mmk_is_shared = true OR mmk_usr_id_create = ?)
@@ -91,6 +92,9 @@ class MarkerService
         if ($name === '') {
             $name = self::formatTime($position);
         }
+        // bar number or rehearsal letter in the sheet music, optional
+        $bar = mb_substr(trim(preg_replace('/\s+/u', ' ', (string)($_POST['bar'] ?? ''))), 0, self::MAX_BAR_LENGTH);
+        $bar = ($bar === '') ? null : $bar;
         $shared = !empty($_POST['shared']) && $_POST['shared'] !== '0';
         if ($markerUuid === '') {
             if ($shared && !MediaPlayer::isPlaylistEditor()) {
@@ -99,10 +103,10 @@ class MarkerService
             $target = $this->getTarget((string)($_POST['file_uuid'] ?? ''), (string)($_POST['weblink_uuid'] ?? ''));
             $markerUuid = (string)Uuid::uuid4();
             $this->db->queryPrepared('INSERT INTO ' . MediaPlayer::TABLE_MARKERS
-                . ' (mmk_uuid, mmk_fil_id, mmk_lnk_id, mmk_position, mmk_name, mmk_is_shared, mmk_usr_id_create)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)',
+                . ' (mmk_uuid, mmk_fil_id, mmk_lnk_id, mmk_position, mmk_name, mmk_bar, mmk_is_shared, mmk_usr_id_create)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                 array($markerUuid, $target['kind'] === 'file' ? $target['id'] : null, $target['kind'] === 'link' ? $target['id'] : null,
-                    $position, $name, (int)$shared, $gCurrentUserId));
+                    $position, $name, $bar, (int)$shared, $gCurrentUserId));
         } else {
             $row = $this->getEditableMarker($markerUuid);
             // a marker that gets shared needs the same right as a new shared marker, an already shared marker stays shared
@@ -110,12 +114,12 @@ class MarkerService
                 throw new Exception('SYS_NO_RIGHTS');
             }
             $this->db->queryPrepared('UPDATE ' . MediaPlayer::TABLE_MARKERS
-                . ' SET mmk_position = ?, mmk_name = ?, mmk_is_shared = ?, mmk_usr_id_change = ?, mmk_timestamp_change = CURRENT_TIMESTAMP
+                . ' SET mmk_position = ?, mmk_name = ?, mmk_bar = ?, mmk_is_shared = ?, mmk_usr_id_change = ?, mmk_timestamp_change = CURRENT_TIMESTAMP
                    WHERE mmk_id = ?',
-                array($position, $name, (int)$shared, $gCurrentUserId, (int)$row['mmk_id']));
+                array($position, $name, $bar, (int)$shared, $gCurrentUserId, (int)$row['mmk_id']));
         }
 
-        $sql = 'SELECT mmk_uuid, mmk_position, mmk_name, mmk_is_shared, mmk_usr_id_create
+        $sql = 'SELECT mmk_uuid, mmk_position, mmk_name, mmk_bar, mmk_is_shared, mmk_usr_id_create
                   FROM ' . MediaPlayer::TABLE_MARKERS . ' WHERE mmk_uuid = ?';
         return $this->createMarkerData($this->db->queryPrepared($sql, array($markerUuid))->fetch());
     }
@@ -173,6 +177,7 @@ class MarkerService
             'uuid' => $row['mmk_uuid'],
             'position' => (float)$row['mmk_position'],
             'name' => $row['mmk_name'],
+            'bar' => (string)($row['mmk_bar'] ?? ''),
             'shared' => (bool)$row['mmk_is_shared'],
             'mine' => $mine,
             'canEdit' => $this->canEdit((bool)$row['mmk_is_shared'], (int)$row['mmk_usr_id_create'])

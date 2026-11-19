@@ -18,7 +18,7 @@
     data-label-marker-add="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD')}"
     data-label-marker-add-form="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ADD_FORM')}"
     data-label-marker-name="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NAME')}"
-    data-label-marker-time="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_TIME')}"
+    data-label-marker-bar="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_BAR')}" data-label-marker-time="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_TIME')}"
     data-label-marker-now="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NOW')}"
     data-label-marker-shared="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_SHARED')}"
     data-label-marker-shared-info="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_SHARED_INFO')}"

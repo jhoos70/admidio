@@ -1429,6 +1429,11 @@ $(function() {
     function applyMarkersMode() {
         const open = markersMode && markersPanel;
         root.classList.toggle("admidio-media-player-markers-open", open);
+        // with the panel the page uses the full width of the window like the edit mode, not the default 1000 px
+        const content = document.getElementById("adm_content");
+        if (content !== null) {
+            content.classList.toggle("admidio-max-content", open);
+        }
         markersElement.hidden = !open;
         const target = getMarkerTarget() !== null;
         markerBarButtons.forEach(function(button) {

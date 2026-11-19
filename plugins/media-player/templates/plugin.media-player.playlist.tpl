@@ -6,6 +6,8 @@
     data-label-repeat-one="{$l10n->get('PLG_MEDIA_PLAYER_REPEAT_ONE')}"
     data-label-ab-set-start="{$l10n->get('PLG_MEDIA_PLAYER_AB_SET_START')}" data-label-ab-set-end="{$l10n->get('PLG_MEDIA_PLAYER_AB_SET_END')}"
     data-label-ab-clear="{$l10n->get('PLG_MEDIA_PLAYER_AB_CLEAR')}"
+    data-label-ab-hint-a="{$l10n->get('PLG_MEDIA_PLAYER_AB_HINT_A')}" data-label-ab-hint-b="{$l10n->get('PLG_MEDIA_PLAYER_AB_HINT_B')}"
+    data-label-ab-hint-clear="{$l10n->get('PLG_MEDIA_PLAYER_AB_HINT_CLEAR')}"
     data-label-shuffle-off="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_OFF')}" data-label-shuffle-on="{$l10n->get('PLG_MEDIA_PLAYER_SHUFFLE_ON')}"
     data-label-sound-only-off="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_OFF')}" data-label-sound-only-on="{$l10n->get('PLG_MEDIA_PLAYER_SOUND_ONLY_ON')}"
     data-label-minutes="{$l10n->get('PLG_MEDIA_PLAYER_MINUTES')}"
@@ -133,17 +135,20 @@
                 <button type="button" class="btn btn-link admidio-media-player-toggle admidio-media-player-repeat admidio-media-player-desktop-only" aria-pressed="false">
                     <i class="bi bi-repeat"></i></button>
             </div>
+            <div id="adm_media_player_ab_hint" class="admidio-media-player-ab-hint" role="status" aria-live="polite" hidden></div>
             <div class="admidio-media-player-bar-progress">
                 <span id="adm_media_player_time" class="admidio-media-player-time">0:00</span>
                 <div class="admidio-media-player-seek">
                     <div id="adm_media_player_ab_region" class="admidio-media-player-ab-region" hidden></div>
+                    <span id="adm_media_player_ab_flag_a" class="admidio-media-player-ab-flag" hidden>A</span>
+                    <span id="adm_media_player_ab_flag_b" class="admidio-media-player-ab-flag" hidden>B</span>
                     <input type="range" id="adm_media_player_seek" class="form-range" min="0" max="0" step="0.1" value="0"
                         aria-label="{$l10n->get('PLG_MEDIA_PLAYER_POSITION')}">
                 </div>
                 <span id="adm_media_player_duration" class="admidio-media-player-time">0:00</span>
                 <button type="button" id="adm_media_player_ab" class="btn btn-link admidio-media-player-toggle admidio-media-player-ab" aria-pressed="false"
                     title="{$l10n->get('PLG_MEDIA_PLAYER_AB_SET_START')}" aria-label="{$l10n->get('PLG_MEDIA_PLAYER_AB_SET_START')}">
-                    <span>A&ndash;B</span></button>
+                    <i class="bi bi-repeat"></i><span class="admidio-media-player-ab-letters">AB</span></button>
             </div>
         </div>
         <div class="admidio-media-player-bar-extra">

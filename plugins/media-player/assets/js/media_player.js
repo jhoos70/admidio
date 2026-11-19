@@ -257,27 +257,53 @@ $(function() {
     function showLoopState() {
         const button = document.getElementById("adm_media_player_ab");
         const region = document.getElementById("adm_media_player_ab_region");
-        const text = button.querySelector("span");
+        const flagA = document.getElementById("adm_media_player_ab_flag_a");
+        const flagB = document.getElementById("adm_media_player_ab_flag_b");
         let label = labels.labelAbSetStart;
-        text.textContent = "A\u2013B";
+        let letters = "AB";
+        let state = "off";
         if (loopEnd !== null) {
             label = labels.labelAbClear + " (" + formatTime(loopStart) + " \u2013 " + formatTime(loopEnd) + ")";
+            state = "on";
         } else if (loopStart !== null) {
             label = labels.labelAbSetEnd + " (A " + formatTime(loopStart) + ")";
-            text.textContent = "A\u2013";
+            letters = "A";
+            state = "a";
         }
-        button.setAttribute("aria-pressed", (loopStart !== null).toString());
+        button.querySelector(".admidio-media-player-ab-letters").textContent = letters;
+        button.dataset.state = state;
+        button.setAttribute("aria-pressed", (state === "on").toString());
         button.title = label;
         button.setAttribute("aria-label", label);
         const duration = (media !== null) ? media.duration() : 0;
-        if (loopStart !== null && duration > 0 && isFinite(duration)) {
-            const end = (loopEnd !== null) ? loopEnd : loopStart;
-            region.style.left = (100 * loopStart / duration) + "%";
-            region.style.width = Math.max(0.5, 100 * (end - loopStart) / duration) + "%";
-            region.hidden = false;
-        } else {
-            region.hidden = true;
+        const visible = loopStart !== null && duration > 0 && isFinite(duration);
+        flagA.hidden = !visible;
+        flagB.hidden = !(visible && loopEnd !== null);
+        region.hidden = !(visible && loopEnd !== null);
+        if (visible) {
+            flagA.style.left = (100 * loopStart / duration) + "%";
+            if (loopEnd !== null) {
+                flagB.style.left = (100 * loopEnd / duration) + "%";
+                region.style.left = (100 * loopStart / duration) + "%";
+                region.style.width = Math.max(0.5, 100 * (loopEnd - loopStart) / duration) + "%";
+            }
         }
+    }
+
+    let hintTimer = null;
+
+    /**
+     * Show a short explanation of the next step above the progress bar.
+     * @param {string} text
+     */
+    function showLoopHint(text) {
+        const hint = document.getElementById("adm_media_player_ab_hint");
+        hint.textContent = text;
+        hint.hidden = false;
+        window.clearTimeout(hintTimer);
+        hintTimer = window.setTimeout(function() {
+            hint.hidden = true;
+        }, 4000);
     }
 
     /**
@@ -316,16 +342,19 @@ $(function() {
         }
         if (loopEnd !== null) {
             clearLoop();
+            showLoopHint(labels.labelAbHintClear);
             return;
         }
         const position = media.currentTime();
         if (loopStart === null) {
             loopStart = position;
+            showLoopHint(labels.labelAbHintA.replace("#VAR1#", formatTime(position)));
         } else if (position - loopStart < 0.5) {
             // the range would be empty: start again at this position
             loopStart = position;
         } else {
             loopEnd = position;
+            showLoopHint(labels.labelAbHintB.replace("#VAR1#", formatTime(loopStart)).replace("#VAR2#", formatTime(loopEnd)));
             media.currentTime(loopStart);
             if (loopTimer === null) {
                 loopTimer = window.setInterval(checkLoop, 50);

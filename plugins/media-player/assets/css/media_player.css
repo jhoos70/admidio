@@ -285,11 +285,84 @@ body.admidio-media-player-bar-visible {
     pointer-events: none;
 }
 
+/* repeat symbol with the letters A and B inside */
 .btn.admidio-media-player-ab {
-    padding-inline: 0.25rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
+    position: relative;
+}
+
+.admidio-media-player-ab > .bi {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.admidio-media-player-ab-letters {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.56rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    pointer-events: none;
+}
+
+/* A is set: the letter blinks until B is set */
+.admidio-media-player-ab[data-state="a"] {
+    color: var(--bs-primary);
+}
+
+.admidio-media-player-ab[data-state="a"] .admidio-media-player-ab-letters {
+    animation: admidio-media-player-blink 1s ease-in-out infinite;
+}
+
+@keyframes admidio-media-player-blink {
+    50% {
+        opacity: 0.2;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admidio-media-player-ab[data-state="a"] .admidio-media-player-ab-letters {
+        animation: none;
+    }
+}
+
+/* flags A and B at the seek bar */
+.admidio-media-player-ab-flag {
+    position: absolute;
+    bottom: calc(50% + 0.45rem);
+    transform: translateX(-50%);
+    padding: 0 0.25rem;
+    border-radius: 0.2rem;
+    background: var(--bs-primary);
+    color: var(--bs-white);
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1.1rem;
+    pointer-events: none;
+}
+
+.admidio-media-player-ab-flag[hidden] {
+    display: none;
+}
+
+.admidio-media-player-ab-hint {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translate(-50%, -0.5rem);
+    max-width: calc(100% - 1.5rem);
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--bs-emphasis-color);
+    color: var(--bs-body-bg);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.admidio-media-player-ab-hint[hidden] {
+    display: none;
 }
 
 .admidio-media-player-time {

@@ -263,6 +263,8 @@ body.admidio-media-player-bar-visible {
 
 /* A-B repeat: the button shows text instead of an icon, the range is marked behind the seek bar */
 .admidio-media-player-seek {
+    /* width of the thumb of the slider, the marks at the seek bar are placed with it */
+    --admidio-media-player-thumb: 1rem;
     position: relative;
     flex-grow: 1;
     display: flex;

@@ -283,16 +283,34 @@ $(function() {
         flagB.hidden = !(visible && loopEnd !== null);
         region.hidden = !(visible && loopEnd !== null);
         if (visible) {
-            flagA.style.left = (100 * loopStart / duration) + "%";
+            flagA.style.left = seekOffset(loopStart / duration);
             if (loopEnd !== null) {
-                flagB.style.left = (100 * loopEnd / duration) + "%";
-                region.style.left = (100 * loopStart / duration) + "%";
-                region.style.width = Math.max(0.5, 100 * (loopEnd - loopStart) / duration) + "%";
+                flagB.style.left = seekOffset(loopEnd / duration);
+                region.style.left = seekOffset(loopStart / duration);
+                region.style.width = seekLength((loopEnd - loopStart) / duration);
             }
         }
     }
 
     let hintTimer = null;
+
+    /**
+     * The thumb of the seek bar moves between half a thumb width from the left edge and half a thumb width from the
+     * right edge, so marks at the seek bar use the same scale.
+     * @param {number} ratio Position in the item from 0 to 1.
+     * @returns {string} A CSS length for the left edge of a mark.
+     */
+    function seekOffset(ratio) {
+        return "calc(var(--admidio-media-player-thumb, 1rem) / 2 + (100% - var(--admidio-media-player-thumb, 1rem)) * " + ratio + ")";
+    }
+
+    /**
+     * @param {number} ratio Length of a range as part of the item from 0 to 1.
+     * @returns {string} A CSS length for the width of a range at the seek bar.
+     */
+    function seekLength(ratio) {
+        return "calc((100% - var(--admidio-media-player-thumb, 1rem)) * " + ratio + ")";
+    }
 
     /**
      * Show a short explanation of the next step above the progress bar.
@@ -1800,7 +1818,7 @@ $(function() {
             }
             const tick = document.createElement("span");
             tick.className = "admidio-media-player-tick" + (marker.shared ? " admidio-media-player-tick-shared" : "");
-            tick.style.left = (100 * marker.position / duration) + "%";
+            tick.style.left = seekOffset(marker.position / duration);
             tick.title = formatTime(marker.position) + (marker.bar !== "" ? " [" + marker.bar + "]" : "") + " " + marker.name;
             ticksElement.appendChild(tick);
         });

@@ -1443,6 +1443,25 @@ $(function() {
     let stickyFrame = null;
 
     /**
+     * Heights of the player parts that stand above the list of a phone: the picture of a video and the bar.
+     */
+    function updateSheetMetrics() {
+        const sheet = document.body.classList.contains("admidio-media-player-markers-sheet");
+        root.style.setProperty("--admidio-media-player-bar-height", bar.hidden ? "0px" : bar.offsetHeight + "px");
+        root.style.setProperty("--admidio-media-player-stage-height", (sheet && !stage.classList.contains("d-none")) ? stage.offsetHeight + "px" : "0px");
+    }
+
+    if (window.ResizeObserver) {
+        const sheetObserver = new ResizeObserver(function() {
+            if (markersMode) {
+                updateSheetMetrics();
+            }
+        });
+        sheetObserver.observe(bar);
+        sheetObserver.observe(stage);
+    }
+
+    /**
      * Some themes have a header that stays at the top of the window. The sticky panel must stand below it, otherwise
      * its upper part is covered. The height of such a header is read from the elements at the top of the window.
      */
@@ -1454,7 +1473,7 @@ $(function() {
         let offset = 0;
         [0.25, 0.5, 0.75].forEach(function(fraction) {
             document.elementsFromPoint(Math.round(window.innerWidth * fraction), 3).forEach(function(element) {
-                if (markersElement.contains(element) || bar.contains(element)) {
+                if (markersElement.contains(element) || bar.contains(element) || stage.contains(element)) {
                     return;
                 }
                 const position = window.getComputedStyle(element).position;
@@ -1502,10 +1521,12 @@ $(function() {
         });
         document.getElementById("adm_media_player_markers_track").textContent = (currentRow !== null) ? currentRow.dataset.title : "";
         ticksElement.hidden = !markersMode;
-        // the sheet of phones stands above the player bar
-        root.style.setProperty("--admidio-media-player-bar-height", bar.hidden ? "0px" : bar.offsetHeight + "px");
+        // on phones the player (picture, bar) moves to the top and the list stands below it
+        const sheet = open && !bar.hidden;
+        document.body.classList.toggle("admidio-media-player-markers-sheet", sheet);
+        document.documentElement.classList.toggle("admidio-media-player-markers-sheet", sheet);
+        updateSheetMetrics();
         requestStickyOffset();
-        document.body.classList.toggle("admidio-media-player-markers-sheet", open && !bar.hidden);
         const addForm = document.getElementById("adm_media_player_marker_add_form");
         if (addForm) {
             addForm.hidden = !target;
@@ -1952,15 +1973,137 @@ $(function() {
         }
     }
 
+    const phoneQuery = window.matchMedia("(max-width: 991.98px)");
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let sheetAnimating = false;
+
+    function sheetIsOpen() {
+        return document.body.classList.contains("admidio-media-player-markers-sheet");
+    }
+
+    /**
+     * Switch the markers on. On phones the player moves up and the list slides in below it.
+     */
+    function openMarkers() {
+        if (markersMode) {
+            return;
+        }
+        const barTop = bar.hidden ? 0 : bar.getBoundingClientRect().top;
+        setMarkersMode(true);
+        if (!sheetIsOpen() || !phoneQuery.matches || reducedMotionQuery.matches) {
+            return;
+        }
+        root.style.setProperty("--admidio-media-player-bar-rise", Math.round(barTop - bar.getBoundingClientRect().top) + "px");
+        document.body.classList.add("admidio-media-player-markers-opening");
+        window.setTimeout(function() {
+            document.body.classList.remove("admidio-media-player-markers-opening");
+        }, 300);
+    }
+
+    /**
+     * Switch the markers off. On phones the list slides down and the player returns to the bottom first.
+     */
+    function closeMarkers() {
+        if (!markersMode || sheetAnimating) {
+            return;
+        }
+        if (!sheetIsOpen() || !phoneQuery.matches || reducedMotionQuery.matches) {
+            setMarkersMode(false);
+            return;
+        }
+        sheetAnimating = true;
+        root.style.setProperty("--admidio-media-player-bar-drop", Math.round(window.innerHeight - bar.getBoundingClientRect().bottom) + "px");
+        document.body.classList.add("admidio-media-player-markers-closing");
+        window.setTimeout(function() {
+            document.body.classList.remove("admidio-media-player-markers-closing");
+            sheetAnimating = false;
+            setMarkersMode(false);
+        }, 220);
+    }
+
+    /**
+     * Swipe gestures of a touch screen: a vertical swipe (distance or speed high enough) calls up or down.
+     * options.ignore: selector of elements that keep their own gesture, options.scroller: element that must stand at its top for "down".
+     */
+    function attachSwipe(element, options) {
+        let startX = 0;
+        let startY = 0;
+        let startTime = 0;
+        let tracking = false;
+        let startedAtTop = true;
+        element.addEventListener("touchstart", function(event) {
+            tracking = false;
+            if (event.touches.length !== 1 || !phoneQuery.matches || (options.ignore && event.target.closest(options.ignore))) {
+                return;
+            }
+            startX = event.touches[0].clientX;
+            startY = event.touches[0].clientY;
+            startTime = Date.now();
+            startedAtTop = !options.scroller || options.scroller.scrollTop <= 0;
+            tracking = true;
+        }, {passive: true});
+        element.addEventListener("touchcancel", function() {
+            tracking = false;
+        }, {passive: true});
+        element.addEventListener("touchend", function(event) {
+            if (!tracking) {
+                return;
+            }
+            tracking = false;
+            const touch = event.changedTouches[0];
+            const deltaY = touch.clientY - startY;
+            const distance = Math.abs(deltaY);
+            const speed = distance / Math.max(1, Date.now() - startTime);
+            if (distance < 40 || Math.abs(touch.clientX - startX) > distance * 0.7 || (distance < 70 && speed < 0.4)) {
+                return;
+            }
+            if (deltaY < 0) {
+                if (options.up) {
+                    options.up();
+                }
+            } else if (options.down && startedAtTop && (!options.scroller || options.scroller.scrollTop <= 0)) {
+                options.down();
+            }
+        }, {passive: true});
+    }
+
+    // swipe up at the player bar opens the markers, swipe down at the bar, the picture or the list closes them
+    attachSwipe(bar, {
+        ignore: ".admidio-media-player-seek, select, input, textarea",
+        up: function() {
+            if (!sheetIsOpen()) {
+                openMarkers();
+            }
+        },
+        down: function() {
+            if (sheetIsOpen()) {
+                closeMarkers();
+            }
+        }
+    });
+    attachSwipe(stage, {
+        ignore: ".plyr__controls",
+        down: function() {
+            if (sheetIsOpen()) {
+                closeMarkers();
+            }
+        }
+    });
+    attachSwipe(markersElement, {
+        ignore: "input, select, textarea",
+        scroller: markersElement,
+        down: closeMarkers
+    });
+
     $(document).on("click", ".admidio-media-player-markers-toggle", function() {
-        setMarkersMode(!markersMode);
+        if (markersMode) {
+            closeMarkers();
+        } else {
+            openMarkers();
+        }
     });
-    document.getElementById("adm_media_player_marker_panel").addEventListener("click", function() {
-        setMarkersMode(false);
-    });
-    document.getElementById("adm_media_player_markers_close").addEventListener("click", function() {
-        setMarkersMode(false);
-    });
+    document.getElementById("adm_media_player_marker_panel").addEventListener("click", closeMarkers);
+    document.getElementById("adm_media_player_markers_close").addEventListener("click", closeMarkers);
     document.getElementById("adm_media_player_marker_previous").addEventListener("click", function() {
         previousNextMarker(-1);
     });

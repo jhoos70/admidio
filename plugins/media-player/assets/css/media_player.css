@@ -1030,19 +1030,24 @@ label.admidio-media-player-tree-line {
     }
 }
 
-/* phones and tablets: the panel is a sheet above the player bar */
+/* phones and tablets: with the markers the player moves to the top, the list stands below it (swipe up opens, swipe down closes) */
 @media (max-width: 991.98px) {
     .admidio-media-player-markers {
         position: fixed;
         left: 0;
         right: 0;
-        bottom: var(--admidio-media-player-bar-height, 0px);
+        top: calc(var(--admidio-media-player-sticky-top, 0px) + var(--admidio-media-player-stage-height, 0px) + var(--admidio-media-player-bar-height, 0px));
+        bottom: 0;
         z-index: 1029;
-        max-height: 50vh;
         overflow-y: auto;
-        border-width: 1px 0 0;
-        border-radius: 0.75rem 0.75rem 0 0;
-        box-shadow: 0 -0.25rem 1rem rgba(0, 0, 0, 0.12);
+        overscroll-behavior: contain;
+        border-width: 0;
+        border-radius: 0;
+    }
+
+    /* without the player (before the first item) there is nothing to show */
+    body:not(.admidio-media-player-markers-sheet) .admidio-media-player-markers {
+        display: none;
     }
 
     .admidio-media-player-markers-list {
@@ -1050,9 +1055,9 @@ label.admidio-media-player-tree-line {
         overflow: visible;
     }
 
-    /* more room while a marker is edited, so the whole form is visible */
-    .admidio-media-player-markers.admidio-media-player-markers-editing {
-        max-height: min(75vh, calc(100vh - var(--admidio-media-player-bar-height, 0px) - 7rem));
+    /* room below the last marker, so a form at the end can be lifted above the keyboard */
+    .admidio-media-player-markers.admidio-media-player-markers-editing .admidio-media-player-markers-list {
+        padding-bottom: 45vh;
     }
 
     .admidio-media-player-markers-header {
@@ -1062,14 +1067,110 @@ label.admidio-media-player-tree-line {
         background: var(--bs-body-bg);
     }
 
+    /* the page stands still behind the player */
+    html.admidio-media-player-markers-sheet,
     body.admidio-media-player-markers-sheet {
-        padding-bottom: calc(7rem + 50vh);
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
+    body.admidio-media-player-markers-sheet .admidio-media-player-bar {
+        top: calc(var(--admidio-media-player-sticky-top, 0px) + var(--admidio-media-player-stage-height, 0px));
+        bottom: auto;
+        border-top: 0;
+        border-bottom: 1px solid var(--bs-border-color);
+        box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+    }
+
+    body.admidio-media-player-markers-sheet .admidio-media-player-stage:not(.d-none) {
+        position: fixed;
+        top: var(--admidio-media-player-sticky-top, 0px);
+        left: 0;
+        right: 0;
+        z-index: 1031;
+        max-width: none;
+        margin-bottom: 0;
+        border-radius: 0;
+        display: flex;
+        justify-content: center;
+        touch-action: pan-x;
+    }
+
+    body.admidio-media-player-markers-sheet .admidio-media-player-stage video {
+        max-height: 36vh;
+    }
+
+    body.admidio-media-player-markers-sheet .admidio-media-player-stage .plyr {
+        width: 100%;
+        max-height: 36vh;
     }
 
     .btn.admidio-media-player-marker-small {
         width: 2rem;
         height: 2rem;
         font-size: 1.05rem;
+    }
+
+    /* the player bar can be pulled up and down */
+    .admidio-media-player-bar {
+        touch-action: pan-x;
+    }
+
+    .admidio-media-player-bar .admidio-media-player-seek {
+        touch-action: none;
+    }
+
+    .admidio-media-player-bar .admidio-media-player-grip {
+        display: block;
+    }
+
+    /* the sheet slides in, the bar moves between bottom and top (the offsets are set by the script) */
+    body.admidio-media-player-markers-opening .admidio-media-player-markers {
+        animation: admidio-media-player-sheet-in 0.25s ease-out;
+    }
+
+    body.admidio-media-player-markers-opening .admidio-media-player-bar {
+        animation: admidio-media-player-bar-in 0.25s ease-out;
+    }
+
+    body.admidio-media-player-markers-closing .admidio-media-player-markers {
+        transform: translateY(100%);
+        transition: transform 0.2s ease-in;
+    }
+
+    body.admidio-media-player-markers-closing .admidio-media-player-bar {
+        transform: translateY(var(--admidio-media-player-bar-drop, 0px));
+        transition: transform 0.2s ease-in;
+    }
+}
+
+.admidio-media-player-grip {
+    display: none;
+    position: absolute;
+    top: 0.2rem;
+    left: 50%;
+    width: 2.5rem;
+    height: 0.25rem;
+    margin-left: -1.25rem;
+    border-radius: 0.125rem;
+    background-color: var(--bs-border-color);
+    pointer-events: none;
+}
+
+@keyframes admidio-media-player-sheet-in {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes admidio-media-player-bar-in {
+    from { transform: translateY(var(--admidio-media-player-bar-rise, 0px)); }
+    to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.admidio-media-player-markers-opening .admidio-media-player-markers,
+    body.admidio-media-player-markers-opening .admidio-media-player-bar {
+        animation: none;
     }
 }
 

@@ -168,6 +168,7 @@
 
     {* the player bar is fixed at the bottom of the window and is shown after the first item was started *}
     <div id="adm_media_player_bar" class="admidio-media-player-bar" hidden>
+        <span class="admidio-media-player-grip" aria-hidden="true"></span>
         <div class="admidio-media-player-bar-track">
             <div id="adm_media_player_title" class="admidio-media-player-bar-title text-truncate"></div>
             <div id="adm_media_player_origin" class="small text-body-secondary text-truncate"></div>

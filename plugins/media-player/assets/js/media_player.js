@@ -1441,6 +1441,7 @@ $(function() {
     }
 
     let stickyFrame = null;
+    let sheetScroll = null;
 
     /**
      * Heights of the player parts that stand above the list of a phone: the picture of a video and the bar.
@@ -1523,8 +1524,17 @@ $(function() {
         ticksElement.hidden = !markersMode;
         // on phones the player (picture, bar) moves to the top and the list stands below it
         const sheet = open && !bar.hidden;
+        const sheetWas = document.body.classList.contains("admidio-media-player-markers-sheet");
+        if (sheet && !sheetWas) {
+            // the picture leaves the page flow, so the browser may shorten the page and move its scroll position
+            sheetScroll = window.scrollY;
+        }
         document.body.classList.toggle("admidio-media-player-markers-sheet", sheet);
         document.documentElement.classList.toggle("admidio-media-player-markers-sheet", sheet);
+        if (!sheet && sheetWas && sheetScroll !== null) {
+            window.scrollTo(0, sheetScroll);
+            sheetScroll = null;
+        }
         updateSheetMetrics();
         requestStickyOffset();
         const addForm = document.getElementById("adm_media_player_marker_add_form");

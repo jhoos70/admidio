@@ -1676,6 +1676,12 @@ $(function() {
         if (media === null) {
             return;
         }
+        if (loopEnd !== null && (marker.position < loopStart || marker.position >= loopEnd)) {
+            // a marker outside of the repeated range ends the repeat, otherwise the end of the range (often the next marker)
+            // would send the playback straight back to the start of the range
+            clearLoop();
+            showLoopHint(labels.labelAbHintClear);
+        }
         if (picture !== null) {
             picture.lastSeek = 0;
         }

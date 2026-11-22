@@ -53,6 +53,7 @@
   <string name="PLG_MEDIA_PLAYER_MARKER_SHARED_INFO">Gemeinsamer Marker</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_TIME">Zeit</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_TIME_INVALID">Bitte eine Zeit wie 1:23 eingeben.</string>
+  <string name="PLG_MEDIA_PLAYER_MARKER_TIME_HINT">Format m:ss, z. B. 1:23. Zehntelsekunden sind optional, z. B. 1:23,5.</string>
   <string name="PLG_MEDIA_PLAYER_MARKER_UNAVAILABLE">Für diesen Eintrag sind keine Marker verfügbar.</string>
   <string name="PLG_MEDIA_PLAYER_MEDIA">Medien</string>
   <string name="PLG_MEDIA_PLAYER_MINUTES">Min.</string>

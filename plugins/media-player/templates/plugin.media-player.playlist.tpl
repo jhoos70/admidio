@@ -28,6 +28,7 @@
     data-label-marker-empty="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_EMPTY')}"
     data-label-marker-no-item="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_NO_ITEM')}"
     data-label-marker-unavailable="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_UNAVAILABLE')}"
+    data-label-marker-time-hint="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_TIME_HINT')}"
     data-label-marker-time-invalid="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_TIME_INVALID')}"
     data-label-marker-error="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_ERROR')}"
     data-label-marker-delete-confirm="{$l10n->get('PLG_MEDIA_PLAYER_MARKER_DELETE_CONFIRM')}"

@@ -90,7 +90,8 @@ class MarkerService
         $name = trim(preg_replace('/\s+/u', ' ', (string)($_POST['name'] ?? '')));
         $name = mb_substr($name, 0, self::MAX_NAME_LENGTH);
         if ($name === '') {
-            $name = self::formatTime($position);
+            $tenths = (int)round($position * 10) % 10;
+            $name = self::formatTime($position) . ($tenths > 0 ? '.' . $tenths : '');
         }
         // bar number or rehearsal letter in the sheet music, optional
         $bar = mb_substr(trim(preg_replace('/\s+/u', ' ', (string)($_POST['bar'] ?? ''))), 0, self::MAX_BAR_LENGTH);

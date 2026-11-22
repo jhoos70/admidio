@@ -1417,6 +1417,17 @@ $(function() {
     }
 
     /**
+     * Format a marker position as m:ss or h:mm:ss, with one decimal only if the position has tenths.
+     * @param {number} seconds
+     * @returns {string}
+     */
+    function formatMarkerTime(seconds) {
+        const tenths = Math.round(seconds * 10);
+        const text = formatTime(Math.floor(tenths / 10));
+        return tenths % 10 === 0 ? text : text + "." + (tenths % 10);
+    }
+
+    /**
      * Read a time like 83, 1:23, 1:23.5 or 1:02:03 as seconds.
      * @param {string} text
      * @returns {number|null} The seconds or null if the text is no time.
@@ -1592,7 +1603,8 @@ $(function() {
         time.inputMode = "decimal";
         time.autocomplete = "off";
         time.setAttribute("aria-label", labels.labelMarkerTime);
-        time.value = formatTime(marker !== null ? marker.position : (media !== null ? media.currentTime() : 0));
+        time.value = marker !== null ? formatMarkerTime(marker.position) : formatTime(media !== null ? media.currentTime() : 0);
+        time.title = labels.labelMarkerTimeHint;
         const now = createIconButton("bi-clock", labels.labelMarkerNow, function() {
             if (media !== null) {
                 time.value = formatTime(media.currentTime());
@@ -1767,7 +1779,7 @@ $(function() {
         jump.title = labels.labelMarkerJump;
         const time = document.createElement("span");
         time.className = "admidio-media-player-marker-time";
-        time.textContent = formatTime(marker.position);
+        time.textContent = formatMarkerTime(marker.position);
         const name = document.createElement("span");
         name.className = "admidio-media-player-marker-name";
         name.textContent = marker.name;
@@ -1865,7 +1877,7 @@ $(function() {
             const tick = document.createElement("span");
             tick.className = "admidio-media-player-tick" + (marker.shared ? " admidio-media-player-tick-shared" : "");
             tick.style.left = seekOffset(marker.position / duration);
-            tick.title = formatTime(marker.position) + (marker.bar !== "" ? " [" + marker.bar + "]" : "") + " " + marker.name;
+            tick.title = formatMarkerTime(marker.position) + (marker.bar !== "" ? " [" + marker.bar + "]" : "") + " " + marker.name;
             ticksElement.appendChild(tick);
         });
     }
@@ -1942,7 +1954,7 @@ $(function() {
         if (target === null || media === null) {
             return;
         }
-        const position = Math.round(media.currentTime() * 10) / 10;
+        const position = Math.floor(media.currentTime());
         sendMarkerRequest(labels.markerSaveUrl, Object.assign({position: position, name: "", shared: 0}, target)).done(function(response) {
             markers.push(response.marker);
             sortMarkers();

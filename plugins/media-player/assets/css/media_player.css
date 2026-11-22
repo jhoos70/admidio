@@ -133,25 +133,36 @@
     display: none;
 }
 
-/* the number changes to a play button on hover, the playing item shows an equalizer */
-.admidio-media-player-item:hover .admidio-media-player-index,
-.admidio-media-player-item:focus-within .admidio-media-player-index,
+/* the number of the active item is replaced by its state: equalizer while playing, play button while paused */
 .admidio-media-player-active .admidio-media-player-index {
     display: none;
 }
 
-.admidio-media-player-item:hover .admidio-media-player-play-button,
-.admidio-media-player-item:focus-within .admidio-media-player-play-button {
-    display: inline-block;
-}
-
-.admidio-media-player-active.admidio-media-player-playing:not(:hover) .admidio-media-player-equalizer {
+.admidio-media-player-active.admidio-media-player-playing .admidio-media-player-equalizer {
     display: inline-flex;
 }
 
-.admidio-media-player-active:not(.admidio-media-player-playing) .admidio-media-player-play-button,
-.admidio-media-player-active.admidio-media-player-playing:hover .admidio-media-player-play-button {
+.admidio-media-player-active:not(.admidio-media-player-playing) .admidio-media-player-play-button {
     display: inline-block;
+}
+
+/* with a mouse the number changes to a play button on hover and the equalizer to a pause button; touch screens have
+   no real hover (it sticks to the row that was tapped), so they keep the state display */
+@media (hover: hover) {
+    .admidio-media-player-item:hover .admidio-media-player-index,
+    .admidio-media-player-item:focus-within .admidio-media-player-index {
+        display: none;
+    }
+
+    .admidio-media-player-item:hover .admidio-media-player-play-button,
+    .admidio-media-player-item:focus-within .admidio-media-player-play-button {
+        display: inline-block;
+    }
+
+    .admidio-media-player-active.admidio-media-player-playing:hover .admidio-media-player-equalizer,
+    .admidio-media-player-active.admidio-media-player-playing:focus-within .admidio-media-player-equalizer {
+        display: none;
+    }
 }
 
 .admidio-media-player-active .btn.admidio-media-player-play-button {

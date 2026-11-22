@@ -425,6 +425,11 @@ $(function() {
         });
         if (currentRow !== null) {
             currentRow.classList.toggle("admidio-media-player-playing", playing);
+            // the button of the row is a pause button while the item plays (shown on hover)
+            const rowIcon = currentRow.querySelector(".admidio-media-player-play-button i");
+            if (rowIcon !== null) {
+                rowIcon.className = playing ? "bi bi-pause-fill" : "bi bi-play-fill";
+            }
         }
         if ("mediaSession" in navigator) {
             if (playing) {
@@ -1091,6 +1096,10 @@ $(function() {
         stop(isFile && media !== null && media.isAudio);
         getRows().forEach(function(item) {
             item.classList.remove("admidio-media-player-active", "admidio-media-player-playing");
+            const itemIcon = item.querySelector(".admidio-media-player-play-button i");
+            if (itemIcon !== null) {
+                itemIcon.className = "bi bi-play-fill";
+            }
         });
         row.classList.add("admidio-media-player-active");
         currentRow = row;
